@@ -1,4 +1,4 @@
-from openpype_shotgun.const import VERSION
+from shotgun_events.const import VERSION
 
 
 def test_version():
