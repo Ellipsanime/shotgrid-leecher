@@ -1,4 +1,4 @@
-from shotgun_events.const import VERSION
+from shotgrid_leecher.const import VERSION
 
 
 def test_version():
