@@ -14,7 +14,10 @@ def _get_shotgrid_connection() -> sg.Shotgun:
 
 async def get_recent_events() -> None:
     connection = _get_shotgrid_connection()
-    filters = [["id", "greater_than", 100]]
+    filters = [
+        ["id", "greater_than", 100],
+        ["event_type", "is", "Shotgun_Asset_New"],
+    ]
     fields = [
         "id",
         "event_type",
