@@ -1,19 +1,10 @@
-import os
-
-from toolz import memoize
-import shotgun_api3 as sg
-
-
-@memoize
-def _get_shotgrid_connection() -> sg.Shotgun:
-    url = os.getenv("SHOTGRID_URL")
-    login = os.getenv("SHOTGRID_LOGIN")
-    password = os.getenv("SHOTGRID_PASSWORD")
-    return sg.Shotgun(url, login=login, password=password)
+import shotgrid_leecher.repository.asset_events as asset_events_repository
+from shotgrid_leecher.utils.connectivity import get_shotgrid_client
 
 
 async def get_recent_events() -> None:
-    connection = _get_shotgrid_connection()
+    print(asset_events_repository.get_newest_created_asset_id())
+    shotgrid = get_shotgrid_client()
     filters = [
         ["id", "greater_than", 100],
         ["event_type", "is", "Shotgun_Asset_New"],
@@ -30,7 +21,7 @@ async def get_recent_events() -> None:
         "created_at",
     ]
     order = [{"column": "id", "direction": "asc"}]
-    events = connection.find(
+    events = shotgrid.find(
         "EventLogEntry",
         filters,
         fields,
