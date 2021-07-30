@@ -1,9 +1,9 @@
-import shotgrid_leecher.repository.asset_events as asset_events_repository
+import shotgrid_leecher.repository.asset_events_repo as asset_events_repo
 from shotgrid_leecher.utils.connectivity import get_shotgrid_client
 
 
 async def get_recent_events() -> None:
-    print(asset_events_repository.get_newest_created_asset_id())
+    print(asset_events_repo.get_newest_created_asset_id())
     shotgrid = get_shotgrid_client()
     filters = [
         ["id", "greater_than", 100],

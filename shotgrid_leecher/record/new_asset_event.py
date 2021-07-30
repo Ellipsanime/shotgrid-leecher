@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from shotgrid_leecher.record.shotgrid_project import ShotgridProject
 from shotgrid_leecher.record.shotgrid_user import ShotgridUser
@@ -19,3 +19,6 @@ class NewAssetEvent:
     def to_json(self) -> str:
         return json.dumps(self, cls=DataclassJSONEncoder)
 
+    def to_dict(self) -> Dict[str, Any]:
+        # TODO use more optimized way to convert dataclass to dict struct
+        return json.loads(self.to_json())
