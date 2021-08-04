@@ -10,7 +10,3 @@ def get_newest_created_asset_id() -> int:
         return 0
     return 0
 
-
-def save_new_asset_events(events: List[Dict[str, Any]]) -> None:
-    # queue schema http://learnmongodbthehardway.com/schema/queues/
-    conn.get_db_client().openpype_shotgrid.new_asset_events.insert

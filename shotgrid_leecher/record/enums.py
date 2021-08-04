@@ -7,5 +7,24 @@ class ShotgridEvent(Enum):
 
 
 @unique
+class EventTables(Enum):
+    ASSET_EVENTS = "asset_events"
+
+
+@unique
+class EventType(Enum):
+    CREATION = "Creation"
+    UPDATE = "Update"
+    DELETE = "Delete"
+
+
+@unique
+class EventStatus(Enum):
+    INIT = "Initialized"
+    ASSIGNED = "Assigned"
+    DONE = "Done"
+
+
+@unique
 class ShotgridEventEntry(Enum):
     EVENT_ENTRY = "EventLogEntry"
