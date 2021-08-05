@@ -1,3 +1,4 @@
+import hashlib
 import json
 from dataclasses import dataclass
 from typing import Optional, Any, Dict
@@ -15,6 +16,20 @@ class NewAssetEvent:
     shotgrid_user: ShotgridUser
     shotgrid_project: ShotgridProject
     type: str = "New_Asset_Event"
+
+    def get_unique_id(self) -> str:
+        id_data = "".join(
+            [
+                self.shotgrid_id,
+                "/",
+                self.shotgrid_entity_id,
+                "/",
+                self.shotgrid_project.id,
+                "/",
+                self.shotgrid_user.id,
+            ]
+        )
+        return hashlib.sha256(id_data.encode("utf-8")).hexdigest()
 
     def to_json(self) -> str:
         return json.dumps(self, cls=DataclassJSONEncoder)
