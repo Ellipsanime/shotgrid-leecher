@@ -1,7 +1,7 @@
 from typing import Any, List, Dict
 
 import shotgrid_leecher.utils.connectivity as connectivity
-from shotgrid_leecher.record.enums import ShotgridEvent, ShotgridEventEntry
+from shotgrid_leecher.record.enums import ShotgridEvents, ShotgridEventEntries
 
 DEFAULT_FIELDS = [
     "id",
@@ -24,7 +24,7 @@ def _find_events(
     filters: List[List[str]], limit: int = 100
 ) -> List[Dict[str, Any]]:
     return connectivity.get_shotgrid_client().find(
-        ShotgridEventEntry.EVENT_ENTRY.value,
+        ShotgridEventEntries.EVENT_ENTRY.value,
         filters,
         DEFAULT_FIELDS,
         DEFAULT_ORDER,
@@ -33,7 +33,7 @@ def _find_events(
 
 
 def get_recent_events(
-    event: ShotgridEvent, last_id: int
+    event: ShotgridEvents, last_id: int
 ) -> List[Dict[str, Any]]:
     filters = [
         ["id", "greater_than", last_id],

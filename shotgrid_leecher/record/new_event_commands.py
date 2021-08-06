@@ -1,12 +1,13 @@
 from dataclasses import dataclass
-from typing import Union, List
+from datetime import datetime
+from typing import Union, List, Dict, Any
 
 from toolz import pipe
 from toolz.curried import (
     map as select,
 )
 
-from shotgrid_leecher.record.enums import EventType, EventStatus
+from shotgrid_leecher.record.enums import EventTypes, EventStatuses
 from shotgrid_leecher.record.new_asset_event import NewAssetEvent
 
 AnyEvent = Union[NewAssetEvent]
@@ -14,16 +15,25 @@ AnyEvent = Union[NewAssetEvent]
 
 @dataclass(frozen=True)
 class NewEventCommand:
-    event_type: EventType
-    event_status: EventStatus
+    id: str
+    event_type: EventTypes
+    event_status: EventStatuses
     event: AnyEvent
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "_id": self.id,
+            "event_type": self.event_type,
+            "event_status": self.event_status,
+            "event_data": self.event.to_dict(),
+            "datetime": datetime.utcnow(),
+        }
 
 
 @dataclass(frozen=True)
 class NewEventsCommand:
-    # https://blog.insiderattack.net/implementing-event-sourcing-and-cqrs-pattern-with-mongodb-66991e7b72be
-    event_type: EventType
-    event_status: EventStatus
+    event_type: EventTypes
+    event_status: EventStatuses
     events: List[AnyEvent]
 
     def to_list(self) -> List[NewEventCommand]:
@@ -31,7 +41,7 @@ class NewEventsCommand:
             self.events,
             select(
                 lambda x: NewEventCommand(
-                    self.event_type, self.event_status, x
+                    x.get_unique_id(), self.event_type, self.event_status, x,
                 )
             ),
             list,

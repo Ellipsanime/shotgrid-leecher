@@ -2,29 +2,30 @@ from enum import Enum, unique
 
 
 @unique
-class ShotgridEvent(Enum):
+class ShotgridEvents(Enum):
     NEW_ASSET = "Shotgun_Asset_New"
 
 
 @unique
 class EventTables(Enum):
     ASSET_EVENTS = "asset_events"
+    EVENT_STATUS = "event_status"
 
 
 @unique
-class EventType(Enum):
+class EventTypes(Enum):
     CREATION = "Creation"
     UPDATE = "Update"
     DELETE = "Delete"
 
 
 @unique
-class EventStatus(Enum):
+class EventStatuses(Enum):
     INIT = "Initialized"
     ASSIGNED = "Assigned"
     DONE = "Done"
 
 
 @unique
-class ShotgridEventEntry(Enum):
+class ShotgridEventEntries(Enum):
     EVENT_ENTRY = "EventLogEntry"
