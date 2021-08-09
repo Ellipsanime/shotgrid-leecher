@@ -4,7 +4,7 @@ import uvicorn as uvicorn
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 
-import event_leecher as event_leecher
+from shotgrid_leecher.service import asset_events_service
 
 app = FastAPI()
 
@@ -12,7 +12,8 @@ app = FastAPI()
 @app.on_event("startup")
 @repeat_every(seconds=60)
 async def start_leeching_events() -> None:
-    await event_leecher.get_recent_events()
+    # await event_leecher.get_recent_events()
+    asset_events_service.get_recent_events()
 
 
 @app.get("/events")

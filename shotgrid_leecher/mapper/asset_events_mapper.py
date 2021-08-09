@@ -23,9 +23,9 @@ def new_asset_event_from_dict(dic: Dict[str, Any]) -> NewAssetEvent:
     project = shotgrid_project_from_dict(dic.get("project"))
     user = shotgrid_user_from_dict(dic.get("user"))
     return NewAssetEvent(
-        dic.get("id"),
-        get_in(["meta", "entity_id"], dic),
-        dic.get("session_uuid"),
+        int(get_in(["entity", "id"], dic)),
+        get_in(["entity", "name"], dic),
+        dic.get("created_at"),
         user,
         project,
     )

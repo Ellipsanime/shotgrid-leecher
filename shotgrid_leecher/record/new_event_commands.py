@@ -22,7 +22,7 @@ class NewEventCommand:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "_id": self.id,
+            "_id": (self.id, self.event_type, self.event_status),
             "event_type": self.event_type,
             "event_status": self.event_status,
             "event_data": self.event.to_dict(),
