@@ -22,11 +22,11 @@ class NewEventCommand:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "_id": (self.id, self.event_type, self.event_status),
+            "_id": f"{self.id}/{self.event_type}/{self.event_status}",
             "event_type": self.event_type,
             "event_status": self.event_status,
             "event_data": self.event.to_dict(),
-            "datetime": datetime.utcnow(),
+            "datetime": datetime.utcnow().isoformat(),
         }
 
 

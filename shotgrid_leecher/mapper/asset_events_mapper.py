@@ -37,8 +37,8 @@ def new_event_command_from_event(
 ) -> NewEventCommand:
     return NewEventCommand(
         event.get_unique_id(),
-        event_type,
-        event_status,
+        event_type.value,
+        event_status.value,
         event,
     )
 
