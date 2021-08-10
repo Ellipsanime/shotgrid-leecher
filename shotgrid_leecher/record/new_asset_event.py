@@ -3,8 +3,12 @@ import json
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from shotgrid_leecher.record.shotgrid_project import ShotgridProject
-from shotgrid_leecher.record.shotgrid_user import ShotgridUser
+from shotgrid_leecher.record.enums import ShotgridEvents
+from shotgrid_leecher.record.shotgrid_subtypes import (
+    ShotgridProject,
+    ShotgridUser,
+    ShotgridEntity,
+)
 from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 
 
@@ -15,7 +19,8 @@ class NewAssetEvent:
     shotgrid_creation_date: datetime
     shotgrid_user: ShotgridUser
     shotgrid_project: ShotgridProject
-    type: str = "New_Asset_Event"
+    shotgrid_entity: ShotgridEntity
+    type: str = ShotgridEvents.NEW_ASSET.value
 
     def get_unique_id(self) -> str:
         return "".join(
@@ -23,9 +28,10 @@ class NewAssetEvent:
                 self.shotgrid_project.name,
                 "/",
                 self.shotgrid_name,
+                "/",
+                self.type,
             ]
         )
-        # return hashlib.sha256(id_data.encode("utf-8")).hexdigest()
 
     def to_json(self) -> str:
         return json.dumps(self, cls=DataclassJSONEncoder)

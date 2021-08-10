@@ -14,14 +14,7 @@ class EventTables(Enum):
 
 @unique
 class EventTypes(Enum):
-    CREATION = "Creation"
-    UPDATE = "Update"
-    DELETE = "Delete"
-
-
-@unique
-class EventStatuses(Enum):
-    INIT = "Initialized"
+    INITIALIZED = "Initialized"
     ASSIGNED = "Assigned"
     DONE = "Done"
 
