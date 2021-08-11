@@ -9,7 +9,7 @@ class ShotgridEvents(Enum):
 @unique
 class EventTables(Enum):
     ASSET_EVENTS = "asset_events"
-    EVENT_STATUS = "event_status"
+    VERSION_EVENTS = "version_events"
 
 
 @unique
