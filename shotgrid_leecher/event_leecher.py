@@ -1,17 +1,13 @@
-import shotgrid_leecher.repository.asset_events_repo as asset_events_repo
-from shotgrid_leecher.domain.asset_domain import save_new_asset_events
-from shotgrid_leecher.record.enums import (
-    ShotgridEvents,
-)
+from shotgrid_leecher.repository import shotgrid_hierarchy_repo
 from shotgrid_leecher.utils.connectivity import get_shotgrid_client
 
 
-async def get_recent_events() -> None:
-    save_new_asset_events(None)
-    print(
-        asset_events_repo.get_last_created_event_id(ShotgridEvents.NEW_ASSET)
-    )
-    print(await asset_events_repo.get_newest_created_asset_id())
+def get_recent_events() -> None:
+    # save_new_asset_events(None)
+    # print(
+    #     asset_events_repo.get_last_created_event_id(ShotgridEvents.NEW_ASSET)
+    # )
+    # print(await asset_events_repo.get_newest_created_asset_id())
     shotgrid = get_shotgrid_client()
     filters = [
         ["id", "greater_than", 100],
@@ -36,5 +32,8 @@ async def get_recent_events() -> None:
         order,
         limit=100,
     )
+    # proj = shotgrid.find("Asset", [['project','is', {'type': 'Project','id': 143}]], ["assets"])
+    project = shotgrid_hierarchy_repo.get_hierarchy_by_project(87)
+    response = shotgrid.nav_expand("/Project/87")
     print(events)
     pass
