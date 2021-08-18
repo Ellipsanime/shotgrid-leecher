@@ -32,8 +32,14 @@ def get_recent_events() -> None:
         order,
         limit=100,
     )
-    # proj = shotgrid.find("Asset", [['project','is', {'type': 'Project','id': 143}]], ["assets"])
+    proj = shotgrid.find(
+        "Asset",
+        [["project", "is", {"type": "Project", "id": 143}]],
+        ["assets"],
+    )
     project = shotgrid_hierarchy_repo.get_hierarchy_by_project(87)
-    response = shotgrid.nav_expand("/Project/87")
+    # response = shotgrid.nav_expand("/Project/87")
+    print(proj)
     print(events)
+    print(project)
     pass

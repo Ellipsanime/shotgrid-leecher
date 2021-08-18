@@ -27,4 +27,4 @@ def start():
 
 if __name__ == "__main__":
     event_leecher.get_recent_events()
-    start()
+    # start()
