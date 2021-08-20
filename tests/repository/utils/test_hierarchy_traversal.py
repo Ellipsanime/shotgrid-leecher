@@ -3,6 +3,7 @@ import uuid
 from typing import Dict, Any, List
 from unittest.mock import PropertyMock
 
+import pytest
 from assertpy import assert_that
 
 from shotgrid_leecher.record.shotgrid_structures import (
@@ -12,6 +13,9 @@ from shotgrid_leecher.record.shotgrid_structures import (
 from shotgrid_leecher.repository.utils.hierarchy_traversal import (
     ShotgridHierarchyTraversal,
 )
+
+
+_RAND = random.randint
 
 
 def _get_random_node(has_children: bool = False) -> Dict[str, Any]:
@@ -45,7 +49,7 @@ def _get_middle_hierarchy(size=10) -> Dict[str, Any]:
 
 
 def _get_grandchildren(children: List[ShotgridNode]) -> List[ShotgridNode]:
-    result = []
+    result: List[ShotgridNode] = []
     for child in children:
         if not child.children:
             result = [*result, child]
@@ -71,15 +75,17 @@ def test_flat_traversal():
     assert_that(actual.children).is_length(10)
 
 
-def test_shallow_traversal():
+@pytest.mark.parametrize(
+    "size", list([_RAND(1, 10), _RAND(10, 25), _RAND(25, 55), _RAND(55, 100)])
+)
+def test_shallow_traversal(size: int):
     # Arrange
     client = PropertyMock()
     client.nav_expand = PropertyMock()
-    size = 10
     data = _get_middle_hierarchy(size)
     client.nav_expand.side_effect = [
         data,
-        *[_get_bottom_hierarchy() for _ in range(size)],
+        *[_get_bottom_hierarchy(size) for _ in range(size)],
     ]
     project_id = random.randint(1, 2001)
     sut = ShotgridHierarchyTraversal(project_id, client)
@@ -88,20 +94,22 @@ def test_shallow_traversal():
     actual = sut.traverse_from_the_top()
     # Assert
     assert_that(actual).is_type_of(ShotgridNode)
-    assert_that(actual.children).is_length(10)
+    assert_that(actual.children).is_length(size)
     assert_that(_get_grandchildren(actual.children)).is_length(size * size)
 
 
-def test_deep_traversal():
+@pytest.mark.parametrize(
+    "size", list([_RAND(1, 4), _RAND(4, 9), _RAND(9, 13), _RAND(13, 17)])
+)
+def test_deep_traversal(size: int):
     # Arrange
     client = PropertyMock()
     client.nav_expand = PropertyMock()
-    size = 10
     data = _get_middle_hierarchy(size)
     client.nav_expand.side_effect = [
         data,
-        *[_get_middle_hierarchy() for _ in range(size)],
-        *[_get_bottom_hierarchy() for _ in range(size * size * size)],
+        *[_get_middle_hierarchy(size) for _ in range(size)],
+        *[_get_bottom_hierarchy(size) for _ in range(size * size * size)],
     ]
     project_id = random.randint(1, 2003)
     sut = ShotgridHierarchyTraversal(project_id, client)
@@ -110,7 +118,7 @@ def test_deep_traversal():
     actual = sut.traverse_from_the_top()
     # Assert
     assert_that(actual).is_type_of(ShotgridNode)
-    assert_that(actual.children).is_length(10)
+    assert_that(actual.children).is_length(size)
     assert_that(_get_grandchildren(actual.children)).is_length(
         size * size * size
     )
