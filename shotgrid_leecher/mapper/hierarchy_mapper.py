@@ -1,12 +1,13 @@
-from typing import Dict, Any, Union
+from typing import Dict, Any
+from typing import Union
 
+from shotgrid_leecher.record.shotgrid_structures import ShotgridNode
 from shotgrid_leecher.record.shotgrid_structures import (
-    ShotgridNode,
     ShotgridRef, ShotgridRefType,
 )
 from shotgrid_leecher.utils.logger import get_logger
 
-_LOG = get_logger(__name__)
+_LOG = get_logger(__name__.split(".")[-1])
 
 
 def _dict_to_ref(dic: Dict[str, Any]) -> ShotgridRef:

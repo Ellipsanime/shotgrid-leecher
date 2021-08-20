@@ -7,8 +7,9 @@ from toolz import curry
 
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.shotgrid_structures import ShotgridNode
-from shotgrid_leecher.repository.utils.hierarchy_traversal import \
-    ShotgridHierarchyTraversal
+from shotgrid_leecher.repository.utils.hierarchy_traversal import (
+    ShotgridHierarchyTraversal,
+)
 from shotgrid_leecher.utils.logger import get_logger
 from shotgrid_leecher.utils.timer import timed
 
@@ -54,4 +55,3 @@ def get_hierarchy_by_project(
     result = traversal.traverse_from_the_top()
     _LOG.debug(f"Unique queries length {len(traversal.visited_paths)}")
     return result
-
