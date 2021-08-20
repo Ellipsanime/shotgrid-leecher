@@ -14,7 +14,6 @@ from shotgrid_leecher.repository.utils.hierarchy_traversal import (
     ShotgridHierarchyTraversal,
 )
 
-
 _RAND = random.randint
 
 
@@ -69,6 +68,14 @@ def _lineup_hierarchy(start_from: ShotgridNode) -> List[ShotgridNode]:
         else:
             result = [*result, *_lineup_hierarchy(child)]
     return result
+
+
+def _twin_paths(node: ShotgridNode) -> Tuple[List, List]:
+    flat = [(x.label, x.parent_paths) for x in _lineup_hierarchy(node)]
+    return (
+        [x[0] for x in flat[:-1]],
+        [x[1].short_path.split("/")[-1] for x in flat[1:]],
+    )
 
 
 def test_flat_traversal():
@@ -145,9 +152,7 @@ def test_parent_assignment():
     data = _get_middle_hierarchy(size)
     client.nav_expand.side_effect = [
         data,
-        *[_get_middle_hierarchy(size) for _ in range(size)],
-        *[_get_middle_hierarchy(size) for _ in range(size)],
-        *[_get_middle_hierarchy(size) for _ in range(size)],
+        *[_get_middle_hierarchy(size) for _ in range(random.randint(10, 25))],
         *[_get_bottom_hierarchy(size) for _ in range(size)],
     ]
     project_id = random.randint(1, 3000)
@@ -157,11 +162,4 @@ def test_parent_assignment():
     actual = sut.traverse_from_the_top()
     # Assert
     assert_that(actual).is_type_of(ShotgridNode)
-    assert_that(actual.children).is_length(size)
-    assert_that(_lineup_hierarchy(actual)).is_length(size * size * size)
-
-
-def _twin_paths(node: ShotgridNode) -> Tuple[List, List]:
-    flat = [(x.label, x.parent_paths) for x in _lineup_hierarchy(node)]
-
-    return [], [flat]
+    assert_that(_twin_paths(actual)[0]).is_equal_to(_twin_paths(actual)[1])
