@@ -40,22 +40,40 @@ class ExtraNodeParams:
 
 
 @dataclass(frozen=True)
+class ShotgridParentPaths:
+    complete_path: str
+    short_path: str
+
+
+@dataclass(frozen=True)
 class ShotgridNode:
     label: str
     path: str
     ref: ShotgridRef
     children: List["ShotgridNode"]
+    parent_paths: Optional[ShotgridParentPaths] = None
     extra_params: Optional[ExtraNodeParams] = None
 
-    def copy_with(
-        self,
-        children: List["ShotgridNode"],
-        extra_params: Optional[ExtraNodeParams] = None,
+    def copy_with_children(
+        self, children: List["ShotgridNode"]
     ) -> "ShotgridNode":
         return ShotgridNode(
             self.label,
             self.path,
             self.ref,
             children,
-            extra_params,
+            self.parent_paths,
+            self.extra_params,
+        )
+
+    def copy_with_parent_paths(
+        self, parent_paths: ShotgridParentPaths
+    ) -> "ShotgridNode":
+        return ShotgridNode(
+            self.label,
+            self.path,
+            self.ref,
+            self.children,
+            parent_paths,
+            self.extra_params,
         )
