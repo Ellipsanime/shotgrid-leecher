@@ -63,7 +63,7 @@ class ShotgridHierarchyTraversal:
         return not raw.get("has_children", False)
 
     def _already_visited(self, node: ShotgridNode) -> bool:
-        return node.path in self.visited_paths
+        return node.system_path in self.visited_paths
 
     def _get_children(self, raw: Dict[str, Any]) -> List[Dict[str, Any]]:
         return [child for child in raw.get("children", [])]
@@ -79,9 +79,9 @@ class ShotgridHierarchyTraversal:
         if self._has_no_children(raw) or self._already_visited(child):
             return child
         self._logger.debug(f"get children for {raw.get('path')} path")
-        raw_data = self._fetch_from_hierarchy(child.path)
+        raw_data = self._fetch_from_hierarchy(child.system_path)
         children = self._get_children(raw_data)
-        self.visited_paths = {*self.visited_paths, child.path}
+        self.visited_paths = {*self.visited_paths, child.system_path}
         current_paths = ShotgridParentPaths(
             raw_data["parent_path"], f"{parent_paths.short_path}/{child.label}"
         )

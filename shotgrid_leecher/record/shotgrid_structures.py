@@ -63,7 +63,6 @@ class ExtraNodeParams:
         }
 
 
-
 @dataclass(frozen=True)
 class ShotgridParentPaths:
     system_path: str
@@ -86,24 +85,30 @@ class ShotgridParentPaths:
 @dataclass(frozen=True)
 class ShotgridNode:
     label: str
-    path: str
+    system_path: str
     ref: ShotgridRef
     children: List["ShotgridNode"]
     parent_paths: Optional[ShotgridParentPaths] = None
     extra_params: Optional[ExtraNodeParams] = None
 
     def to_table_iterator(self) -> Iterator[Dict[str, Any]]:
+        parent_paths: Dict[str, Any] = (
+            self.parent_paths.to_row()
+            if self.parent_paths
+            else ShotgridParentPaths.empty()
+        )
+        path = (
+            f",{self.label},"
+            if not parent_paths.get("short_path")
+            else f"{parent_paths['short_path']}{self.label}"
+        )
         yield {
             "_id": self.label,
-            "path": format_path(self.path),
+            "path": path,
+            "system_path": format_path(self.system_path or ""),
             **self.ref.to_row(),
-            **(
-                self.parent_paths.to_row()
-                if self.parent_paths
-                else ShotgridParentPaths.empty()
-            ),
+            **parent_paths,
             **ExtraNodeParams.empty(),
-
         }
         for x in self.children:
             for y in x.to_table_iterator():
@@ -114,7 +119,7 @@ class ShotgridNode:
     ) -> "ShotgridNode":
         return ShotgridNode(
             self.label,
-            self.path,
+            self.system_path,
             self.ref,
             children,
             self.parent_paths,
@@ -126,7 +131,7 @@ class ShotgridNode:
     ) -> "ShotgridNode":
         return ShotgridNode(
             self.label,
-            self.path,
+            self.system_path,
             self.ref,
             self.children,
             parent_paths,
