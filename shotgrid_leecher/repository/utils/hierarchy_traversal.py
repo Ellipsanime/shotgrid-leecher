@@ -2,16 +2,157 @@ import time
 from typing import Set, List, Tuple, Dict, Any
 
 import shotgun_api3 as sg
+from retry import retry
 
 from shotgrid_leecher.mapper import hierarchy_mapper as mapper
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridNode,
     ShotgridParentPaths,
 )
+from shotgrid_leecher.repository.utils.traversal_rules import (
+    ENTITY_TRAVERSAL_RULES,
+)
 from shotgrid_leecher.utils.logger import get_logger
 
 
-class ShotgridHierarchyTraversal:
+class ShotgridClient:
+    client: sg.Shotgun
+
+    def __init__(self, client: sg.Shotgun) -> None:
+        super().__init__()
+        self.client = client
+
+    @retry(tries=3, backoff=0.7)
+    def find_one(
+        self, type_: str, filters: List[List[Any]], fields: List[str]
+    ) -> Dict[str, Any]:
+        return self.client.find_one(type_, filters, fields)
+
+    @retry(tries=3, backoff=1.5)
+    def find(
+        self, type_: str, filters: List[List[Any]], fields: List[str]
+    ) -> List[Dict[str, Any]]:
+        return self.client.find(type_, filters, fields)
+
+
+class ShotgridFindHierarchyTraversal:
+    _logger = get_logger(__name__.split(".")[-1])
+    project_id: int
+    client: ShotgridClient
+    rules: Dict[str, Any] = ENTITY_TRAVERSAL_RULES
+
+    def __init__(self, project_id: int, client: ShotgridClient) -> None:
+        super().__init__()
+        self.client = client
+        self.project_id = project_id
+
+    # shotgrid.schema_read()["Asset"].keys()
+    # shotgrid.find("Asset", [["project", "is", proj]],
+    # -- ["tasks", "code", "sg_asset_type"])
+    # shotgrid.find("Shot", [["project", "is", proj],],
+    #  -- ["tasks", "sg_cut_duration", "sg_frame_rate", "code"])
+    # shotgrid.find("Task", [["project", "is", proj],],
+    # -- ["content", "name", "id", "step"])
+    def traverse_from_the_top(self) -> List[Dict[str, Any]]:
+        project = self.client.find_one(
+            "Project", [["id", "is", self.project_id]], ["code"]
+        )
+
+        mongo_lines = [
+            {"_id": project["code"], "type": "Project", "parent": None}
+        ]
+        tasks = self._fetch_project_tasks(project)
+        mongo_lines = mongo_lines + self._fetch_project_assets(project, tasks)
+        # mongo_lines = mongo_lines + self._fetch_project_shots(project, tasks)
+
+        return mongo_lines
+
+    def _fetch_project_tasks(self, project: Dict):
+
+        # TODO: Fields should be configurable
+        tasks = self.client.find(
+            "Task",
+            [
+                ["project", "is", project],
+            ],
+            ["content", "name", "id", "step"],
+        )
+        return {task["id"]: task for task in tasks}
+
+    def _fetch_project_assets(self, project: Dict, tasks: Dict):
+        # [ {"_id": "name", "type": "Asset" "parent": ",parent,"]
+        #
+        # rnd_test
+        #   asset
+        #       PRP
+        #           Fork
+        #               Task1
+        #               Task2
+        # [rnd_test]
+        # [asset]
+        # [PRP]
+        # [Fork]
+        # [Task1]
+        # [Task2]
+
+        # TODO: Fields should be configurable
+        assets = self.client.find(
+            "Asset",
+            [["project", "is", project]],
+            ["tasks", "code", "sg_asset_type"],
+        )
+        mongo_assets = [
+            {"_id": "Asset", "type": "Group", "parent": f",{project['code']},"}
+        ]
+
+        step = []
+        for asset in assets:
+
+            if asset["sg_asset_type"] not in step:
+                mongo_assets.append(self._get_group_line(asset, project))
+                step.append(asset["sg_asset_type"])
+
+            parent_path = f",{project['code']},Asset,{asset['sg_asset_type']},"
+            mongo_assets.append(self._get_asset_line(asset, parent_path))
+
+            for task in asset["tasks"]:
+                parent_task_path = f"{parent_path},{asset['code']},"
+                task = tasks[task["id"]]
+                mongo_assets.append(
+                    self._get_task_line(parent_task_path, task)
+                )
+
+        return mongo_assets
+
+    def _get_task_line(self, parent_task_path, task):
+        return {
+            "_id": f"{task['content']}_{task['id']}",
+            "src_id": task["id"],
+            "type": "Task",
+            "parent": parent_task_path,
+            "task_type": task["step"]["name"],
+        }
+
+    def _get_asset_line(self, asset, parent_path):
+        return {
+            "_id": asset["code"],
+            "src_id": asset["id"],
+            "type": "Asset",
+            "parent": parent_path,
+        }
+
+    def _get_group_line(self, asset, project):
+        return {
+            "_id": asset["sg_asset_type"],
+            "type": "Group",
+            "parent": f",{project['code']},{asset['sg_asset_type']},",
+        }
+
+    def _fetch_project_shots(self, project, tasks):
+        pass
+
+
+class ShotgridNavHierarchyTraversal:
     _logger = get_logger(__name__.split(".")[-1])
     _FIRST_LEVEL_FILTER = {"assets", "shots"}
     visited_paths: Set[str] = set()

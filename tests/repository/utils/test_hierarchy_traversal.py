@@ -11,7 +11,8 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridNode,
 )
 from shotgrid_leecher.repository.utils.hierarchy_traversal import (
-    ShotgridHierarchyTraversal,
+    ShotgridNavHierarchyTraversal,
+    ShotgridFindHierarchyTraversal,
 )
 
 _RAND = random.randint
@@ -78,6 +79,39 @@ def _twin_paths(node: ShotgridNode) -> Tuple[List, List]:
     )
 
 
+def _get_project(id_: int) -> Dict[str, Any]:
+    return {
+        "Type": "Project",
+        "id": id_,
+        "code": str(uuid.uuid4()),
+    }
+
+
+def _get_asset_tasks(num: int) -> List[Dict]:
+    names = ["lines", "color", "look", "dev"]
+    steps = ["modeling", "shading", "rigging"]
+    return [
+        {
+            "id": uuid.uuid4().int,
+            "content": random.choice(names),
+            "step": {"name": random.choice(steps)},
+        }
+        for _ in range(num)
+    ]
+
+
+def _get_simple_assets(task_ids: List[int]) -> List[Dict]:
+    return [
+        {
+            "type": "Asset",
+            "code": "Fork",
+            "sg_asset_type": "PRP",
+            "id": random.randint(1, 10_000),
+            "tasks": [{"id": x, "type": "Task"} for x in task_ids],
+        }
+    ]
+
+
 def test_flat_traversal():
     # Arrange
     client = PropertyMock()
@@ -86,7 +120,7 @@ def test_flat_traversal():
     data = _get_bottom_hierarchy(size)
     client.nav_expand.return_value = data
     project_id = random.randint(1, 2000)
-    sut = ShotgridHierarchyTraversal(project_id, client)
+    sut = ShotgridNavHierarchyTraversal(project_id, client)
     sut._FIRST_LEVEL_FILTER = [x["label"].lower() for x in data["children"]]
     # Act
     actual = sut.traverse_from_the_top()
@@ -108,7 +142,7 @@ def test_shallow_traversal(size: int):
         *[_get_bottom_hierarchy(size) for _ in range(size)],
     ]
     project_id = random.randint(1, 2001)
-    sut = ShotgridHierarchyTraversal(project_id, client)
+    sut = ShotgridNavHierarchyTraversal(project_id, client)
     sut._FIRST_LEVEL_FILTER = [x["label"].lower() for x in data["children"]]
     # Act
     actual = sut.traverse_from_the_top()
@@ -132,7 +166,7 @@ def test_deep_traversal(size: int):
         *[_get_bottom_hierarchy(size) for _ in range(size * size * size)],
     ]
     project_id = random.randint(1, 2003)
-    sut = ShotgridHierarchyTraversal(project_id, client)
+    sut = ShotgridNavHierarchyTraversal(project_id, client)
     sut._FIRST_LEVEL_FILTER = [x["label"].lower() for x in data["children"]]
     # Act
     actual = sut.traverse_from_the_top()
@@ -156,10 +190,51 @@ def test_parent_assignment():
         *[_get_bottom_hierarchy(size) for _ in range(size)],
     ]
     project_id = random.randint(1, 3000)
-    sut = ShotgridHierarchyTraversal(project_id, client)
+    sut = ShotgridNavHierarchyTraversal(project_id, client)
     sut._FIRST_LEVEL_FILTER = [x["label"].lower() for x in data["children"]]
     # Act
     actual = sut.traverse_from_the_top()
     # Assert
     assert_that(actual).is_type_of(ShotgridNode)
     assert_that(_twin_paths(actual)[0]).is_equal_to(_twin_paths(actual)[1])
+
+
+def test_assets_traversal():
+    # Arrange
+    task_num = 2
+    tasks = _get_asset_tasks(task_num)
+    asset = _get_simple_assets([x.get("id") for x in tasks])
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    client.find_one.return_value = _get_project(project_id)
+    client.find.side_effect = [tasks, asset]
+
+    sut = ShotgridFindHierarchyTraversal(project_id, client)
+    # Act
+    actual = sut.traverse_from_the_top()
+    # Assert
+    assert_that(actual).is_type_of(list)
+    assert_that(actual).is_length(4 + task_num)
+    assert_that([x for x in actual if x["type"] == "Project"]).is_length(1)
+    assert_that([x for x in actual if x["type"] == "Group"]).is_length(2)
+    assert_that([x for x in actual if x["type"] == "Asset"]).is_length(1)
+    assert_that([x for x in actual if x["type"] == "Task"]).is_length(task_num)
+
+
+def test_assets_traversal_with_unique_task_id():
+    # Arrange
+    task_num = 100
+    tasks = _get_asset_tasks(task_num)
+    asset = _get_simple_assets([x.get("id") for x in tasks])
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    client.find_one.return_value = _get_project(project_id)
+    client.find.side_effect = [tasks, asset]
+
+    sut = ShotgridFindHierarchyTraversal(project_id, client)
+    # Act
+    actual = sut.traverse_from_the_top()
+    # Assert
+    assert_that(
+        set([x["_id"] for x in actual if x["type"] == "Task"])
+    ).is_length(task_num)

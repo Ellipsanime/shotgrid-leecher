@@ -353,6 +353,14 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "types-retry"
+version = "0.1.5"
+description = "Typing stubs for retry"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "3.10.0.0"
 description = "Backported and Experimental Type Hints for Python 3.5+"
@@ -392,7 +400,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "711cbadcac3272a4f5d221b5a2735d690e821265e0a457de74a9010badc8be06"
+content-hash = "48c3141cd78c1a1653429ab0ba5da43a767d3cb10880b307ddaa224be8dbd459"
 
 [metadata.files]
 asgiref = [
@@ -694,6 +702,10 @@ toml = [
 toolz = [
     {file = "toolz-0.11.1-py3-none-any.whl", hash = "sha256:1bc473acbf1a1db4e72a1ce587be347450e8f08324908b8a266b486f408f04d5"},
     {file = "toolz-0.11.1.tar.gz", hash = "sha256:c7a47921f07822fe534fb1c01c9931ab335a4390c782bd28c6bcc7c2f71f3fbf"},
+]
+types-retry = [
+    {file = "types-retry-0.1.5.tar.gz", hash = "sha256:d4634dfb072f2208bd0cd919c9c46c9f4fe517d57f683aad3897098478d1dcb0"},
+    {file = "types_retry-0.1.5-py3-none-any.whl", hash = "sha256:d40287362de2bac4b18e7d6764f4bee7b0d8667c4f806a7efb542398156394a2"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.0-py2-none-any.whl", hash = "sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497"},
