@@ -34,7 +34,7 @@ def get_recent_events() -> None:
     )
     proj = shotgrid.find_one(
         "Project",
-        [["id", "is", 87]],
+        [["id", "is", 111]],
         # [["project", "is", {"type": "Project", "id": 87}]],
         fields,
     )

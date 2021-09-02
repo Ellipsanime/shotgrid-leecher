@@ -83,7 +83,7 @@ def _get_project(id_: int) -> Dict[str, Any]:
     return {
         "Type": "Project",
         "id": id_,
-        "code": str(uuid.uuid4()),
+        "code": f"Project_{str(uuid.uuid4())[-7:]}",
     }
 
 
@@ -95,6 +95,7 @@ def _get_asset_tasks(num: int) -> List[Dict]:
             "id": uuid.uuid4().int,
             "content": random.choice(names),
             "step": {"name": random.choice(steps)},
+            "entity": {"type": "Asset", "name": "Fork", "id": 10000},
         }
         for _ in range(num)
     ]
@@ -106,9 +107,87 @@ def _get_simple_assets(task_ids: List[int]) -> List[Dict]:
             "type": "Asset",
             "code": "Fork",
             "sg_asset_type": "PRP",
-            "id": random.randint(1, 10_000),
+            "id": 10000,
             "tasks": [{"id": x, "type": "Task"} for x in task_ids],
         }
+    ]
+
+
+def _get_shot_tasks() -> List[Dict]:
+    names = ["lines", "color", "look", "dev"]
+    steps = ["layout", "animation", "render"]
+    return [
+        {
+            "id": uuid.uuid4().int,
+            "content": random.choice(names),
+            "step": {"name": random.choice(steps)},
+            "entity": {"type": "Shot", "name": "Empty1", "id": 100000},
+        },
+        {
+            "id": uuid.uuid4().int,
+            "content": random.choice(names),
+            "step": {"name": random.choice(steps)},
+            "entity": {"type": "Shot", "name": "BDG200_SH001", "id": 100001},
+        },
+        {
+            "id": uuid.uuid4().int,
+            "content": random.choice(names),
+            "step": {"name": random.choice(steps)},
+            "entity": {"type": "Shot", "name": "BDG200_SH002", "id": 100002},
+        },
+        {
+            "id": uuid.uuid4().int,
+            "content": random.choice(names),
+            "step": {"name": random.choice(steps)},
+            "entity": {"type": "Shot", "name": "BDG200_SH003", "id": 100003},
+        },
+    ]
+
+
+def _get_shots() -> List[Dict]:
+    return [
+        {
+            "type": "Shot",
+            "id": 100000,
+            "sg_sequence": None,
+            "sg_episode": None,
+            "sg_sequence.Sequence.episode": None,
+            "code": "Empty1",
+        },
+        {
+            "type": "Shot",
+            "id": 100001,
+            "sg_sequence": None,
+            "sg_episode": {"id": 230, "name": "BDG200", "type": "Episode"},
+            "sg_cut_duration": None,
+            "sg_frame_rate": None,
+            "code": "BDG200_SH001",
+            "sg_sequence.Sequence.episode": None,
+        },
+        {
+            "type": "Shot",
+            "id": 100002,
+            "sg_sequence": {"id": 132, "name": "SQ200", "type": "Sequence"},
+            "sg_episode": None,
+            "sg_cut_duration": None,
+            "sg_frame_rate": None,
+            "code": "BDG200_SH002",
+            "sg_sequence.Sequence.episode": None,
+        },
+        {
+            "type": "Shot",
+            "id": 100003,
+            "sg_sequence": {"id": 132, "name": "SQ201", "type": "Sequence"},
+            "sg_episode": {"id": 232, "name": "BDG201", "type": "Episode"},
+            "sg_cut_duration": None,
+            "sg_frame_rate": None,
+            "code": "BDG200_SH003",
+            "sg_sequence.Sequence.episode": {
+                "id": 232,
+                "name": "BDG201",
+                "type": "Episode",
+            },
+        },
     ]
 
 
@@ -199,6 +278,76 @@ def test_parent_assignment():
     assert_that(_twin_paths(actual)[0]).is_equal_to(_twin_paths(actual)[1])
 
 
+def test_shots_traversal():
+    # Arrange
+    tasks = _get_shot_tasks()
+    shots = _get_shots()
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    client.find_one.return_value = _get_project(project_id)
+    client.find.side_effect = [[], shots, tasks]
+
+    sut = ShotgridFindHierarchyTraversal(project_id, client)
+    # Act
+    actual = sut.traverse_from_the_top()
+    # Assert
+    assert_that(actual).is_length(14)
+
+
+def test_shots_traversal_hierarchy():
+    # Arrange
+    tasks = _get_shot_tasks()
+    shots = _get_shots()
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    project = _get_project(project_id)
+    client.find_one.return_value = project
+    client.find.side_effect = [[], shots, tasks]
+
+    sut = ShotgridFindHierarchyTraversal(project_id, client)
+    # Act
+    actual = sut.traverse_from_the_top()
+    # Assert
+    assert_that(actual).extracting(
+        "type", filter={"parent": None}
+    ).is_equal_to(["Project"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},"}
+    ).is_equal_to(["Group"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Shot,"}
+    ).is_equal_to(["Shot", "Episode", "Sequence", "Episode"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Shot,BDG200,"}
+    ).is_equal_to(["Shot"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Shot,SQ200,"}
+    ).is_equal_to(["Shot"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Shot,Empty1,"}
+    ).is_equal_to(["Task"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Shot,BDG201,"}
+    ).is_equal_to(["Sequence"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Shot,BDG201,SQ201,"}
+    ).is_equal_to(["Shot"])
+    assert_that(actual).extracting(
+        "type",
+        filter={"parent": f",{project['code']},Shot,BDG200,BDG200_SH001,"},
+    ).is_equal_to(["Task"])
+    assert_that(actual).extracting(
+        "type",
+        filter={"parent": f",{project['code']},Shot,SQ200,BDG200_SH002,"},
+    ).is_equal_to(["Task"])
+    assert_that(actual).extracting(
+        "type",
+        filter={
+            "parent": f",{project['code']},Shot,BDG201,SQ201,BDG200_SH003,"
+        },
+    ).is_equal_to(["Task"])
+
+
 def test_assets_traversal_hierarchy():
     # Arrange
     task_num = 2
@@ -208,7 +357,7 @@ def test_assets_traversal_hierarchy():
     client = PropertyMock()
     project = _get_project(project_id)
     client.find_one.return_value = project
-    client.find.side_effect = [tasks, asset]
+    client.find.side_effect = [asset, [], tasks]
 
     sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
@@ -241,7 +390,7 @@ def test_assets_traversal():
     project_id = random.randint(10, 1000)
     client = PropertyMock()
     client.find_one.return_value = _get_project(project_id)
-    client.find.side_effect = [tasks, asset]
+    client.find.side_effect = [asset, [], tasks]
 
     sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
@@ -263,7 +412,7 @@ def test_assets_traversal_with_unique_task_id():
     project_id = random.randint(10, 1000)
     client = PropertyMock()
     client.find_one.return_value = _get_project(project_id)
-    client.find.side_effect = [tasks, asset]
+    client.find.side_effect = [asset, [], tasks]
 
     sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
