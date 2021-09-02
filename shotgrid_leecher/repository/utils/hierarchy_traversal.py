@@ -80,20 +80,6 @@ class ShotgridFindHierarchyTraversal:
         return {task["id"]: task for task in tasks}
 
     def _fetch_project_assets(self, project: Dict, tasks: Dict):
-        # [ {"_id": "name", "type": "Asset" "parent": ",parent,"]
-        #
-        # rnd_test
-        #   asset
-        #       PRP
-        #           Fork
-        #               Task1
-        #               Task2
-        # [rnd_test]
-        # [asset]
-        # [PRP]
-        # [Fork]
-        # [Task1]
-        # [Task2]
 
         # TODO: Fields should be configurable
         assets = self.client.find(
@@ -116,7 +102,7 @@ class ShotgridFindHierarchyTraversal:
             mongo_assets.append(self._get_asset_line(asset, parent_path))
 
             for task in asset["tasks"]:
-                parent_task_path = f"{parent_path},{asset['code']},"
+                parent_task_path = f"{parent_path}{asset['code']},"
                 task = tasks[task["id"]]
                 mongo_assets.append(
                     self._get_task_line(parent_task_path, task)
@@ -145,7 +131,7 @@ class ShotgridFindHierarchyTraversal:
         return {
             "_id": asset["sg_asset_type"],
             "type": "Group",
-            "parent": f",{project['code']},{asset['sg_asset_type']},",
+            "parent": f",{project['code']},Asset,",
         }
 
     def _fetch_project_shots(self, project, tasks):

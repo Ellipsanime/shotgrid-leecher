@@ -199,6 +199,40 @@ def test_parent_assignment():
     assert_that(_twin_paths(actual)[0]).is_equal_to(_twin_paths(actual)[1])
 
 
+def test_assets_traversal_hierarchy():
+    # Arrange
+    task_num = 2
+    tasks = _get_asset_tasks(task_num)
+    asset = _get_simple_assets([x.get("id") for x in tasks])
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    project = _get_project(project_id)
+    client.find_one.return_value = project
+    client.find.side_effect = [tasks, asset]
+
+    sut = ShotgridFindHierarchyTraversal(project_id, client)
+    # Act
+    actual = sut.traverse_from_the_top()
+
+    # Assert
+    assert_that(actual).extracting(
+        "type", filter={"parent": None}
+    ).is_equal_to(["Project"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},"}
+    ).is_equal_to(["Group"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Asset,"}
+    ).is_equal_to(["Group"])
+    assert_that(actual).extracting(
+        "type", filter={"parent": f",{project['code']},Asset,PRP,"}
+    ).is_equal_to(["Asset"])
+    assert_that(actual).extracting(
+        "type",
+        filter={"parent": f",{project['code']},Asset,PRP,{asset[0]['code']},"},
+    ).is_equal_to(["Task", "Task"])
+
+
 def test_assets_traversal():
     # Arrange
     task_num = 2
