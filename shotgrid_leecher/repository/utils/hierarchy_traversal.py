@@ -4,7 +4,10 @@ from typing import Set, List, Tuple, Dict, Any, Optional, Iterator
 
 import dacite
 import shotgun_api3 as sg
-from retry import retry
+from toolz import pipe, get_in
+from toolz.curried import (
+    groupby,
+)
 
 from shotgrid_leecher.mapper import hierarchy_mapper as mapper
 from shotgrid_leecher.record.shotgrid_structures import (
@@ -14,6 +17,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
 from shotgrid_leecher.repository.utils.traversal_rules import (
     ENTITY_TRAVERSAL_RULES,
 )
+from shotgrid_leecher.utils.connectivity import ShotgridClient
 from shotgrid_leecher.utils.logger import get_logger
 
 Map = Dict[str, Any]
@@ -65,26 +69,6 @@ class RawShot:
         return dacite.from_dict(data_class=RawShot, data=dic)
 
 
-class ShotgridClient:
-    client: sg.Shotgun
-
-    def __init__(self, client: sg.Shotgun) -> None:
-        super().__init__()
-        self.client = client
-
-    @retry(tries=3, backoff=0.7)
-    def find_one(
-        self, type_: str, filters: List[List[Any]], fields: List[str]
-    ) -> Map:
-        return self.client.find_one(type_, filters, fields)
-
-    @retry(tries=3, backoff=1.5)
-    def find(
-        self, type_: str, filters: List[List[Any]], fields: List[str]
-    ) -> List[Map]:
-        return self.client.find(type_, filters, fields)
-
-
 class ShotgridFindHierarchyTraversal:
     _logger = get_logger(__name__.split(".")[-1])
     project_id: int
@@ -106,7 +90,12 @@ class ShotgridFindHierarchyTraversal:
         tasks = list(self._fetch_project_tasks(project, rows_dict))
 
         return [
-            {"_id": project["code"], "type": "Project", "parent": None},
+            {
+                "_id": project["code"],
+                "src_id": self.project_id,
+                "type": "Project",
+                "parent": None,
+            },
             *assets,
             *shots,
             *tasks,
@@ -152,12 +141,16 @@ class ShotgridFindHierarchyTraversal:
                 "parent": f",{project['code']},",
             }
 
-        def add_episode(episode, episodes=[]):
+        def add_episode(episode, episodes):
             if shot["sg_episode"] not in episodes:
                 episodes.append(episode)
                 return self._get_episode_shot_group_line(episode, project)
 
         sequences = []
+        episodes: List[Any] = []
+
+        # yield from self.group_all(project, shots)
+
         for shot in shots:
 
             parent_shot_path = f",{project['code']},Shot,"
@@ -166,7 +159,7 @@ class ShotgridFindHierarchyTraversal:
                 parent_shot_path = (
                     f"{parent_shot_path}{shot['sg_episode']['name']},"
                 )
-                yield add_episode(shot["sg_episode"])
+                yield add_episode(shot["sg_episode"], episodes)
 
             if shot["sg_sequence"] and shot["sg_sequence"] not in sequences:
                 parent_shot_path = (
@@ -180,7 +173,9 @@ class ShotgridFindHierarchyTraversal:
                     )
 
                 elif shot["sg_sequence.Sequence.episode"]:
-                    yield add_episode(shot["sg_sequence.Sequence.episode"])
+                    yield add_episode(
+                        shot["sg_sequence.Sequence.episode"], episodes
+                    )
                     parent_seq_path = (
                         parent_seq_path
                         + shot["sg_sequence.Sequence.episode"]["name"]
@@ -191,6 +186,31 @@ class ShotgridFindHierarchyTraversal:
                 yield self._get_sequence_shot_group_line(shot, parent_seq_path)
 
             yield self._get_shot_line(shot, parent_shot_path)
+
+    def group_all(self, project, shots):
+        sequence_groups = pipe(
+            shots,
+            groupby(
+                lambda x: get_in("sg_sequence.name".split("."), x, "None")
+            ),
+        )
+        episode_groups = pipe(
+            shots,
+            groupby(lambda x: get_in("sg_episode.name".split("."), x, "None")),
+        )
+        orphans = episode_groups["None"] + sequence_groups["None"]
+        for orphan in orphans:
+            parent_shot_path = f",{project['code']},Shot,"
+            if not orphan["sg_episode"] and not orphan["sg_sequence"]:
+                yield self._get_shot_line(orphan, parent_shot_path)
+            if not orphan["sg_episode"] and orphan["sg_sequence"]:
+                pass
+            if orphan["sg_episode"] and not orphan["sg_sequence"]:
+                yield self._get_shot_line(
+                    orphan,
+                    f"{parent_shot_path}{orphan['sg_episode']['name']},",
+                )
+        # for episode_orphan
 
     def _fetch_project_assets(self, project: Map) -> Iterator[Map]:
         # TODO: Fields should be configurable
