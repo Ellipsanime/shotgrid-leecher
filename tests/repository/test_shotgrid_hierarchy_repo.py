@@ -5,9 +5,7 @@ from unittest.mock import PropertyMock
 
 from assertpy import assert_that
 
-from shotgrid_leecher.repository.utils.hierarchy_traversal import (
-    ShotgridFindHierarchyTraversal,
-)
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
 
 _RAND = random.randint
 
@@ -148,10 +146,8 @@ def test_shots_traversal():
     client = PropertyMock()
     client.find_one.return_value = _get_project(project_id)
     client.find.side_effect = [[], shots, tasks]
-
-    sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
-    actual = sut.traverse_from_the_top()
+    actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
     assert_that(actual).is_length(14)
 
@@ -166,49 +162,47 @@ def test_shots_traversal_hierarchy():
     client.find_one.return_value = project
     client.find.side_effect = [[], shots, tasks]
 
-    sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
-    actual = sut.traverse_from_the_top()
+    actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
-    assert_that(actual).extracting(
-        "type", filter={"parent": None}
-    ).is_equal_to(["Project"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},"}
-    ).is_equal_to(["Group"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},Shot,"}
-    ).is_equal_to(["Shot", "Episode", "Episode", "Sequence"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},Shot,EP_OF_SHOT2,"}
-    ).is_equal_to(["Shot"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},Shot,SQ_OF_SHOT3,"}
-    ).is_equal_to(["Shot"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},Shot,Empty1,"}
-    ).is_equal_to(["Task"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},Shot,EP_OF_SHOT4,"}
-    ).is_equal_to(["Sequence"])
-    assert_that(actual).extracting(
-        "type",
-        filter={"parent": f",{project['code']},Shot,EP_OF_SHOT4,SQ_OF_SHOT4,"},
-    ).is_equal_to(["Shot"])
-    assert_that(actual).extracting(
-        "type",
-        filter={"parent": f",{project['code']},Shot,EP_OF_SHOT2,SHOT2,"},
-    ).is_equal_to(["Task"])
-    assert_that(actual).extracting(
-        "type",
-        filter={"parent": f",{project['code']},Shot,SQ_OF_SHOT3,SHOT3,"},
-    ).is_equal_to(["Task"])
-    assert_that(actual).extracting(
-        "type",
-        filter={
-            "parent": f",{project['code']},Shot,EP_OF_SHOT4,SQ_OF_SHOT4,SHOT4,"
-        },
-    ).is_equal_to(["Task"])
+    assert_that(actual).path_has_types(None, ["Project"])
+    assert_that(actual).path_has_types(f",{project['code']},", ["Group"])
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,",
+        ["Shot", "Episode", "Episode", "Sequence"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,EP_OF_SHOT2,",
+        ["Shot"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,SQ_OF_SHOT3,",
+        ["Shot"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,Empty1,",
+        ["Task"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,EP_OF_SHOT4,",
+        ["Sequence"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,EP_OF_SHOT4,SQ_OF_SHOT4,",
+        ["Shot"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,EP_OF_SHOT2,SHOT2,",
+        ["Task"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,SQ_OF_SHOT3,SHOT3,",
+        ["Task"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Shot,EP_OF_SHOT4,SQ_OF_SHOT4,SHOT4,",
+        ["Task"],
+    )
 
 
 def test_assets_traversal_hierarchy():
@@ -222,27 +216,24 @@ def test_assets_traversal_hierarchy():
     client.find_one.return_value = project
     client.find.side_effect = [asset, [], tasks]
 
-    sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
-    actual = sut.traverse_from_the_top()
+    actual = sut.get_hierarchy_by_project(project_id, client)
 
     # Assert
-    assert_that(actual).extracting(
-        "type", filter={"parent": None}
-    ).is_equal_to(["Project"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},"}
-    ).is_equal_to(["Group"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},Asset,"}
-    ).is_equal_to(["Group"])
-    assert_that(actual).extracting(
-        "type", filter={"parent": f",{project['code']},Asset,PRP,"}
-    ).is_equal_to(["Asset"])
-    assert_that(actual).extracting(
-        "type",
-        filter={"parent": f",{project['code']},Asset,PRP,{asset[0]['code']},"},
-    ).is_equal_to(["Task", "Task"])
+    assert_that(actual).path_has_types(None, ["Project"])
+    assert_that(actual).path_has_types(f",{project['code']},", ["Group"])
+    assert_that(actual).path_has_types(
+        f",{project['code']},Asset,",
+        ["Group"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Asset,PRP,",
+        ["Asset"],
+    )
+    assert_that(actual).path_has_types(
+        f",{project['code']},Asset,PRP,{asset[0]['code']},",
+        ["Task", "Task"],
+    )
 
 
 def test_assets_traversal():
@@ -255,9 +246,8 @@ def test_assets_traversal():
     client.find_one.return_value = _get_project(project_id)
     client.find.side_effect = [asset, [], tasks]
 
-    sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
-    actual = sut.traverse_from_the_top()
+    actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
     assert_that(actual).is_type_of(list)
     assert_that(actual).is_length(4 + task_num)
@@ -277,9 +267,8 @@ def test_assets_traversal_with_unique_task_id():
     client.find_one.return_value = _get_project(project_id)
     client.find.side_effect = [asset, [], tasks]
 
-    sut = ShotgridFindHierarchyTraversal(project_id, client)
     # Act
-    actual = sut.traverse_from_the_top()
+    actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
     assert_that(
         set([x["_id"] for x in actual if x["type"] == "Task"])
