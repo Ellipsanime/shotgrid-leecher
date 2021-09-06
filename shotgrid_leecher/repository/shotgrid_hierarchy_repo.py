@@ -36,13 +36,11 @@ def _fetch_project_tasks(
 
 
 def _patch_up_shot(shot: Map) -> Map:
-    if shot["sg_episode"] or not get_in(
-        "sg_sequence.Sequence.episode".split("."), shot
-    ):
+    if shot.get("sg_episode") or not shot.get("sg_sequence.Sequence.episode"):
         return shot
     return {
         **shot,
-        "sg_episode": shot["sg_sequence"]["Sequence"]["episode"],
+        "sg_episode": shot["sg_sequence.Sequence.episode"],
     }
 
 
@@ -125,14 +123,14 @@ def _tackle_orphan_shots(project, shots):
         list,
     )
     for orphan in orphans:
-        if not orphan["sg_episode"] and not orphan["sg_sequence"]:
+        if not orphan.get("sg_episode") and not orphan.get("sg_sequence"):
             parent_path = f",{project['code']},Shot,"
             yield _get_shot_row(orphan, parent_path)
-        if not orphan["sg_episode"] and orphan["sg_sequence"]:
-            sequence_ = orphan["sg_sequence"]["name"]
+        if not orphan.get("sg_episode") and orphan.get("sg_sequence"):
+            sequence_ = orphan.get("sg_sequence")["name"]
             parent_path = f",{project['code']},Shot,{sequence_},"
             yield _get_shot_row(orphan, parent_path)
-        if orphan["sg_episode"] and not orphan["sg_sequence"]:
+        if orphan.get("sg_episode") and not orphan.get("sg_sequence"):
             episode = orphan["sg_episode"]["name"]
             parent_path = f",{project['code']},Shot,{episode},"
             yield _get_shot_row(orphan, parent_path)
