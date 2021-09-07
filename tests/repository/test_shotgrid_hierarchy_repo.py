@@ -20,7 +20,7 @@ def _get_project(id_: int) -> Dict[str, Any]:
     return {
         "Type": "Project",
         "id": id_,
-        "code": f"Project_{str(uuid.uuid4())[-2:]}",
+        "name": f"Project_{str(uuid.uuid4())[-2:]}",
     }
 
 
@@ -190,15 +190,15 @@ def test_random_assets_traversal(size: int):
     assert_that(actual).is_type_of(list)
     assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
     assert_that(actual).path_counts_types(
-        f",{project['code']},",
+        f",{project['name']},",
         group=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Asset,",
+        f",{project['name']},Asset,",
         group=n_group,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Asset,*",
+        f",{project['name']},Asset,*",
         count=len(tasks),
     )
 
@@ -227,23 +227,23 @@ def test_random_complete_traversal(size: int):
     actual = sut.get_hierarchy_by_project(project_id, client)
     # Act
     assert_that(actual).path_counts_types(
-        f",{project['code']},",
+        f",{project['name']},",
         group=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,",
+        f",{project['name']},Shot,",
         episode=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Asset,",
+        f",{project['name']},Asset,",
         group=n_group,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Asset,*",
+        f",{project['name']},Asset,*",
         count=len(asset_tasks),
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,*",
+        f",{project['name']},Shot,*",
         count=len(shot_tasks),
     )
 
@@ -270,35 +270,35 @@ def test_random_shots_traversal_at_shot_level(size: int):
     # Act
     actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
-    assert_that(actual).path_counts_types(f",{project['code']},", group=1)
+    assert_that(actual).path_counts_types(f",{project['name']},", group=1)
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,",
+        f",{project['name']},Shot,",
         episode=2,
         sequence=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_1,",
+        f",{project['name']},Shot,EP_1,",
         sequence=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_2,",
+        f",{project['name']},Shot,EP_2,",
         sequence=1,
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_1,SQ_1,",
+        f",{project['name']},Shot,EP_1,SQ_1,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_1,SQ_11,",
+        f",{project['name']},Shot,EP_1,SQ_11,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_2,SQ_2,",
+        f",{project['name']},Shot,EP_2,SQ_2,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,SQ_2,",
+        f",{project['name']},Shot,SQ_2,",
         shot=size,
     )
 
@@ -323,29 +323,29 @@ def test_odd_random_shots_traversal_at_shot_level(size: int):
     # Act
     actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
-    assert_that(actual).path_counts_types(f",{project['code']},", group=1)
+    assert_that(actual).path_counts_types(f",{project['name']},", group=1)
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,",
+        f",{project['name']},Shot,",
         episode=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_1,",
+        f",{project['name']},Shot,EP_1,",
         sequence=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_2,",
+        f",{project['name']},Shot,EP_2,",
         sequence=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_1,SQ_1,",
+        f",{project['name']},Shot,EP_1,SQ_1,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_1,SQ_11,",
+        f",{project['name']},Shot,EP_1,SQ_11,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['code']},Shot,EP_2,SQ_2,",
+        f",{project['name']},Shot,EP_2,SQ_2,",
         shot=size,
     )
 
@@ -374,23 +374,23 @@ def test_random_shots_traversal_at_bottom_level(size: int):
     actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,EP_1,SQ_1,SHOT*",
+        f",{project['name']},Shot,EP_1,SQ_1,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,EP_1,SQ_11,SHOT*",
+        f",{project['name']},Shot,EP_1,SQ_11,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,EP_2,SQ_2,SHOT*",
+        f",{project['name']},Shot,EP_2,SQ_2,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,EP_2,SHOT5*",
+        f",{project['name']},Shot,EP_2,SHOT5*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,SQ_2,SHOT4*",
+        f",{project['name']},Shot,SQ_2,SHOT4*",
         count=size * size,
     )
 
@@ -416,14 +416,14 @@ def test_odd_random_shots_traversal_at_bottom_level(size: int):
     actual = sut.get_hierarchy_by_project(project_id, client)
     # Assert
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,EP_1,SQ_1,SHOT*",
+        f",{project['name']},Shot,EP_1,SQ_1,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,EP_1,SQ_11,SHOT*",
+        f",{project['name']},Shot,EP_1,SQ_11,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['code']},Shot,EP_2,SQ_2,SHOT*",
+        f",{project['name']},Shot,EP_2,SQ_2,SHOT*",
         count=size * size,
     )

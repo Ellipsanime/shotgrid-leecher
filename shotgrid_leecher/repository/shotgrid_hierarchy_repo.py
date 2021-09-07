@@ -25,7 +25,11 @@ def _fetch_project_tasks(
     # TODO: Fields should be configurable
     tasks = client.find(
         "Task",
-        [["project", "is", project], ["entity", "is_not", None]],
+        [
+            ["project", "is", project],
+            ["entity", "is_not", None],
+            ["entity.type", "is", "Asset"],
+        ],
         ["content", "name", "id", "step", "entity"],
     )
 
@@ -85,7 +89,7 @@ def _tackle_full_shots(project, shots):
     for shot in full_shots:
         episode = shot["sg_episode"]["name"]
         sequence_ = shot["sg_sequence"]["name"]
-        parent_path = f",{project['code']},Shot,{episode},{sequence_},"
+        parent_path = f",{project['name']},Shot,{episode},{sequence_},"
         yield _get_shot_row(shot, parent_path)
 
 
@@ -98,7 +102,7 @@ def _tackle_shot_sequences(project, shots):
     for sq, sq_shots in sequence_group.items():
         for shot in unique(sq_shots, get_in_("sg_episode.id".split(".", -1))):
             episode = get_in("sg_episode.name".split("."), shot)
-            base_path = f",{project['code']},Shot,"
+            base_path = f",{project['name']},Shot,"
             parent_path = f"{base_path}{episode}," if episode else base_path
             yield _get_sequence_shot_group_row(shot, parent_path)
 
@@ -124,15 +128,15 @@ def _tackle_orphan_shots(project, shots):
     )
     for orphan in orphans:
         if not orphan.get("sg_episode") and not orphan.get("sg_sequence"):
-            parent_path = f",{project['code']},Shot,"
+            parent_path = f",{project['name']},Shot,"
             yield _get_shot_row(orphan, parent_path)
         if not orphan.get("sg_episode") and orphan.get("sg_sequence"):
             sequence_ = orphan.get("sg_sequence")["name"]
-            parent_path = f",{project['code']},Shot,{sequence_},"
+            parent_path = f",{project['name']},Shot,{sequence_},"
             yield _get_shot_row(orphan, parent_path)
         if orphan.get("sg_episode") and not orphan.get("sg_sequence"):
             episode = orphan["sg_episode"]["name"]
-            parent_path = f",{project['code']},Shot,{episode},"
+            parent_path = f",{project['name']},Shot,{episode},"
             yield _get_shot_row(orphan, parent_path)
 
 
@@ -154,7 +158,7 @@ def _fetch_project_assets(client: sg.Shotgun, project: Map) -> Iterator[Map]:
             yield _get_asset_group_row(asset, project)
             step.append(asset["sg_asset_type"])
 
-        parent_path = f",{project['code']},Asset,{asset['sg_asset_type']},"
+        parent_path = f",{project['name']},Asset,{asset['sg_asset_type']},"
         yield _get_asset_row(asset, parent_path)
 
 
@@ -162,7 +166,7 @@ def _get_top_shot_row(project: Map) -> Map:
     return {
         "_id": "Shot",
         "type": "Group",
-        "parent": f",{project['code']},",
+        "parent": f",{project['name']},",
     }
 
 
@@ -170,7 +174,7 @@ def _get_top_asset_row(project: Map) -> Map:
     return {
         "_id": "Asset",
         "type": "Group",
-        "parent": f",{project['code']},",
+        "parent": f",{project['name']},",
     }
 
 
@@ -206,7 +210,7 @@ def _get_asset_group_row(asset: Map, project: Map) -> Map:
     return {
         "_id": asset["sg_asset_type"],
         "type": "Group",
-        "parent": f",{project['code']},Asset,",
+        "parent": f",{project['name']},Asset,",
     }
 
 
@@ -215,7 +219,7 @@ def _get_episode_shot_group_row(episode: Map, project: Map) -> Map:
         "_id": episode["name"],
         "type": "Episode",
         "src_id": episode["id"],
-        "parent": f",{project['code']},Shot,",
+        "parent": f",{project['name']},Shot,",
     }
 
 
@@ -230,7 +234,7 @@ def _get_sequence_shot_group_row(shot: Map, parent_path: str) -> Map:
 
 def _get_project_row(project: Map) -> Map:
     return {
-        "_id": project["code"],
+        "_id": project["name"],
         "src_id": project["id"],
         "type": "Project",
         "parent": None,
@@ -242,7 +246,7 @@ def get_hierarchy_by_project(
     project_id: int,
     client: sg.Shotgun,
 ) -> List[Map]:
-    project = client.find_one("Project", [["id", "is", project_id]], ["code"])
+    project = client.find_one("Project", [["id", "is", project_id]], ["name"])
     assets = list(_fetch_project_assets(client, project))
     shots = list(_fetch_project_shots(client, project))
     rows_dict = {x["src_id"]: x for x in assets + shots if "src_id" in x}
