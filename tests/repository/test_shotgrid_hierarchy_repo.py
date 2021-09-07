@@ -1,13 +1,17 @@
 import random
 import uuid
 from itertools import chain
-from typing import Dict, Any, List
+from string import ascii_uppercase
+from typing import Dict, Any, List, Tuple
 from unittest.mock import PropertyMock
 
 import pytest
-from assertpy import assert_that
-
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
+from assertpy import assert_that
+from toolz import pipe
+from toolz.curried import (
+    map as select,
+)
 
 _RAND = random.randint
 
@@ -20,45 +24,43 @@ def _get_project(id_: int) -> Dict[str, Any]:
     }
 
 
-def _get_asset_tasks(num: int) -> List[Dict]:
+def _get_random_assets_with_tasks(
+    groups_n: int, num: int
+) -> Tuple[List[Dict], List[Dict]]:
     names = ["lines", "color", "look", "dev"]
     steps = ["modeling", "shading", "rigging"]
-    return [
-        {
-            "id": uuid.uuid4().int,
-            "content": random.choice(names),
-            "step": {"name": random.choice(steps)},
-            "entity": {"type": "Asset", "name": "Fork", "id": 10000},
-        }
-        for _ in range(num)
-    ]
-
-
-def _get_simple_assets(task_ids: List[int]) -> List[Dict]:
-    return [
+    assets = [
         {
             "type": "Asset",
-            "code": "Fork",
-            "sg_asset_type": "PRP",
-            "id": 10000,
-            "tasks": [{"id": x, "type": "Task"} for x in task_ids],
+            "code": f"Fork{n+1}",
+            "sg_asset_type": "".join(
+                (random.choice(ascii_uppercase) for _ in range(3))
+            ),
+            "id": int(f"{n+1}1001"),
+            "tasks": [
+                {
+                    "id": uuid.uuid4().int,
+                    "content": random.choice(names),
+                    "step": {"name": random.choice(steps)},
+                    "entity": {
+                        "type": "Asset",
+                        "name": f"Fork{n+1}",
+                        "id": int(f"{n+1}1001"),
+                    },
+                }
+                for _ in range(num)
+            ],
         }
+        for n in range(groups_n)
     ]
 
-
-def _get_random_assets(task_ids: List[int]) -> List[Dict]:
-    groups_n = int(len(task_ids) / 10) + 1
-
-    return [
-        {
-            "type": "Asset",
-            "code": "Fork",
-            "sg_asset_type": "PRP",
-            "id": 10000,
-            "tasks": [{"id": x, "type": "Task"} for x in task_ids],
-        }
-        for x in range(num)
-    ]
+    tasks = pipe(
+        assets,
+        select(lambda x: x["tasks"]),
+        lambda x: chain(*x),
+        list,
+    )
+    return assets, tasks
 
 
 def _get_shut_tasks(shots: List[Dict], num: int) -> List[Dict]:
@@ -84,37 +86,6 @@ def _get_shut_tasks(shots: List[Dict], num: int) -> List[Dict]:
             ]
         )
     )
-
-
-def _get_shot_tasks() -> List[Dict]:
-    names = ["lines", "color", "look", "dev"]
-    steps = ["layout", "animation", "render"]
-    return [
-        {
-            "id": uuid.uuid4().int,
-            "content": random.choice(names),
-            "step": {"name": random.choice(steps)},
-            "entity": {"type": "Shot", "name": "Empty1", "id": 100000},
-        },
-        {
-            "id": uuid.uuid4().int,
-            "content": random.choice(names),
-            "step": {"name": random.choice(steps)},
-            "entity": {"type": "Shot", "name": "SHOT2", "id": 100001},
-        },
-        {
-            "id": uuid.uuid4().int,
-            "content": random.choice(names),
-            "step": {"name": random.choice(steps)},
-            "entity": {"type": "Shot", "name": "SHOT3", "id": 100002},
-        },
-        {
-            "id": uuid.uuid4().int,
-            "content": random.choice(names),
-            "step": {"name": random.choice(steps)},
-            "entity": {"type": "Shot", "name": "SHOT4", "id": 100003},
-        },
-    ]
 
 
 def _get_full_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
@@ -200,67 +171,81 @@ def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
     ]
 
 
-def _get_shots() -> List[Dict]:
-    return [
-        {
-            "type": "Shot",
-            "id": 100000,
-            "sg_sequence": None,
-            "sg_episode": None,
-            "sg_sequence.Sequence.episode": None,
-            "code": "Empty1",
-        },
-        {
-            "type": "Shot",
-            "id": 100001,
-            "sg_sequence": None,
-            "sg_episode": {
-                "id": 230,
-                "name": "EP_OF_SHOT2",
-                "type": "Episode",
-            },
-            "sg_cut_duration": None,
-            "sg_frame_rate": None,
-            "code": "SHOT2",
-            "sg_sequence.Sequence.episode": None,
-        },
-        {
-            "type": "Shot",
-            "id": 100002,
-            "sg_sequence": {
-                "id": 132,
-                "name": "SQ_OF_SHOT3",
-                "type": "Sequence",
-            },
-            "sg_episode": None,
-            "sg_cut_duration": None,
-            "sg_frame_rate": None,
-            "code": "SHOT3",
-            "sg_sequence.Sequence.episode": None,
-        },
-        {
-            "type": "Shot",
-            "id": 100003,
-            "sg_sequence": {
-                "id": 132,
-                "name": "SQ_OF_SHOT4",
-                "type": "Sequence",
-            },
-            "sg_episode": {
-                "id": 232,
-                "name": "EP_OF_SHOT4",
-                "type": "Episode",
-            },
-            "sg_cut_duration": None,
-            "sg_frame_rate": None,
-            "code": "SHOT4",
-            "sg_sequence.Sequence.episode": {
-                "id": 232,
-                "name": "EP_OF_SHOT4",
-                "type": "Episode",
-            },
-        },
+@pytest.mark.parametrize(
+    "size",
+    list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
+)
+def test_random_assets_traversal(size: int):
+    # Arrange
+    n_group = int(size / 10)
+    assets, tasks = _get_random_assets_with_tasks(n_group, size)
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    project = _get_project(project_id)
+    client.find_one.return_value = project
+    client.find.side_effect = [assets, [], tasks]
+    # Arrange
+    actual = sut.get_hierarchy_by_project(project_id, client)
+    # Act
+    assert_that(actual).is_type_of(list)
+    assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
+    assert_that(actual).path_counts_types(
+        f",{project['code']},",
+        group=1,
+    )
+    assert_that(actual).path_counts_types(
+        f",{project['code']},Asset,",
+        group=n_group,
+    )
+    assert_that(actual).path_counts_tasks(
+        f",{project['code']},Asset,*",
+        count=len(tasks),
+    )
+
+
+@pytest.mark.parametrize(
+    "size",
+    list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
+)
+def test_random_complete_traversal(size: int):
+    # Arrange
+    n_group = int(size / 10)
+    shots = [
+        *_get_full_shots(1, 1, size, 1),
+        *_get_full_shots(1, 11, size, 1),
+        *_get_full_shots(2, 2, size, 2),
     ]
+    shot_tasks = _get_shut_tasks(shots, size)
+    assets, asset_tasks = _get_random_assets_with_tasks(n_group, size)
+    tasks = shot_tasks + asset_tasks
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    project = _get_project(project_id)
+    client.find_one.return_value = project
+    client.find.side_effect = [assets, shots, tasks]
+    # Arrange
+    actual = sut.get_hierarchy_by_project(project_id, client)
+    # Act
+    assert_that(actual).path_counts_types(
+        f",{project['code']},",
+        group=2,
+    )
+    assert_that(actual).path_counts_types(
+        f",{project['code']},Shot,",
+        episode=2,
+    )
+    assert_that(actual).path_counts_types(
+        f",{project['code']},Asset,",
+        group=n_group,
+    )
+    assert_that(actual).path_counts_tasks(
+        f",{project['code']},Asset,*",
+        count=len(asset_tasks),
+    )
+    assert_that(actual).path_counts_tasks(
+        f",{project['code']},Shot,*",
+        count=len(shot_tasks),
+    )
 
 
 @pytest.mark.parametrize(
@@ -442,140 +427,3 @@ def test_odd_random_shots_traversal_at_bottom_level(size: int):
         f",{project['code']},Shot,EP_2,SQ_2,SHOT*",
         count=size * size,
     )
-
-
-def test_shots_traversal():
-    # Arrange
-    tasks = _get_shot_tasks()
-    shots = _get_shots()
-    project_id = random.randint(10, 1000)
-    client = PropertyMock()
-    client.find_one.return_value = _get_project(project_id)
-    client.find.side_effect = [[], shots, tasks]
-    # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
-    # Assert
-    assert_that(actual).is_length(14)
-
-
-def test_shots_traversal_hierarchy():
-    # Arrange
-    tasks = _get_shot_tasks()
-    shots = _get_shots()
-    project_id = random.randint(10, 1000)
-    client = PropertyMock()
-    project = _get_project(project_id)
-    client.find_one.return_value = project
-    client.find.side_effect = [[], shots, tasks]
-
-    # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
-    # Assert
-    assert_that(actual).path_has_types(None, ["Project"])
-    assert_that(actual).path_has_types(f",{project['code']},", ["Group"])
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,",
-        ["Shot", "Episode", "Episode", "Sequence"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,EP_OF_SHOT2,",
-        ["Shot"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,SQ_OF_SHOT3,",
-        ["Shot"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,Empty1,",
-        ["Task"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,EP_OF_SHOT4,",
-        ["Sequence"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,EP_OF_SHOT4,SQ_OF_SHOT4,",
-        ["Shot"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,EP_OF_SHOT2,SHOT2,",
-        ["Task"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,SQ_OF_SHOT3,SHOT3,",
-        ["Task"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Shot,EP_OF_SHOT4,SQ_OF_SHOT4,SHOT4,",
-        ["Task"],
-    )
-
-
-def test_assets_traversal_hierarchy():
-    # Arrange
-    task_num = 2
-    tasks = _get_asset_tasks(task_num)
-    asset = _get_simple_assets([x.get("id") for x in tasks])
-    project_id = random.randint(10, 1000)
-    client = PropertyMock()
-    project = _get_project(project_id)
-    client.find_one.return_value = project
-    client.find.side_effect = [asset, [], tasks]
-
-    # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
-
-    # Assert
-    assert_that(actual).path_has_types(None, ["Project"])
-    assert_that(actual).path_has_types(f",{project['code']},", ["Group"])
-    assert_that(actual).path_has_types(
-        f",{project['code']},Asset,",
-        ["Group"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Asset,PRP,",
-        ["Asset"],
-    )
-    assert_that(actual).path_has_types(
-        f",{project['code']},Asset,PRP,{asset[0]['code']},",
-        ["Task", "Task"],
-    )
-
-
-def test_assets_traversal():
-    # Arrange
-    task_num = 2
-    tasks = _get_asset_tasks(task_num)
-    asset = _get_simple_assets([x.get("id") for x in tasks])
-    project_id = random.randint(10, 1000)
-    client = PropertyMock()
-    client.find_one.return_value = _get_project(project_id)
-    client.find.side_effect = [asset, [], tasks]
-
-    # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
-    # Assert
-    assert_that(actual).is_type_of(list)
-    assert_that(actual).is_length(4 + task_num)
-    assert_that([x for x in actual if x["type"] == "Project"]).is_length(1)
-    assert_that([x for x in actual if x["type"] == "Group"]).is_length(2)
-    assert_that([x for x in actual if x["type"] == "Asset"]).is_length(1)
-    assert_that([x for x in actual if x["type"] == "Task"]).is_length(task_num)
-
-
-def test_assets_traversal_with_unique_task_id():
-    # Arrange
-    task_num = 100
-    tasks = _get_asset_tasks(task_num)
-    asset = _get_simple_assets([x.get("id") for x in tasks])
-    project_id = random.randint(10, 1000)
-    client = PropertyMock()
-    client.find_one.return_value = _get_project(project_id)
-    client.find.side_effect = [asset, [], tasks]
-
-    # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
-    # Assert
-    assert_that(
-        set([x["_id"] for x in actual if x["type"] == "Task"])
-    ).is_length(task_num)
