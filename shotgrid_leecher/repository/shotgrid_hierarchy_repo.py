@@ -23,18 +23,20 @@ def _fetch_project_tasks(
     rows: Map,
 ) -> Iterator[Map]:
     # TODO: Fields should be configurable
-    tasks = client.find(
+    raw_tasks = client.find(
         "Task",
         [
             ["project", "is", project],
             ["entity", "is_not", None],
-            ["entity.type", "is", "Asset"],
         ],
         ["content", "name", "id", "step", "entity"],
     )
-
-    for task in tasks:
-        entity_row = rows[task["entity"]["id"]]
+    asset_tasks = [task for task in raw_tasks if task.get("step")]
+    for task in asset_tasks:
+        key = task["entity"]["id"]
+        entity_row = rows.get(key)
+        if not entity_row:
+            continue
         parent_path = f"{entity_row['parent']}{entity_row['_id']},"
         yield _get_task_row(task, parent_path)
 
@@ -77,7 +79,7 @@ def _fetch_project_shots(client: sg.Shotgun, project: Map) -> Iterator[Map]:
     yield from _tackle_full_shots(project, shots)
 
 
-def _tackle_full_shots(project, shots):
+def _tackle_full_shots(project: Map, shots: Map):
     full_shots = pipe(
         shots,
         where(

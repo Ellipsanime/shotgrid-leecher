@@ -24,6 +24,22 @@ def _get_project(id_: int) -> Dict[str, Any]:
     }
 
 
+def _get_random_broken_tasks(num: int) -> List[Dict]:
+    return [
+        {
+            "id": uuid.uuid4().int,
+            "content": uuid.uuid4(),
+            "step": {"name": uuid.uuid4()} if _RAND(1, 10) % 2 == 0 else None,
+            "entity": {
+                "type": uuid.uuid4(),
+                "name": uuid.uuid4(),
+                "id": uuid.uuid4().int,
+            },
+        }
+        for _ in range(num)
+    ]
+
+
 def _get_random_assets_with_tasks(
     groups_n: int, num: int
 ) -> Tuple[List[Dict], List[Dict]]:
@@ -200,6 +216,32 @@ def test_random_assets_traversal(size: int):
     assert_that(actual).path_counts_tasks(
         f",{project['name']},Asset,*",
         count=len(tasks),
+    )
+
+
+@pytest.mark.parametrize(
+    "size",
+    list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
+)
+def test_random_broken_data_traversal(size: int):
+    # Arrange
+    n_group = int(size / 10)
+    assets, asset_tasks = _get_random_assets_with_tasks(n_group, size)
+    broken_tasks = _get_random_broken_tasks(size)
+    tasks = asset_tasks + broken_tasks
+    project_id = random.randint(10, 1000)
+    client = PropertyMock()
+    project = _get_project(project_id)
+    client.find_one.return_value = project
+    client.find.side_effect = [assets, [], tasks]
+    # Arrange
+    actual = sut.get_hierarchy_by_project(project_id, client)
+    # Act
+    assert_that(actual).is_type_of(list)
+    assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
+    assert_that(actual).path_counts_tasks(
+        f",{project['name']},Asset,*",
+        count=len(asset_tasks),
     )
 
 
