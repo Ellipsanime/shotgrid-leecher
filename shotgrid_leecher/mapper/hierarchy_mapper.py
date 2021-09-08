@@ -68,7 +68,10 @@ def shotgrid_to_avalon(intermediate_rows: List[Map]) -> Dict[str, Map]:
     avalon_rows_dict = dict(
         list(_create_avalon_entity_rows(intermediate_rows, project))
     )
-    avalon_rows_dict[project_rows[0]["_id"]] = project
+    avalon_rows_dict = {
+        project_rows[0]["_id"]: project,
+        **avalon_rows_dict,
+    }
 
     task_rows = [x for x in intermediate_rows if x["type"] == "Task"]
     for task_row in task_rows:
@@ -139,7 +142,7 @@ def _default_avalon_project_data() -> Map:
 
 def _default_avalon_asset_data() -> Map:
     data = _default_avalon_data()
-    data["parents"] = []
+    data["parent"] = []
     data["visualParent"] = None
     data["tasks"] = {}
     return data
