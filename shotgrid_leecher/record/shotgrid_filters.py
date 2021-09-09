@@ -1,0 +1,48 @@
+from dataclasses import dataclass
+from typing import List, Any, Dict
+
+
+class BaseFilter:
+    def to_sublist(self) -> List[Any]:
+        raise RuntimeError("Not yet implemented")
+
+    def to_list(self) -> List[List[Any]]:
+        return [self.to_sublist()]
+
+
+@dataclass(frozen=True)
+class IsFilter(BaseFilter):
+    type: str
+    value: Dict[str, Any]
+
+    def to_sublist(self) -> List[Any]:
+        return [self.type, "is", self.value]
+
+
+@dataclass(frozen=True)
+class IsNotFilter(BaseFilter):
+    key: str
+    value: Any
+
+    def to_sublist(self) -> List[Any]:
+        return [self.key, "is_not", self.value]
+
+
+@dataclass(frozen=True)
+class IdFilter(BaseFilter):
+    id: int
+
+    def to_sublist(self) -> List[Any]:
+        return ["id", "is", self.id]
+
+
+@dataclass(frozen=True)
+class CompositeFilter(BaseFilter):
+    filters: List[BaseFilter]
+
+    def to_list(self) -> List[List[Any]]:
+        return [x.to_sublist() for x in self.filters]
+
+    @staticmethod
+    def filter_by(*filters: BaseFilter) -> List[List[Any]]:
+        return CompositeFilter(list(filters)).to_list()

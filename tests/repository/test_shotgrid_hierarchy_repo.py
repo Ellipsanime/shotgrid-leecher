@@ -2,26 +2,34 @@ import random
 import uuid
 from itertools import chain
 from string import ascii_uppercase
-from typing import Dict, Any, List, Tuple
-from unittest.mock import PropertyMock
+from typing import Dict, Any, List, Tuple, Callable
 
 import pytest
-import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
+from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from toolz import pipe
 from toolz.curried import (
     map as select,
 )
 
+import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
+from shotgrid_leecher.record.enums import ShotgridTypes
+from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+
 _RAND = random.randint
 
 
-def _get_project(id_: int) -> Dict[str, Any]:
-    return {
-        "Type": "Project",
-        "id": id_,
-        "name": f"Project_{str(uuid.uuid4())[-2:]}",
-    }
+def _fun(param: Any) -> Callable[[Any], Any]:
+    return lambda *_: param
+
+
+def _get_project(id_: int) -> ShotgridProject:
+    return ShotgridProject(
+        id_,
+        f"Project_{str(uuid.uuid4())[-2:]}",
+        ShotgridTypes.PROJECT.value,
+    )
 
 
 def _get_random_broken_tasks(num: int) -> List[Dict]:
@@ -187,34 +195,45 @@ def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
     ]
 
 
+def _patch_repo(
+    monkeypatch: MonkeyPatch,
+    project: ShotgridProject,
+    assets: List,
+    shots: List,
+    tasks: List,
+) -> None:
+    monkeypatch.setattr(entity_repo, "find_project_by_id", _fun(project))
+    monkeypatch.setattr(entity_repo, "find_assets_for_project", _fun(assets))
+    monkeypatch.setattr(entity_repo, "find_shots_for_project", _fun(shots))
+    monkeypatch.setattr(entity_repo, "find_tasks_for_project", _fun(tasks))
+
+
 @pytest.mark.parametrize(
     "size",
     list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
 )
-def test_random_assets_traversal(size: int):
+def test_random_assets_traversal(monkeypatch: MonkeyPatch, size: int):
     # Arrange
     n_group = int(size / 10)
     assets, tasks = _get_random_assets_with_tasks(n_group, size)
     project_id = random.randint(10, 1000)
-    client = PropertyMock()
     project = _get_project(project_id)
-    client.find_one.return_value = project
-    client.find.side_effect = [assets, [], tasks]
+    _patch_repo(monkeypatch, project, assets, [], tasks)
     # Arrange
-    actual = sut.get_hierarchy_by_project(project_id, client)
+    actual = sut.get_hierarchy_by_project(project_id)
     # Act
     assert_that(actual).is_type_of(list)
     assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
     assert_that(actual).path_counts_types(
-        f",{project['name']},",
+        f",{project.name},",
         group=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Asset,",
+        f",{project.name},Asset,",
         group=n_group,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Asset,*",
+        f",{project.name},Asset,*",
         count=len(tasks),
     )
 
@@ -223,24 +242,22 @@ def test_random_assets_traversal(size: int):
     "size",
     list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
 )
-def test_random_broken_data_traversal(size: int):
+def test_random_broken_data_traversal(monkeypatch: MonkeyPatch, size: int):
     # Arrange
     n_group = int(size / 10)
     assets, asset_tasks = _get_random_assets_with_tasks(n_group, size)
     broken_tasks = _get_random_broken_tasks(size)
     tasks = asset_tasks + broken_tasks
     project_id = random.randint(10, 1000)
-    client = PropertyMock()
     project = _get_project(project_id)
-    client.find_one.return_value = project
-    client.find.side_effect = [assets, [], tasks]
+    _patch_repo(monkeypatch, project, assets, [], tasks)
     # Arrange
-    actual = sut.get_hierarchy_by_project(project_id, client)
+    actual = sut.get_hierarchy_by_project(project_id)
     # Act
     assert_that(actual).is_type_of(list)
     assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Asset,*",
+        f",{project.name},Asset,*",
         count=len(asset_tasks),
     )
 
@@ -249,7 +266,7 @@ def test_random_broken_data_traversal(size: int):
     "size",
     list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
 )
-def test_random_complete_traversal(size: int):
+def test_random_complete_traversal(monkeypatch: MonkeyPatch, size: int):
     # Arrange
     n_group = int(size / 10)
     shots = [
@@ -261,31 +278,29 @@ def test_random_complete_traversal(size: int):
     assets, asset_tasks = _get_random_assets_with_tasks(n_group, size)
     tasks = shot_tasks + asset_tasks
     project_id = random.randint(10, 1000)
-    client = PropertyMock()
     project = _get_project(project_id)
-    client.find_one.return_value = project
-    client.find.side_effect = [assets, shots, tasks]
+    _patch_repo(monkeypatch, project, assets, shots, tasks)
     # Arrange
-    actual = sut.get_hierarchy_by_project(project_id, client)
+    actual = sut.get_hierarchy_by_project(project_id)
     # Act
     assert_that(actual).path_counts_types(
-        f",{project['name']},",
+        f",{project.name},",
         group=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,",
+        f",{project.name},Shot,",
         episode=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Asset,",
+        f",{project.name},Asset,",
         group=n_group,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Asset,*",
+        f",{project.name},Asset,*",
         count=len(asset_tasks),
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,*",
+        f",{project.name},Shot,*",
         count=len(shot_tasks),
     )
 
@@ -294,7 +309,9 @@ def test_random_complete_traversal(size: int):
     "size",
     list([_RAND(1, 10), _RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
 )
-def test_random_shots_traversal_at_shot_level(size: int):
+def test_random_shots_traversal_at_shot_level(
+    monkeypatch: MonkeyPatch, size: int
+):
     # Arrange
     shots = [
         *_get_full_shots(1, 1, size, 1),
@@ -306,41 +323,39 @@ def test_random_shots_traversal_at_shot_level(size: int):
     tasks = _get_shut_tasks(shots, size)
     project_id = random.randint(10, 1000)
     project = _get_project(project_id)
-    client = PropertyMock()
-    client.find_one.return_value = project
-    client.find.side_effect = [[], shots, tasks]
+    _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
+    actual = sut.get_hierarchy_by_project(project_id)
     # Assert
-    assert_that(actual).path_counts_types(f",{project['name']},", group=1)
+    assert_that(actual).path_counts_types(f",{project.name},", group=1)
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,",
+        f",{project.name},Shot,",
         episode=2,
         sequence=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_1,",
+        f",{project.name},Shot,EP_1,",
         sequence=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_2,",
+        f",{project.name},Shot,EP_2,",
         sequence=1,
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_1,SQ_1,",
+        f",{project.name},Shot,EP_1,SQ_1,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_1,SQ_11,",
+        f",{project.name},Shot,EP_1,SQ_11,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_2,SQ_2,",
+        f",{project.name},Shot,EP_2,SQ_2,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,SQ_2,",
+        f",{project.name},Shot,SQ_2,",
         shot=size,
     )
 
@@ -349,7 +364,9 @@ def test_random_shots_traversal_at_shot_level(size: int):
     "size",
     list([_RAND(1, 10), _RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
 )
-def test_odd_random_shots_traversal_at_shot_level(size: int):
+def test_odd_random_shots_traversal_at_shot_level(
+    monkeypatch: MonkeyPatch, size: int
+):
     # Arrange
     shots = [
         *_get_odd_shots(1, 1, size, 1),
@@ -359,35 +376,33 @@ def test_odd_random_shots_traversal_at_shot_level(size: int):
     tasks = _get_shut_tasks(shots, size)
     project_id = random.randint(10, 1000)
     project = _get_project(project_id)
-    client = PropertyMock()
-    client.find_one.return_value = project
-    client.find.side_effect = [[], shots, tasks]
+    _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
+    actual = sut.get_hierarchy_by_project(project_id)
     # Assert
-    assert_that(actual).path_counts_types(f",{project['name']},", group=1)
+    assert_that(actual).path_counts_types(f",{project.name},", group=1)
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,",
+        f",{project.name},Shot,",
         episode=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_1,",
+        f",{project.name},Shot,EP_1,",
         sequence=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_2,",
+        f",{project.name},Shot,EP_2,",
         sequence=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_1,SQ_1,",
+        f",{project.name},Shot,EP_1,SQ_1,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_1,SQ_11,",
+        f",{project.name},Shot,EP_1,SQ_11,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project['name']},Shot,EP_2,SQ_2,",
+        f",{project.name},Shot,EP_2,SQ_2,",
         shot=size,
     )
 
@@ -396,43 +411,42 @@ def test_odd_random_shots_traversal_at_shot_level(size: int):
     "size",
     list([_RAND(1, 10), _RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
 )
-def test_random_shots_traversal_at_bottom_level(size: int):
+def test_random_shots_traversal_at_bottom_level(
+    monkeypatch: MonkeyPatch, size: int
+):
     # Arrange
     shots = [
         *_get_full_shots(1, 1, size, 1),
         *_get_full_shots(1, 11, size, 1),
         *_get_full_shots(2, 2, size, 2),
-        # *_get_odd_shots(3, 3, size, 3),
         *_get_shots_without_ep(2, size, 4),
         *_get_shots_without_seq(2, size, 5),
     ]
     tasks = _get_shut_tasks(shots, size)
     project_id = random.randint(10, 1000)
     project = _get_project(project_id)
-    client = PropertyMock()
-    client.find_one.return_value = project
-    client.find.side_effect = [[], shots, tasks]
+    _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
+    actual = sut.get_hierarchy_by_project(project_id)
     # Assert
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,EP_1,SQ_1,SHOT*",
+        f",{project.name},Shot,EP_1,SQ_1,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,EP_1,SQ_11,SHOT*",
+        f",{project.name},Shot,EP_1,SQ_11,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,EP_2,SQ_2,SHOT*",
+        f",{project.name},Shot,EP_2,SQ_2,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,EP_2,SHOT5*",
+        f",{project.name},Shot,EP_2,SHOT5*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,SQ_2,SHOT4*",
+        f",{project.name},Shot,SQ_2,SHOT4*",
         count=size * size,
     )
 
@@ -441,31 +455,31 @@ def test_random_shots_traversal_at_bottom_level(size: int):
     "size",
     list([_RAND(1, 10), _RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
 )
-def test_odd_random_shots_traversal_at_bottom_level(size: int):
+def test_odd_random_shots_traversal_at_bottom_level(
+    monkeypatch: MonkeyPatch, size: int
+):
+    # Arrange
     shots = [
-        *_get_odd_shots(1, 1, size, 1),
         *_get_odd_shots(1, 11, size, 1),
+        *_get_odd_shots(1, 1, size, 1),
         *_get_odd_shots(2, 2, size, 2),
     ]
-    # Arrange
-    tasks = _get_shut_tasks(shots, size)
     project_id = random.randint(10, 1000)
+    tasks = _get_shut_tasks(shots, size)
     project = _get_project(project_id)
-    client = PropertyMock()
-    client.find_one.return_value = project
-    client.find.side_effect = [[], shots, tasks]
+    _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id, client)
+    actual = sut.get_hierarchy_by_project(project_id)
     # Assert
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,EP_1,SQ_1,SHOT*",
+        f",{project.name},Shot,EP_1,SQ_1,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,EP_1,SQ_11,SHOT*",
+        f",{project.name},Shot,EP_1,SQ_11,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project['name']},Shot,EP_2,SQ_2,SHOT*",
+        f",{project.name},Shot,EP_2,SQ_2,SHOT*",
         count=size * size,
     )

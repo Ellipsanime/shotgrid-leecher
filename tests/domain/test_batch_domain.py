@@ -1,11 +1,15 @@
 import random
 import uuid
-from typing import Dict, Any
-from unittest.mock import PropertyMock, patch
+from typing import Dict, Any, Callable, List
+from unittest.mock import PropertyMock
 
+from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from mongomock import MongoClient
 
+import shotgrid_leecher.mapper.hierarchy_mapper as mapper
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.domain.batch_domain import ShotgridToAvalonBatchCommand
 
@@ -13,6 +17,10 @@ Map = Dict[str, Any]
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
+
+
+def _fun(param: Any) -> Callable[[Any], Any]:
+    return lambda *_: param
 
 
 def _default_avalon_data() -> Map:
@@ -95,20 +103,18 @@ def _get_simple_asset_mapped_rows(task_num: int) -> Dict[str, Map]:
     }
 
 
-@patch("shotgrid_leecher.repository.shotgrid_hierarchy_repo")
-@patch("shotgrid_leecher.utils.connectivity.get_shotgrid_client")
-@patch("shotgrid_leecher.utils.connectivity.ShotgridClient")
-@patch("shotgrid_leecher.mapper.hierarchy_mapper.shotgrid_to_avalon")
-@patch("shotgrid_leecher.utils.connectivity.get_db_client")
-def test_shotgrid_to_avalon_batch_empty(
-    get_mongo: PropertyMock,
-    shotgrid_to_avalon: PropertyMock,
-    *_: PropertyMock,
-):
+def _patch_adjacent(
+    patcher: MonkeyPatch, client, mapped: Dict, hierarchy: List
+) -> None:
+    patcher.setattr(conn, "get_db_client", _fun(client))
+    patcher.setattr(mapper, "shotgrid_to_avalon", _fun(mapped))
+    patcher.setattr(repository, "get_hierarchy_by_project", _fun(hierarchy))
+
+
+def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
-    get_mongo.return_value = client
-    shotgrid_to_avalon.return_value = {}
+    _patch_adjacent(monkeypatch, client, {}, [])
     command = ShotgridToAvalonBatchCommand(123, True)
     # Act
     sut.shotgrid_to_avalon(command)
@@ -116,26 +122,16 @@ def test_shotgrid_to_avalon_batch_empty(
     assert_that(client.get_database.called).is_false()
 
 
-@patch("shotgrid_leecher.utils.connectivity.ShotgridClient")
-@patch("shotgrid_leecher.utils.connectivity.get_shotgrid_client")
-@patch("shotgrid_leecher.mapper.hierarchy_mapper.shotgrid_to_avalon")
-@patch(
-    "shotgrid_leecher.repository.shotgrid_hierarchy_repo"
-    ".get_hierarchy_by_project"
-)
-@patch("shotgrid_leecher.utils.connectivity.get_db_client")
-def test_shotgrid_to_avalon_batch_project(
-    get_mongo: PropertyMock,
-    repo: PropertyMock,
-    shotgrid_to_avalon: PropertyMock,
-    *_: PropertyMock,
-):
+def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
     # Arrange
     client = MongoClient()
-    get_mongo.return_value = client
     project = _get_project_mapped_rows()
-    repo.return_value = [{"_id": project["name"]}]
-    shotgrid_to_avalon.return_value = {project["name"]: project}
+    _patch_adjacent(
+        monkeypatch,
+        client,
+        {project["name"]: project},
+        [{"_id": project["name"]}],
+    )
     command = ShotgridToAvalonBatchCommand(123, True)
     # Act
     sut.shotgrid_to_avalon(command)
@@ -149,30 +145,15 @@ def test_shotgrid_to_avalon_batch_project(
     ).is_not_none().contains_key("_id").is_equal_to(project, ignore="_id")
 
 
-@patch("shotgrid_leecher.utils.connectivity.ShotgridClient")
-@patch("shotgrid_leecher.utils.connectivity.get_shotgrid_client")
-@patch("shotgrid_leecher.mapper.hierarchy_mapper.shotgrid_to_avalon")
-@patch(
-    "shotgrid_leecher.repository.shotgrid_hierarchy_repo"
-    ".get_hierarchy_by_project"
-)
-@patch("shotgrid_leecher.utils.connectivity.get_db_client")
-def test_shotgrid_to_avalon_batch_asset_values(
-    get_mongo: PropertyMock,
-    repo: PropertyMock,
-    shotgrid_to_avalon: PropertyMock,
-    *_: PropertyMock,
-):
+def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     # Arrange
     client = MongoClient()
     task_num = 3
-    get_mongo.return_value = client
     data = _get_simple_asset_mapped_rows(task_num)
     project_name = list(data.keys())[0]
     asset_grp = list(data.keys())[1]
     asset = list(data.keys())[2]
-    repo.return_value = [{"_id": project_name}]
-    shotgrid_to_avalon.return_value = data
+    _patch_adjacent(monkeypatch, client, data, [{"_id": project_name}])
     command = ShotgridToAvalonBatchCommand(123, True)
     # Act
     sut.shotgrid_to_avalon(command)
@@ -186,15 +167,13 @@ def test_shotgrid_to_avalon_batch_asset_values(
     assert_that(
         client["avalon"][project_name].find_one(
             {"name": data[asset_grp]["name"]}
-        )['data']
+        )["data"]
     ).is_equal_to(data[asset_grp]["data"], ignore="visualParent")
     assert_that(
-        client["avalon"][project_name].find_one(
-            {"name": data[asset]["name"]}
-        )
+        client["avalon"][project_name].find_one({"name": data[asset]["name"]})
     ).is_equal_to(data[asset], ignore=["_id", "data"])
     assert_that(
-        client["avalon"][project_name].find_one(
-            {"name": data[asset]["name"]}
-        )['data']
+        client["avalon"][project_name].find_one({"name": data[asset]["name"]})[
+            "data"
+        ]
     ).is_equal_to(data[asset]["data"], ignore="visualParent")

@@ -14,6 +14,25 @@ from shotgrid_leecher.record.enums import EventTables
 Map = Dict[str, Any]
 
 
+class ShotgridClient:
+    client: sg.Shotgun
+
+    def __init__(self, client: sg.Shotgun) -> None:
+        self.client = client
+
+    @retry(tries=3, backoff=0.7)
+    def find_one(
+        self, type_: str, filters: List[List[Any]], fields: List[str]
+    ) -> Map:
+        return self.client.find_one(type_, filters, fields)
+
+    @retry(tries=3, backoff=1.5)
+    def find(
+        self, type_: str, filters: List[List[Any]], fields: List[str]
+    ) -> List[Map]:
+        return self.client.find(type_, filters, fields)
+
+
 @memoize
 def get_db_client(connection_id=threading.get_ident()) -> MongoClient:
     # TODO log properly
@@ -31,28 +50,9 @@ def get_async_db_client() -> AsyncIOMotorClient:
 
 
 @memoize
-def get_shotgrid_client() -> sg.Shotgun:
+def get_shotgrid_client() -> ShotgridClient:
     url = os.getenv("SHOTGRID_URL")
     login = os.getenv("SHOTGRID_LOGIN")
     password = os.getenv("SHOTGRID_PASSWORD")
-    return sg.Shotgun(url, login=login, password=password)
-
-
-class ShotgridClient:
-    client: sg.Shotgun
-
-    def __init__(self, client: sg.Shotgun) -> None:
-        super().__init__()
-        self.client = client
-
-    @retry(tries=3, backoff=0.7)
-    def find_one(
-        self, type_: str, filters: List[List[Any]], fields: List[str]
-    ) -> Map:
-        return self.client.find_one(type_, filters, fields)
-
-    @retry(tries=3, backoff=1.5)
-    def find(
-        self, type_: str, filters: List[List[Any]], fields: List[str]
-    ) -> List[Map]:
-        return self.client.find(type_, filters, fields)
+    sg_client = sg.Shotgun(url, login=login, password=password)
+    return ShotgridClient(sg_client)

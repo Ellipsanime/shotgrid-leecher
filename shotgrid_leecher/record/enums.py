@@ -2,6 +2,14 @@ from enum import Enum, unique
 
 
 @unique
+class ShotgridTypes(Enum):
+    PROJECT = "Project"
+    ASSET = "Asset"
+    SHOT = "Shot"
+    TASK = "Task"
+
+
+@unique
 class ShotgridEvents(Enum):
     NEW_ASSET = "Shotgun_Asset_New"
 

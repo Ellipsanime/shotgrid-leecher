@@ -22,10 +22,7 @@ def hierarchy_map_to_ordered_list(dic: Dict[str, Map]) -> List[Map]:
 
 def shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     mongo_client: MongoClient = conn.get_db_client()
-    sg_client = conn.ShotgridClient(conn.get_shotgrid_client())
-    intermediate_rows = repository.get_hierarchy_by_project(
-        command.project_id, sg_client
-    )
+    intermediate_rows = repository.get_hierarchy_by_project(command.project_id)
     mapped_rows = mapper.shotgrid_to_avalon(intermediate_rows)
 
     if not mapped_rows:
