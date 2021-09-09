@@ -3,15 +3,16 @@ import uuid
 from typing import Dict, Any, Callable, List
 from unittest.mock import PropertyMock
 
-from _pytest.monkeypatch import MonkeyPatch
-from assertpy import assert_that
-from mongomock import MongoClient
-
 import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
+from _pytest.monkeypatch import MonkeyPatch
+from assertpy import assert_that
+from assertpy.assertpy import AssertionBuilder
+from mongomock import MongoClient
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.domain.batch_domain import ShotgridToAvalonBatchCommand
+from toolz import curry
 
 Map = Dict[str, Any]
 
@@ -111,6 +112,15 @@ def _patch_adjacent(
     patcher.setattr(repository, "get_hierarchy_by_project", _fun(hierarchy))
 
 
+@curry
+def _assert_db(
+    col_getter: Callable, val: Dict, key: str = None
+) -> AssertionBuilder:
+    if not key:
+        return assert_that(col_getter().find_one(val))
+    return assert_that(col_getter().find_one(val).get(key))
+
+
 def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
@@ -133,6 +143,7 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
         [{"_id": project["name"]}],
     )
     command = ShotgridToAvalonBatchCommand(123, True)
+    assert_db = _assert_db(lambda: client["avalon"][project["name"]])
     # Act
     sut.shotgrid_to_avalon(command)
     # Assert
@@ -140,9 +151,9 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
     assert_that(client["avalon"].list_collection_names()).is_equal_to(
         [project["name"]]
     )
-    assert_that(
-        client["avalon"][project["name"]].find_one({"name": project["name"]})
-    ).is_not_none().contains_key("_id").is_equal_to(project, ignore="_id")
+    assert_db({"name": project["name"]}).is_not_none().contains_key(
+        "_id"
+    ).is_equal_to(project, ignore="_id")
 
 
 def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
@@ -155,25 +166,24 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     asset = list(data.keys())[2]
     _patch_adjacent(monkeypatch, client, data, [{"_id": project_name}])
     command = ShotgridToAvalonBatchCommand(123, True)
+    assert_db = _assert_db(lambda: client["avalon"][project_name])
     # Act
     sut.shotgrid_to_avalon(command)
     # Assert
     assert_that(list(client["avalon"][project_name].find())).is_length(3)
-    assert_that(
-        client["avalon"][project_name].find_one(
-            {"name": data[asset_grp]["name"]}
-        )
-    ).is_equal_to(data[asset_grp], ignore=["_id", "data"])
-    assert_that(
-        client["avalon"][project_name].find_one(
-            {"name": data[asset_grp]["name"]}
-        )["data"]
-    ).is_equal_to(data[asset_grp]["data"], ignore="visualParent")
-    assert_that(
-        client["avalon"][project_name].find_one({"name": data[asset]["name"]})
-    ).is_equal_to(data[asset], ignore=["_id", "data"])
-    assert_that(
-        client["avalon"][project_name].find_one({"name": data[asset]["name"]})[
-            "data"
-        ]
-    ).is_equal_to(data[asset]["data"], ignore="visualParent")
+    assert_db({"name": data[asset_grp]["name"]}).is_equal_to(
+        data[asset_grp],
+        ignore=["_id", "data"],
+    )
+    assert_db({"name": data[asset_grp]["name"]}, key="data").is_equal_to(
+        data[asset_grp]["data"],
+        ignore="visualParent",
+    )
+    assert_db({"name": data[asset]["name"]}).is_equal_to(
+        data[asset],
+        ignore=["_id", "data"],
+    )
+    assert_db({"name": data[asset]["name"]}, key="data").is_equal_to(
+        data[asset]["data"],
+        ignore="visualParent",
+    )
