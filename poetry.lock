@@ -157,6 +157,18 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "mongomock"
+version = "3.22.0"
+description = "Fake pymongo stub for testing simple MongoDB-dependent code"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+sentinels = "*"
+six = "*"
+
+[[package]]
 name = "motor"
 version = "2.5.1"
 description = "Non-blocking MongoDB driver for Tornado or asyncio"
@@ -280,6 +292,14 @@ decorator = ">=3.4.2"
 py = ">=1.4.26,<2.0.0"
 
 [[package]]
+name = "sentinels"
+version = "1.0.0"
+description = "Various objects to denote special meanings in python"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "shotgun-api3"
 version = "3.2.6"
 description = "Shotgun Python API"
@@ -293,6 +313,14 @@ type = "git"
 url = "https://github.com/shotgunsoftware/python-api.git"
 reference = "v3.2.6"
 resolved_reference = "6d019eb0b813faabe318283399593da426d706c9"
+
+[[package]]
+name = "six"
+version = "1.16.0"
+description = "Python 2 and 3 compatibility utilities"
+category = "dev"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "sqlalchemy"
@@ -401,7 +429,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "48c3141cd78c1a1653429ab0ba5da43a767d3cb10880b307ddaa224be8dbd459"
+content-hash = "019030037983e94d38bc51db218ff03e65604901e290acffcbc2e92d1a43256c"
 
 [metadata.files]
 asgiref = [
@@ -506,6 +534,10 @@ importlib-metadata = [
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
+]
+mongomock = [
+    {file = "mongomock-3.22.0-py2.py3-none-any.whl", hash = "sha256:b4c5ef32f10c3d74425c57d096819de9f607e1e0fe59fa7f92dd27aa57a3dbe3"},
+    {file = "mongomock-3.22.0.tar.gz", hash = "sha256:8512b42a66d34a42df698bba319daa35a36ee3c0d4fe941acebe8957bda8d13c"},
 ]
 motor = [
     {file = "motor-2.5.1-py3-none-any.whl", hash = "sha256:961fdceacaae2c7236c939166f66415be81be8bbb762da528386738de3a0f509"},
@@ -659,7 +691,14 @@ retry = [
     {file = "retry-0.9.2-py2.py3-none-any.whl", hash = "sha256:ccddf89761fa2c726ab29391837d4327f819ea14d244c232a1d24c67a2f98606"},
     {file = "retry-0.9.2.tar.gz", hash = "sha256:f8bfa8b99b69c4506d6f5bd3b0aabf77f98cdb17f3c9fc3f5ca820033336fba4"},
 ]
+sentinels = [
+    {file = "sentinels-1.0.0.tar.gz", hash = "sha256:7be0704d7fe1925e397e92d18669ace2f619c92b5d4eb21a89f31e026f9ff4b1"},
+]
 shotgun-api3 = []
+six = [
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
 sqlalchemy = [
     {file = "SQLAlchemy-1.4.23-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:25e9b2e5ca088879ce3740d9ccd4d58cb9061d49566a0b5e12166f403d6f4da0"},
     {file = "SQLAlchemy-1.4.23-cp27-cp27m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:d9667260125688c71ccf9af321c37e9fb71c2693575af8210f763bfbbee847c7"},

@@ -24,6 +24,7 @@ pytest = "^6.2"
 assertpy = "^1.1"
 uvicorn = "0.14.0"
 types-retry = "^0.1.5"
+mongomock = "3.22.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
