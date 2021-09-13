@@ -9,3 +9,10 @@ class ShotgridToAvalonBatchCommand:
     project_name: str
     overwrite: bool
     credentials: ShotgridCredentials
+
+
+@dataclass(frozen=True)
+class ShotgridCheckCommand:
+    project_name: str
+    project_id: int
+    credentials: ShotgridCredentials

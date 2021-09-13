@@ -5,13 +5,6 @@ from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
 
 @dataclass(frozen=True)
-class ShotgridCheckQuery:
-    project_name: str
-    project_id: int
-    credentials: ShotgridCredentials
-
-
-@dataclass(frozen=True)
 class ShotgridBaseEntityQuery:
     project_id: int
     credentials: ShotgridCredentials

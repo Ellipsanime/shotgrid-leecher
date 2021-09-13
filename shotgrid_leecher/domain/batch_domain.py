@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from pymongo import MongoClient
 
@@ -6,26 +6,27 @@ import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
-from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
+from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand, \
+    ShotgridCheckCommand
 from shotgrid_leecher.record.queries import (
-    ShotgridCheckQuery,
     ShotgridFindProjectByIdQuery,
 )
-from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.record.results import BatchCheckResult
 
 Map = Dict[str, Any]
 
 
 def check_shotgrid_before_batch(
-    query: ShotgridCheckQuery,
-) -> Optional[ShotgridProject]:
+    command: ShotgridCheckCommand,
+) -> BatchCheckResult:
     project = entity_repo.find_project_by_id(
-        ShotgridFindProjectByIdQuery(query.project_id, query.credentials)
+        ShotgridFindProjectByIdQuery(command.project_id, command.credentials)
     )
-    return project
+    status = "OK" if project else "KO"
+    return BatchCheckResult(status)
 
 
-def shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
+def batch_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     mongo_client: MongoClient = conn.get_db_client()
     intermediate_rows = repository.get_hierarchy_by_project(command.project_id)
     mapped_rows = mapper.shotgrid_to_avalon(intermediate_rows)

@@ -5,6 +5,6 @@ from shotgrid_leecher.repository import shotgrid_hierarchy_repo
 
 def get_recent_events() -> None:
     project_rows = shotgrid_hierarchy_repo.get_hierarchy_by_project(209)
-    batch_domain.shotgrid_to_avalon(ShotgridToAvalonBatchCommand(209, True))
+    batch_domain.batch_shotgrid_to_avalon(ShotgridToAvalonBatchCommand(209, True))
     print(project_rows)
     pass

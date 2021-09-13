@@ -131,7 +131,7 @@ def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
         123, "", True, ShotgridCredentials("", "", "")
     )
     # Act
-    sut.shotgrid_to_avalon(command)
+    sut.batch_shotgrid_to_avalon(command)
     # Assert
     assert_that(client.get_database.called).is_false()
 
@@ -151,7 +151,7 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
     )
     assert_db = _assert_db(lambda: client["avalon"][project["name"]])
     # Act
-    sut.shotgrid_to_avalon(command)
+    sut.batch_shotgrid_to_avalon(command)
     # Assert
     assert_that(client.list_database_names()).is_equal_to(["avalon"])
     assert_that(client["avalon"].list_collection_names()).is_equal_to(
@@ -176,7 +176,7 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     )
     assert_db = _assert_db(lambda: client["avalon"][project_name])
     # Act
-    sut.shotgrid_to_avalon(command)
+    sut.batch_shotgrid_to_avalon(command)
     # Assert
     assert_that(list(client["avalon"][project_name].find())).is_length(3)
     assert_db({"name": data[asset_grp]["name"]}).is_equal_to(
