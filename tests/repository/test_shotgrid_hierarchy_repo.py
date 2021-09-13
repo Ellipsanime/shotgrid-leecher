@@ -15,6 +15,8 @@ from toolz.curried import (
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
 from shotgrid_leecher.record.enums import ShotgridTypes
+from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
 _RAND = random.randint
@@ -208,6 +210,12 @@ def _patch_repo(
     monkeypatch.setattr(entity_repo, "find_tasks_for_project", _fun(tasks))
 
 
+def _to_query(project_id: int) -> ShotgridHierarchyByProjectQuery:
+    return ShotgridHierarchyByProjectQuery(
+        project_id, ShotgridCredentials("", "", "")
+    )
+
+
 @pytest.mark.parametrize(
     "size",
     list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
@@ -220,7 +228,7 @@ def test_random_assets_traversal(monkeypatch: MonkeyPatch, size: int):
     project = _get_project(project_id)
     _patch_repo(monkeypatch, project, assets, [], tasks)
     # Arrange
-    actual = sut.get_hierarchy_by_project(project_id)
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Act
     assert_that(actual).is_type_of(list)
     assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
@@ -252,7 +260,7 @@ def test_random_broken_data_traversal(monkeypatch: MonkeyPatch, size: int):
     project = _get_project(project_id)
     _patch_repo(monkeypatch, project, assets, [], tasks)
     # Arrange
-    actual = sut.get_hierarchy_by_project(project_id)
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Act
     assert_that(actual).is_type_of(list)
     assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
@@ -281,7 +289,7 @@ def test_random_complete_traversal(monkeypatch: MonkeyPatch, size: int):
     project = _get_project(project_id)
     _patch_repo(monkeypatch, project, assets, shots, tasks)
     # Arrange
-    actual = sut.get_hierarchy_by_project(project_id)
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Act
     assert_that(actual).path_counts_types(
         f",{project.name},",
@@ -325,7 +333,7 @@ def test_random_shots_traversal_at_shot_level(
     project = _get_project(project_id)
     _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id)
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Assert
     assert_that(actual).path_counts_types(f",{project.name},", group=1)
     assert_that(actual).path_counts_types(
@@ -378,7 +386,7 @@ def test_odd_random_shots_traversal_at_shot_level(
     project = _get_project(project_id)
     _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id)
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Assert
     assert_that(actual).path_counts_types(f",{project.name},", group=1)
     assert_that(actual).path_counts_types(
@@ -427,7 +435,7 @@ def test_random_shots_traversal_at_bottom_level(
     project = _get_project(project_id)
     _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id)
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Assert
     assert_that(actual).path_counts_tasks(
         f",{project.name},Shot,EP_1,SQ_1,SHOT*",
@@ -469,7 +477,7 @@ def test_odd_random_shots_traversal_at_bottom_level(
     project = _get_project(project_id)
     _patch_repo(monkeypatch, project, [], shots, tasks)
     # Act
-    actual = sut.get_hierarchy_by_project(project_id)
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Assert
     assert_that(actual).path_counts_tasks(
         f",{project.name},Shot,EP_1,SQ_1,SHOT*",

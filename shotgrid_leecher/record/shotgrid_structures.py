@@ -5,6 +5,13 @@ from typing import Optional, List, Dict, Any, Iterator
 from shotgrid_leecher.utils.strings import format_path
 
 
+@dataclass(frozen=True)
+class ShotgridCredentials:
+    shotgrid_url: str
+    script_name: str
+    script_key: str
+
+
 @unique
 class ShotgridRefType(Enum):
     UNKNOWN = "Unknown"

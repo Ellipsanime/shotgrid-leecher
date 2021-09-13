@@ -1,23 +1,28 @@
-from dataclasses import dataclass
-from typing import Dict, List, Any
+from typing import Dict, Any, Optional
 
 from pymongo import MongoClient
 
 import shotgrid_leecher.mapper.hierarchy_mapper as mapper
+import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
+from shotgrid_leecher.record.queries import (
+    ShotgridCheckQuery,
+    ShotgridFindProjectByIdQuery,
+)
+from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
 Map = Dict[str, Any]
 
 
-@dataclass(frozen=True)
-class ShotgridToAvalonBatchCommand:
-    project_id: int
-    overwrite: bool = False
-
-
-def hierarchy_map_to_ordered_list(dic: Dict[str, Map]) -> List[Map]:
-    pass
+def check_shotgrid_before_batch(
+    query: ShotgridCheckQuery,
+) -> Optional[ShotgridProject]:
+    project = entity_repo.find_project_by_id(
+        ShotgridFindProjectByIdQuery(query.project_id, query.credentials)
+    )
+    return project
 
 
 def shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):

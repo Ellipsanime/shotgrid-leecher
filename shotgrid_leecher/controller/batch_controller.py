@@ -1,18 +1,10 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from fastapi import APIRouter
-from pydantic import BaseModel
-from pydantic.fields import Field
+
+from shotgrid_leecher.record.http_models import BatchConfig
 
 router = APIRouter(tags=["batch"], prefix="/batch")
-
-
-class BatchConfig(BaseModel):
-    shotgrid_url: str = Field(None, title="Shotgrid server url")
-    shotgrid_project_id: int = Field(None, title="Shotgrid project id")
-    script_name: str = Field(None, title="Shotgrid script name")
-    script_key: str = Field(None, title="Shotgrid script key")
-    fields_mapping: Optional[Dict[str, Any]]
 
 
 @router.post("/{project_name}")

@@ -10,6 +10,7 @@ from retry import retry
 from toolz import memoize
 
 from shotgrid_leecher.record.enums import EventTables
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 
 Map = Dict[str, Any]
 
@@ -50,9 +51,9 @@ def get_async_db_client() -> AsyncIOMotorClient:
 
 
 @memoize
-def get_shotgrid_client() -> ShotgridClient:
-    url = os.getenv("SHOTGRID_URL")
-    login = os.getenv("SHOTGRID_LOGIN")
-    password = os.getenv("SHOTGRID_PASSWORD")
-    sg_client = sg.Shotgun(url, login=login, password=password)
+def get_shotgrid_client(credentials: ShotgridCredentials) -> ShotgridClient:
+    url = credentials.shotgrid_url
+    script_name = credentials.script_name
+    api_key = credentials.script_key
+    sg_client = sg.Shotgun(url, script_name=script_name, api_key=api_key)
     return ShotgridClient(sg_client)

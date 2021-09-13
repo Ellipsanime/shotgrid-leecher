@@ -3,16 +3,18 @@ import uuid
 from typing import Dict, Any, Callable, List
 from unittest.mock import PropertyMock
 
-import shotgrid_leecher.mapper.hierarchy_mapper as mapper
-import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
-import shotgrid_leecher.utils.connectivity as conn
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from assertpy.assertpy import AssertionBuilder
 from mongomock import MongoClient
-from shotgrid_leecher.domain import batch_domain as sut
-from shotgrid_leecher.domain.batch_domain import ShotgridToAvalonBatchCommand
 from toolz import curry
+
+import shotgrid_leecher.mapper.hierarchy_mapper as mapper
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.domain import batch_domain as sut
+from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 
 Map = Dict[str, Any]
 
@@ -125,7 +127,9 @@ def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
     _patch_adjacent(monkeypatch, client, {}, [])
-    command = ShotgridToAvalonBatchCommand(123, True)
+    command = ShotgridToAvalonBatchCommand(
+        123, "", True, ShotgridCredentials("", "", "")
+    )
     # Act
     sut.shotgrid_to_avalon(command)
     # Assert
@@ -142,7 +146,9 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
         {project["name"]: project},
         [{"_id": project["name"]}],
     )
-    command = ShotgridToAvalonBatchCommand(123, True)
+    command = ShotgridToAvalonBatchCommand(
+        123, "", True, ShotgridCredentials("", "", "")
+    )
     assert_db = _assert_db(lambda: client["avalon"][project["name"]])
     # Act
     sut.shotgrid_to_avalon(command)
@@ -165,7 +171,9 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     asset_grp = list(data.keys())[1]
     asset = list(data.keys())[2]
     _patch_adjacent(monkeypatch, client, data, [{"_id": project_name}])
-    command = ShotgridToAvalonBatchCommand(123, True)
+    command = ShotgridToAvalonBatchCommand(
+        123, "", True, ShotgridCredentials("", "", "")
+    )
     assert_db = _assert_db(lambda: client["avalon"][project_name])
     # Act
     sut.shotgrid_to_avalon(command)

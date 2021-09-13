@@ -1,5 +1,5 @@
 from shotgrid_leecher.domain import batch_domain
-from shotgrid_leecher.domain.batch_domain import ShotgridToAvalonBatchCommand
+from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.repository import shotgrid_hierarchy_repo
 
 
