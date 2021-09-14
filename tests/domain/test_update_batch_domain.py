@@ -8,13 +8,12 @@ from assertpy import assert_that
 from mongomock import MongoClient
 from mongomock.object_id import ObjectId
 
-import shotgrid_leecher.utils.connectivity as conn
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.domain.batch_domain import InsertMongoAvalon
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
-
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
@@ -121,7 +120,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Assert
     assert_that(upsert_mock.call_args).is_length(2)
     assert_that(upsert_mock.call_args_list).is_length(1)
-    assert_that(upsert_mock.call_args.args[1]["_id"]).is_equal_to(
+    assert_that(upsert_mock.call_args_list[0][0][1]["_id"]).is_equal_to(
         last_batch_data[0]["oid"]
     )
 
@@ -191,12 +190,16 @@ def test_shotgrid_to_avalon_batch_update_asset_db(monkeypatch: MonkeyPatch):
 
     # Assert
     assert_that(insert_intermediate.call_count).is_equal_to(1)
-    assert_that(insert_intermediate.call_args.args[1]).is_type_of(list)
-    assert_that(insert_intermediate.call_args.args[1][0]["oid"]).is_equal_to(
-        last_batch_data[0]["oid"]
+    assert_that(insert_intermediate.call_args_list[0][0][1]).is_type_of(list)
+    assert_that(
+        insert_intermediate.call_args_list[0][0][1][0]["oid"]
+    ).is_equal_to(last_batch_data[0]["oid"])
+    assert_that(
+        insert_intermediate.call_args_list[0][0][1][1]["oid"]
+    ).is_equal_to(last_batch_data[1]["oid"])
+    assert_that(insert_intermediate.call_args_list[0][0][1][2]).contains_key(
+        "oid"
     )
-    assert_that(insert_intermediate.call_args.args[1][1]["oid"]).is_equal_to(
-        last_batch_data[1]["oid"]
+    assert_that(insert_intermediate.call_args_list[0][0][1][3]).contains_key(
+        "oid"
     )
-    assert_that(insert_intermediate.call_args.args[1][2]).contains_key("oid")
-    assert_that(insert_intermediate.call_args.args[1][3]).contains_key("oid")
