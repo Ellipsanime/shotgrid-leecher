@@ -6,10 +6,13 @@ import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
-from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand, \
-    ShotgridCheckCommand
+from shotgrid_leecher.record.commands import (
+    ShotgridToAvalonBatchCommand,
+    ShotgridCheckCommand,
+)
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
+    ShotgridHierarchyByProjectQuery,
 )
 from shotgrid_leecher.record.results import BatchCheckResult
 
@@ -28,7 +31,11 @@ def check_shotgrid_before_batch(
 
 def batch_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     mongo_client: MongoClient = conn.get_db_client()
-    intermediate_rows = repository.get_hierarchy_by_project(command.project_id)
+    query = ShotgridHierarchyByProjectQuery(
+        command.project_id,
+        command.credentials,
+    )
+    intermediate_rows = repository.get_hierarchy_by_project(query)
     mapped_rows = mapper.shotgrid_to_avalon(intermediate_rows)
 
     if not mapped_rows:
