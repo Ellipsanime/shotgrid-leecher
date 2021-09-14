@@ -150,6 +150,7 @@ def _default_avalon_asset_data() -> Map:
 
 def _create_avalon_project_row(intermediate_row: Map) -> Map:
     return {
+        "_id": intermediate_row.get("oid"),
         "type": "project",
         "name": intermediate_row["_id"],
         "data": _default_avalon_project_data(),
@@ -170,6 +171,7 @@ def _create_avalon_asset_row(
     data = _default_avalon_asset_data()
     data["visualParent"] = visual_parent
     return {
+        "_id": intermediate_row.get("oid"),
         "type": "asset",
         "name": intermediate_row["_id"],
         "data": data,
