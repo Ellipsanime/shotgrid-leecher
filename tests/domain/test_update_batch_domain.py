@@ -207,3 +207,38 @@ def test_shotgrid_to_avalon_batch_update_workfile_upserted_values(
     # Act
     # Assert
     pass
+
+
+def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
+    monkeypatch: MonkeyPatch,
+):
+    # Arrange
+    project = _get_project()
+    asset_grp = _get_asset_group(project)
+    data = [project, asset_grp, *_get_prp_asset_with_tasks(asset_grp, 3)]
+    last_batch_data = [{**x, "object_id": ObjectId()} for x in data[:4]]
+    last_batch_data.append({**data[4], "parent_object_id": ObjectId()})
+
+    call_list = []
+
+    def upsert_mock(project_name, row):
+        call_list.append(row)
+        return row["_id"]
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
+    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
+    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
+
+    command = ShotgridToAvalonBatchCommand(
+        123, "", True, ShotgridCredentials("", "", "")
+    )
+
+    # Act
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    # Assert
+    assert_that(call_list).is_length(4)
+    assert_that(call_list[0]["_id"]).is_equal_to(
+        last_batch_data[0]["object_id"]
+    )
