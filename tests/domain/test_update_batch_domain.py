@@ -11,9 +11,10 @@ from mongomock.object_id import ObjectId
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
-from shotgrid_leecher.domain.batch_domain import InsertMongoAvalon
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.repository import hierarchy_repo
+from shotgrid_leecher.writers import db_writer
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
@@ -98,17 +99,13 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
 def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Arrange
     data = [_get_project()]
-    last_batch_data = [{**x, "oid": ObjectId()} for x in data]
+    last_batch_data = [{**x, "object_id": ObjectId()} for x in data]
 
-    upsert_mock = Mock(return_value=last_batch_data[0]["oid"])
+    upsert_mock = Mock(return_value=last_batch_data[0]["object_id"])
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(
-        InsertMongoAvalon, "get_last_intermediate_rows", _fun(last_batch_data)
-    )
-    monkeypatch.setattr(
-        InsertMongoAvalon, "insert_intermediate_rows", _fun(None)
-    )
-    monkeypatch.setattr(InsertMongoAvalon, "upsert_in_avalon", upsert_mock)
+    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
+    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
         123, "", True, ShotgridCredentials("", "", "")
@@ -121,7 +118,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     assert_that(upsert_mock.call_args).is_length(2)
     assert_that(upsert_mock.call_args_list).is_length(1)
     assert_that(upsert_mock.call_args_list[0][0][1]["_id"]).is_equal_to(
-        last_batch_data[0]["oid"]
+        last_batch_data[0]["object_id"]
     )
 
 
@@ -130,22 +127,18 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset(asset_grp)]
-    last_batch_data = [{**x, "oid": ObjectId()} for x in data[:2]]
+    last_batch_data = [{**x, "object_id": ObjectId()} for x in data[:2]]
 
     call_list = []
 
-    def upsert_mock(a, project_name, row):
+    def upsert_mock(project_name, row):
         call_list.append(row)
         return row["_id"]
 
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(
-        InsertMongoAvalon, "get_last_intermediate_rows", _fun(last_batch_data)
-    )
-    monkeypatch.setattr(
-        InsertMongoAvalon, "insert_intermediate_rows", _fun(None)
-    )
-    monkeypatch.setattr(InsertMongoAvalon, "upsert_in_avalon", upsert_mock)
+    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
+    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
         123, "", True, ShotgridCredentials("", "", "")
@@ -156,8 +149,12 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
 
     # Assert
     assert_that(call_list).is_length(4)
-    assert_that(call_list[0]["_id"]).is_equal_to(last_batch_data[0]["oid"])
-    assert_that(call_list[1]["_id"]).is_equal_to(last_batch_data[1]["oid"])
+    assert_that(call_list[0]["_id"]).is_equal_to(
+        last_batch_data[0]["object_id"]
+    )
+    assert_that(call_list[1]["_id"]).is_equal_to(
+        last_batch_data[1]["object_id"]
+    )
 
 
 def test_shotgrid_to_avalon_batch_update_asset_db(monkeypatch: MonkeyPatch):
@@ -165,21 +162,17 @@ def test_shotgrid_to_avalon_batch_update_asset_db(monkeypatch: MonkeyPatch):
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset(asset_grp)]
-    last_batch_data = [{**x, "oid": ObjectId()} for x in data[:2]]
+    last_batch_data = [{**x, "object_id": ObjectId()} for x in data[:2]]
 
-    def upsert_mock(a, project_name, row):
+    def upsert_mock(project_name, row):
         return row["_id"]
 
     insert_intermediate = Mock()
 
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(
-        InsertMongoAvalon, "get_last_intermediate_rows", _fun(last_batch_data)
-    )
-    monkeypatch.setattr(
-        InsertMongoAvalon, "insert_intermediate_rows", insert_intermediate
-    )
-    monkeypatch.setattr(InsertMongoAvalon, "upsert_in_avalon", upsert_mock)
+    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(db_writer, "overwrite_hierarchy", insert_intermediate)
+    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
         123, "", True, ShotgridCredentials("", "", "")
@@ -192,14 +185,14 @@ def test_shotgrid_to_avalon_batch_update_asset_db(monkeypatch: MonkeyPatch):
     assert_that(insert_intermediate.call_count).is_equal_to(1)
     assert_that(insert_intermediate.call_args_list[0][0][1]).is_type_of(list)
     assert_that(
-        insert_intermediate.call_args_list[0][0][1][0]["oid"]
-    ).is_equal_to(last_batch_data[0]["oid"])
+        insert_intermediate.call_args_list[0][0][1][0]["object_id"]
+    ).is_equal_to(last_batch_data[0]["object_id"])
     assert_that(
-        insert_intermediate.call_args_list[0][0][1][1]["oid"]
-    ).is_equal_to(last_batch_data[1]["oid"])
+        insert_intermediate.call_args_list[0][0][1][1]["object_id"]
+    ).is_equal_to(last_batch_data[1]["object_id"])
     assert_that(insert_intermediate.call_args_list[0][0][1][2]).contains_key(
-        "oid"
+        "object_id"
     )
     assert_that(insert_intermediate.call_args_list[0][0][1][3]).contains_key(
-        "oid"
+        "object_id"
     )

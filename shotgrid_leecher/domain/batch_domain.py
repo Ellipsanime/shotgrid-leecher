@@ -1,7 +1,7 @@
-from typing import Dict, List, Any
+from typing import Dict, Any
 
-from pymongo import MongoClient
 from bson.objectid import ObjectId
+from pymongo import MongoClient
 
 import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
@@ -16,6 +16,8 @@ from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
 )
 from shotgrid_leecher.record.results import BatchCheckResult
+from shotgrid_leecher.repository import hierarchy_repo
+from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
 
@@ -60,96 +62,63 @@ def batch_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
                 row["data"]["visualParent"]
             ]["_id"]
 
-        oid = col.insert_one(row).inserted_id
-        mapped_rows[row["name"]]["_id"] = oid
+        object_id = col.insert_one(row).inserted_id
+        mapped_rows[row["name"]]["_id"] = object_id
 
 
-def add_oids(intermediate_rows, last_intermediate_rows):
+def _assign_object_ids(shotgrid_hierarchy, last_hierarchy_rows):
 
     src_mapped_last_intermediate_rows = {
-        x["src_id"]: x for x in last_intermediate_rows if x.get("src_id")
+        x["src_id"]: x for x in last_hierarchy_rows if x.get("src_id")
     }
     id_mapped_last_intermediate_rows = {
-        x["_id"]: x for x in last_intermediate_rows if not x.get("src_id")
+        x["_id"]: x for x in last_hierarchy_rows if not x.get("src_id")
     }
 
-    for row in intermediate_rows:
+    for row in shotgrid_hierarchy:
 
         if row.get("src_id"):
             if src_mapped_last_intermediate_rows.get(row["src_id"]):
-                row["oid"] = src_mapped_last_intermediate_rows[row["src_id"]][
-                    "oid"
-                ]
+                row["object_id"] = src_mapped_last_intermediate_rows[
+                    row["src_id"]
+                ]["object_id"]
             else:
-                row["oid"] = ObjectId()
+                row["object_id"] = ObjectId()
         else:
             if id_mapped_last_intermediate_rows.get(row["_id"]):
-                row["oid"] = id_mapped_last_intermediate_rows[row["_id"]][
-                    "oid"
-                ]
+                row["object_id"] = id_mapped_last_intermediate_rows[
+                    row["_id"]
+                ]["object_id"]
             else:
-                row["oid"] = ObjectId()
+                row["object_id"] = ObjectId()
 
-    return intermediate_rows
-
-
-class InsertMongoAvalon:
-
-    client: MongoClient
-
-    def __init__(self, client: MongoClient):
-        self.client = client
-
-    def get_last_intermediate_rows(self, project_name: str):
-        so_db = self.client.get_database("shotgrid_openpype")
-        return so_db.get_collection(project_name).find({})
-
-    def insert_intermediate_rows(
-        self, project_name: str, intermediate_rows: List[Map]
-    ):
-        so_db = self.client.get_database("shotgrid_openpype")
-        so_db.drop_collection(project_name)
-        so_db.get_collection(project_name).insert_many(intermediate_rows)
-
-    def upsert_in_avalon(self, project_name: str, row: Map) -> ObjectId:
-        db = self.client.get_database("avalon")
-        col = db.get_collection(project_name)
-        query = {"$set": row}
-        return col.update_one(
-            {"_id": row["_id"]}, query, upsert=True
-        ).upserted_id
+    return shotgrid_hierarchy
 
 
 def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
-    mongo_inserter = InsertMongoAvalon(conn.get_db_client())
-    intermediate_rows = repository.get_hierarchy_by_project(command.project_id)
+    hierarchy_rows = repository.get_hierarchy_by_project(command.project_id)
 
-    if not intermediate_rows:
+    if not hierarchy_rows:
         return
 
-    project_name = intermediate_rows[0]["_id"]
+    project_name = hierarchy_rows[0]["_id"]
 
-    last_intermediate_rows = mongo_inserter.get_last_intermediate_rows(
-        project_name
-    )
-    intermediate_rows = add_oids(intermediate_rows, last_intermediate_rows)
+    last_hierarchy_rows = hierarchy_repo.get_last_rows(project_name)
+    hierarchy_rows = _assign_object_ids(hierarchy_rows, last_hierarchy_rows)
 
-    mongo_inserter.insert_intermediate_rows(project_name, intermediate_rows)
+    db_writer.overwrite_hierarchy(project_name, hierarchy_rows)
+    avalon_tree = mapper.shotgrid_to_avalon(hierarchy_rows)
 
-    mapped_rows = mapper.shotgrid_to_avalon(intermediate_rows)
+    avalon_rows = list(avalon_tree.values())
 
-    # list_mapped_rows = hierarchy_map_to_ordered_list(mapped_rows)
-    list_mapped_rows = list(mapped_rows.values())
-
-    for row in list_mapped_rows:
-
+    for row in avalon_rows:
         if "parent" in row and row["parent"]:
-            row["parent"] = mapped_rows[row["parent"]]["_id"]
+            row["parent"] = avalon_tree[row["parent"]]["_id"]
 
         if "visualParent" in row["data"] and row["data"]["visualParent"]:
-            row["data"]["visualParent"] = mapped_rows[
+            row["data"]["visualParent"] = avalon_tree[
                 row["data"]["visualParent"]
             ]["_id"]
 
-        oid = mongo_inserter.upsert_in_avalon(project_name, row)
-        mapped_rows[row["name"]]["_id"] = oid
+        object_id = db_writer.upsert_avalon_row(project_name, row)
+        avalon_tree[row["name"]]["_id"] = object_id
