@@ -157,7 +157,9 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     )
 
 
-def test_shotgrid_to_avalon_batch_update_asset_db(monkeypatch: MonkeyPatch):
+def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
+    monkeypatch: MonkeyPatch,
+):
     # Arrange
     project = _get_project()
     asset_grp = _get_asset_group(project)
@@ -196,3 +198,12 @@ def test_shotgrid_to_avalon_batch_update_asset_db(monkeypatch: MonkeyPatch):
     assert_that(insert_intermediate.call_args_list[0][0][1][3]).contains_key(
         "object_id"
     )
+
+
+def test_shotgrid_to_avalon_batch_update_workfile_upserted_values(
+    monkeypatch: MonkeyPatch,
+):
+    # Arrange
+    # Act
+    # Assert
+    pass
