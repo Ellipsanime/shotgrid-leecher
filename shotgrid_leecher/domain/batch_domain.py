@@ -96,7 +96,11 @@ def _assign_object_ids(shotgrid_hierarchy, last_hierarchy_rows):
 
 
 def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
-    hierarchy_rows = repository.get_hierarchy_by_project(command.project_id)
+    query = ShotgridHierarchyByProjectQuery(
+        command.project_id,
+        command.credentials,
+    )
+    hierarchy_rows = repository.get_hierarchy_by_project(query)
 
     if not hierarchy_rows:
         return
