@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List, Iterator
 
 from bson.objectid import ObjectId
 from pymongo import MongoClient
@@ -66,33 +66,31 @@ def batch_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
         mapped_rows[row["name"]]["_id"] = object_id
 
 
-def _assign_object_ids(shotgrid_hierarchy, last_hierarchy_rows):
-
-    src_mapped_last_intermediate_rows = {
+def _assign_object_ids(
+    shotgrid_hierarchy: List[Map],
+    last_hierarchy_rows: List[Map],
+) -> Iterator[Map]:
+    source_id_tree = {
         x["src_id"]: x for x in last_hierarchy_rows if x.get("src_id")
     }
-    id_mapped_last_intermediate_rows = {
+    ids_tree = {
         x["_id"]: x for x in last_hierarchy_rows if not x.get("src_id")
     }
-
     for row in shotgrid_hierarchy:
-
         if row.get("src_id"):
-            if src_mapped_last_intermediate_rows.get(row["src_id"]):
-                row["object_id"] = src_mapped_last_intermediate_rows[
-                    row["src_id"]
-                ]["object_id"]
-            else:
-                row["object_id"] = ObjectId()
-        else:
-            if id_mapped_last_intermediate_rows.get(row["_id"]):
-                row["object_id"] = id_mapped_last_intermediate_rows[
-                    row["_id"]
-                ]["object_id"]
-            else:
-                row["object_id"] = ObjectId()
-
-    return shotgrid_hierarchy
+            yield {
+                **row,
+                "object_id": source_id_tree.get(row["src_id"], dict()).get(
+                    "object_id", ObjectId()
+                ),
+            }
+        if not row.get("src_id"):
+            yield {
+                **row,
+                "object_id": ids_tree.get(row["_id"], dict()).get(
+                    "object_id", ObjectId()
+                ),
+            }
 
 
 def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
@@ -108,7 +106,9 @@ def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     project_name = hierarchy_rows[0]["_id"]
 
     last_hierarchy_rows = hierarchy_repo.get_last_rows(project_name)
-    hierarchy_rows = _assign_object_ids(hierarchy_rows, last_hierarchy_rows)
+    hierarchy_rows = list(
+        _assign_object_ids(hierarchy_rows, last_hierarchy_rows)
+    )
 
     db_writer.overwrite_hierarchy(project_name, hierarchy_rows)
     avalon_tree = mapper.shotgrid_to_avalon(hierarchy_rows)
