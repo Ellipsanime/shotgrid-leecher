@@ -98,10 +98,12 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
 
 def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Arrange
+    client = MongoClient()
     data = [_get_project()]
     last_batch_data = [{**x, "object_id": ObjectId()} for x in data]
 
     upsert_mock = Mock(return_value=last_batch_data[0]["object_id"])
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
@@ -124,6 +126,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
 
 def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     # Arrange
+    client = MongoClient()
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset(asset_grp)]
@@ -135,6 +138,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
         call_list.append(row)
         return row["_id"]
 
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
@@ -161,6 +165,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     monkeypatch: MonkeyPatch,
 ):
     # Arrange
+    client = MongoClient()
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset(asset_grp)]
@@ -171,6 +176,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
 
     insert_intermediate = Mock()
 
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", insert_intermediate)
@@ -213,6 +219,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch: MonkeyPatch,
 ):
     # Arrange
+    client = MongoClient()
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset_with_tasks(asset_grp, 3)]
@@ -225,6 +232,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
         call_list.append(row)
         return row["_id"]
 
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
