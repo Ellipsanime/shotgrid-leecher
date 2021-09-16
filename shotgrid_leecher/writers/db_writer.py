@@ -20,3 +20,9 @@ def upsert_avalon_row(project_name: str, avalon_row: Map) -> ObjectId:
     return col.update_one(
         {"_id": avalon_row["_id"]}, query, upsert=True
     ).upserted_id
+
+
+def drop_avalon_project(project_name: str):
+    db = conn.get_db_client().get_database("avalon")
+    db.drop_collection(project_name)
+    db.create_collection(project_name)

@@ -1,5 +1,6 @@
 import uuid
 from typing import Any, Callable, List
+from unittest.mock import Mock
 
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
@@ -41,6 +42,7 @@ def _get_shot_group(project):
 
 
 def _get_prp_asset(parent):
+
     return [
         {
             "_id": "PRP",
@@ -83,7 +85,7 @@ def test_update_shotgrid_to_avalon_init_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, project['_id'], True, ShotgridCredentials("", "", "")
     )
 
     # Act
@@ -119,7 +121,7 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, project['_id'], True, ShotgridCredentials("", "", "")
     )
 
     # Act
@@ -170,9 +172,122 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     ).is_equal_to(data)
 
 
-def test_update_shotgrid_to_avalon_overwrite():
-    pass
+def test_update_shotgrid_to_avalon_overwrite(monkeypatch: MonkeyPatch):
+    # Arrange
+    client = MongoClient()
+    project = _get_project()
+    asset_grp = _get_asset_group(project)
+    asset_and_type = _get_prp_asset(asset_grp)
+    predata = [project, asset_grp, *asset_and_type]
+
+    data = [_get_project()]
+
+    mockdata = Mock()
+    mockdata.side_effect = [predata, data]
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", mockdata)
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    command = ShotgridToAvalonBatchCommand(
+        123, project["_id"], True, ShotgridCredentials("", "", "")
+    )
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    # Act
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    # Assert
+    assert_that(
+        client.get_database("avalon").list_collection_names()
+    ).is_length(1)
+    assert_that(
+        list(
+            client.get_database("avalon")
+            .get_collection(project["_id"])
+            .find({})
+        )
+    ).is_length(1)
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find({})[0]["type"]
+    ).is_equal_to("project")
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find({})[0]["name"]
+    ).is_equal_to(data[0]["_id"])
 
 
-def test_update_shotgrid_to_avalon_update_values():
-    pass
+def test_update_shotgrid_to_avalon_update_values(monkeypatch: MonkeyPatch):
+    # Arrange
+    client = MongoClient()
+    project = _get_project()
+    asset_grp = _get_asset_group(project)
+    asset_prp, asset = _get_prp_asset(asset_grp)
+    asset_updated = dict(asset)
+    asset_updated['_id'] = "Knife"
+
+    predata = [project, asset_grp, asset_prp, asset]
+    data = [project, asset_grp, asset_prp, asset_updated]
+
+    mockdata = Mock()
+    mockdata.side_effect = [predata, data]
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", mockdata)
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    command = ShotgridToAvalonBatchCommand(
+        123, project["_id"], True, ShotgridCredentials("", "", "")
+    )
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    avalon_project_mid_id = (
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": project["_id"]})["_id"]
+    )
+    avalon_asset_grp_mid_id = (
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "Asset"})["_id"]
+    )
+    avalon_asset_prp_mid_id = (
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "PRP"})["_id"]
+    )
+    avalon_asset_mid_id = (
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "Fork"})["_id"]
+    )
+    # Act
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    # Assert
+    assert_that(
+        list(
+            client.get_database("avalon")
+            .get_collection(project["_id"])
+            .find({})
+        )
+    ).is_length(4)
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": project["_id"]})["_id"]
+    ).is_equal_to(avalon_project_mid_id)
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "Asset"})["_id"]
+    ).is_equal_to(avalon_asset_grp_mid_id)
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "PRP"})["_id"]
+    ).is_equal_to(avalon_asset_prp_mid_id)
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "Knife"})["_id"]
+    ).is_equal_to(avalon_asset_mid_id)

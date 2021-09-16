@@ -108,7 +108,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, "test", True, ShotgridCredentials("", "", "")
     )
 
     # Act
@@ -141,7 +141,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, project["_id"], True, ShotgridCredentials("", "", "")
     )
 
     # Act
@@ -177,7 +177,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, project["_id"], True, ShotgridCredentials("", "", "")
     )
 
     # Act
@@ -231,7 +231,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, project["_id"], True, ShotgridCredentials("", "", "")
     )
 
     # Act

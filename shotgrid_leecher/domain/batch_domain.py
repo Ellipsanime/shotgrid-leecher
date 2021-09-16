@@ -103,17 +103,17 @@ def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     if not hierarchy_rows:
         return
 
-    project_name = hierarchy_rows[0]["_id"]
-
-    last_hierarchy_rows = hierarchy_repo.get_last_rows(project_name)
+    last_hierarchy_rows = list(hierarchy_repo.get_last_rows(command.project_name))
     hierarchy_rows = list(
         _assign_object_ids(hierarchy_rows, last_hierarchy_rows)
     )
 
-    db_writer.overwrite_hierarchy(project_name, hierarchy_rows)
     avalon_tree = mapper.shotgrid_to_avalon(hierarchy_rows)
 
     avalon_rows = list(avalon_tree.values())
+
+    if command.overwrite:
+        db_writer.drop_avalon_project(command.project_name)
 
     for row in avalon_rows:
         if "parent" in row and row["parent"]:
@@ -124,5 +124,7 @@ def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
                 row["data"]["visualParent"]
             ]["_id"]
 
-        object_id = db_writer.upsert_avalon_row(project_name, row)
+        object_id = db_writer.upsert_avalon_row(command.project_name, row)
         avalon_tree[row["name"]]["_id"] = object_id
+
+    db_writer.overwrite_hierarchy(command.project_name, hierarchy_rows)
