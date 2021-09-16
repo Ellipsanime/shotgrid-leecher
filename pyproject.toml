@@ -10,7 +10,7 @@ authors = ["Ellipse studio <dev@ellipse.net>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 toolz = "^0.11.1"
-fastapi = "^0.66.0"
+#fastapi = "^0.66.0"
 fastapi-utils = "^0.2.1"
 retry = "^0.9.2"
 shotgun-api3 = {git = "https://github.com/shotgunsoftware/python-api.git", rev = "v3.2.6"}

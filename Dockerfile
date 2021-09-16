@@ -1,19 +1,18 @@
-FROM python:3.7
-#FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
 
-COPY ./shotgrid_leecher /app/shotgrid_leecher
+ENV MODULE_NAME="shotgrid_leecher.main"
+
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | POETRY_HOME=/opt/poetry python && \
+    cd /usr/local/bin && \
+    ln -s /opt/poetry/bin/poetry && \
+    poetry config virtualenvs.create false
+
 COPY ./poetry.toml /app/
 COPY ./pyproject.toml /app/
+COPY ./shotgrid_leecher /app/shotgrid_leecher
 
 WORKDIR /app
-
-RUN pip install "poetry==1.1.8"
-RUN pip install "uvicorn==0.14.0"
-
-#RUN poetry config virtualenvs.create false \
-#  && poetry install --no-dev --no-interaction --no-ansi
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
-
+RUN poetry export -f requirements.txt \
+    --output requirements.txt \
+    --without-hashes
 RUN pip install -r requirements.txt
-
-CMD ["uvicorn", "--reload", "--host=0.0.0.0", "--port=9001", "shotgrid_leecher.main:app"]
