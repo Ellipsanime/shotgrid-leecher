@@ -22,6 +22,15 @@ def upsert_avalon_row(project_name: str, avalon_row: Map) -> ObjectId:
     ).upserted_id
 
 
+def insert_avalon_row(project_name: str, avalon_row: Map) -> ObjectId:
+    collection = (
+        conn.get_db_client()
+        .get_database("avalon")
+        .get_collection(project_name)
+    )
+    return collection.insert_one(avalon_row).inserted_id
+
+
 def drop_avalon_project(project_name: str):
     db = conn.get_db_client().get_database("avalon")
     db.drop_collection(project_name)

@@ -1,20 +1,19 @@
 import random
 import uuid
 from typing import Dict, Any, Callable, List
-from unittest.mock import PropertyMock
+from unittest.mock import PropertyMock, Mock
 
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from assertpy.assertpy import AssertionBuilder
-from mongomock import MongoClient
 from toolz import curry
 
 import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
-import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
 
@@ -107,9 +106,8 @@ def _get_simple_asset_mapped_rows(task_num: int) -> Dict[str, Map]:
 
 
 def _patch_adjacent(
-    patcher: MonkeyPatch, client, mapped: Dict, hierarchy: List
+    patcher: MonkeyPatch, mapped: Dict, hierarchy: List
 ) -> None:
-    patcher.setattr(conn, "get_db_client", _fun(client))
     patcher.setattr(mapper, "shotgrid_to_avalon", _fun(mapped))
     patcher.setattr(repository, "get_hierarchy_by_project", _fun(hierarchy))
 
@@ -126,72 +124,84 @@ def _assert_db(
 def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
-    _patch_adjacent(monkeypatch, client, {}, [])
+    _patch_adjacent(monkeypatch, {}, [])
+    insert_avalon = Mock(return_value=1)
+    monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
     command = ShotgridToAvalonBatchCommand(
         123, "", True, ShotgridCredentials("", "", "")
     )
     # Act
     sut.batch_shotgrid_to_avalon(command)
     # Assert
-    assert_that(client.get_database.called).is_false()
+    assert_that(insert_avalon.called).is_false()
 
 
 def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
     # Arrange
-    client = MongoClient()
     project = _get_project_mapped_rows()
+    project_name = project["name"]
     _patch_adjacent(
         monkeypatch,
-        client,
         {project["name"]: project},
         [{"_id": project["name"]}],
     )
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, project_name, True, ShotgridCredentials("", "", "")
     )
-    assert_db = _assert_db(lambda: client["avalon"][project["name"]])
+    insert_avalon = Mock(return_value=1)
+    monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
     # Act
     sut.batch_shotgrid_to_avalon(command)
     # Assert
-    assert_that(client.list_database_names()).is_equal_to(["avalon"])
-    assert_that(client["avalon"].list_collection_names()).is_equal_to(
-        [project["name"]]
+    assert_that([x[0][0] for x in insert_avalon.call_args_list]).is_equal_to(
+        [project_name]
     )
-    assert_db({"name": project["name"]}).is_not_none().contains_key(
-        "_id"
-    ).is_equal_to(project, ignore="_id")
+    assert_that(insert_avalon.call_args_list[0][0][1]).is_equal_to(
+        project,
+        ignore=["_id", "data", "parent"],
+    )
 
 
 def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     # Arrange
-    client = MongoClient()
     task_num = 3
     data = _get_simple_asset_mapped_rows(task_num)
     project_name = list(data.keys())[0]
     asset_grp = list(data.keys())[1]
     asset = list(data.keys())[2]
-    _patch_adjacent(monkeypatch, client, data, [{"_id": project_name}])
+    ids = [project_name, 1, 2]
+    _patch_adjacent(monkeypatch, data, [{"_id": project_name}])
+    insert_avalon = Mock(side_effect=ids)
+    monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123, project_name, True, ShotgridCredentials("", "", "")
     )
-    assert_db = _assert_db(lambda: client["avalon"][project_name])
     # Act
     sut.batch_shotgrid_to_avalon(command)
     # Assert
-    assert_that(list(client["avalon"][project_name].find())).is_length(3)
-    assert_db({"name": data[asset_grp]["name"]}).is_equal_to(
+    assert_that([x[0][0] for x in insert_avalon.call_args_list]).is_equal_to(
+        [project_name for _ in range(task_num)]
+    )
+    assert_that(insert_avalon.call_args_list[0][0][1].get("parent")).is_none()
+    assert_that(
+        insert_avalon.call_args_list[1][0][1].get("parent")
+    ).is_equal_to(project_name)
+    assert_that(
+        insert_avalon.call_args_list[2][0][1].get("parent")
+    ).is_equal_to(project_name)
+    assert_that(insert_avalon.call_args_list[1][0][1]).is_equal_to(
         data[asset_grp],
         ignore=["_id", "data"],
     )
-    assert_db({"name": data[asset_grp]["name"]}, key="data").is_equal_to(
+    assert_that(insert_avalon.call_args_list[1][0][1].get("data")).is_equal_to(
         data[asset_grp]["data"],
-        ignore="visualParent",
+        ignore=["visualParent"],
     )
-    assert_db({"name": data[asset]["name"]}).is_equal_to(
+    assert_that(insert_avalon.call_args_list[2][0][1]).is_equal_to(
         data[asset],
         ignore=["_id", "data"],
     )
-    assert_db({"name": data[asset]["name"]}, key="data").is_equal_to(
+    assert_that(insert_avalon.call_args_list[2][0][1].get("data")).is_equal_to(
         data[asset]["data"],
-        ignore="visualParent",
+        ignore=["visualParent"],
     )

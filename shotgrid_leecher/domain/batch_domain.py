@@ -1,13 +1,11 @@
 from typing import Dict, Any, List, Iterator
 
 from bson.objectid import ObjectId
-from pymongo import MongoClient
 from toolz import get_in
 
 import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
-import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.commands import (
     ShotgridToAvalonBatchCommand,
     ShotgridCheckCommand,
@@ -41,13 +39,13 @@ def _assign_object_ids(
                     "object_id", ObjectId()
                 ),
             }
-        if not row.get("src_id"):
-            yield {
-                **row,
-                "object_id": ids_tree.get(row["_id"], dict()).get(
-                    "object_id", ObjectId()
-                ),
-            }
+            continue
+        yield {
+            **row,
+            "object_id": ids_tree.get(row["_id"], dict()).get(
+                "object_id", ObjectId()
+            ),
+        }
 
 
 def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
@@ -59,7 +57,7 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
         "data": {
             **row["data"],
             "visualParent": (
-                avalon_tree[row["data"]["visualParent"]]["_id"]
+                avalon_tree[row["data"]["visualParent"]].get("_id")
                 if get_in("data.visualParent".split("."), row)
                 else None
             ),
@@ -78,37 +76,24 @@ def check_shotgrid_before_batch(
 
 
 def batch_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
-    mongo_client: MongoClient = conn.get_db_client()
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,
     )
-    intermediate_rows = repository.get_hierarchy_by_project(query)
-    mapped_rows = mapper.shotgrid_to_avalon(intermediate_rows)
+    hierarchy_rows = repository.get_hierarchy_by_project(query)
+    avalon_tree = mapper.shotgrid_to_avalon(hierarchy_rows)
 
-    if not mapped_rows:
+    if not avalon_tree:
         return
 
-    # list_mapped_rows = hierarchy_map_to_ordered_list(mapped_rows)
-    list_mapped_rows = list(mapped_rows.values())
+    avalon_rows = list(avalon_tree.values())
 
-    db = mongo_client.get_database("avalon")
-    # if collection exist
-    #  - remove collection
-    col = db.get_collection(intermediate_rows[0]["_id"])
-
-    for row in list_mapped_rows:
-
-        if "parent" in row and row["parent"]:
-            row["parent"] = mapped_rows[row["parent"]]["_id"]
-
-        if "visualParent" in row["data"] and row["data"]["visualParent"]:
-            row["data"]["visualParent"] = mapped_rows[
-                row["data"]["visualParent"]
-            ]["_id"]
-
-        object_id = col.insert_one(row).inserted_id
-        mapped_rows[row["name"]]["_id"] = object_id
+    for row in avalon_rows:
+        object_id = db_writer.insert_avalon_row(
+            command.project_name,
+            _rearrange_parents(avalon_tree, row)
+        )
+        avalon_tree[row["name"]]["_id"] = object_id
 
 
 def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
@@ -132,9 +117,10 @@ def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
         db_writer.drop_avalon_project(command.project_name)
 
     for row in avalon_rows:
-        db_writer.upsert_avalon_row(
+        object_id = db_writer.upsert_avalon_row(
             command.project_name,
             _rearrange_parents(avalon_tree, row),
         )
+        avalon_tree[row["name"]]["_id"] = object_id
 
     db_writer.overwrite_hierarchy(command.project_name, hierarchy_rows)
