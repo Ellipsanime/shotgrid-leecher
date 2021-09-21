@@ -1,10 +1,11 @@
 import uuid
-from typing import Any, Callable, List
+import random
+from typing import Any, Dict, Callable, List
 from unittest.mock import Mock
 
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
-from mongomock import MongoClient
+from mongomock import MongoClient, ObjectId
 
 import shotgrid_leecher.utils.connectivity as conn
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
@@ -15,9 +16,15 @@ from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
 
+Map = Dict[str, Any]
+
 
 def _fun(param: Any) -> Callable[[Any], Any]:
     return lambda *_: param
+
+
+def _generate_shotgrid_id() -> int:
+    return uuid.uuid4().int & (1 << 16) - 1
 
 
 def _get_project():
@@ -51,11 +58,41 @@ def _get_prp_asset(parent):
         },
         {
             "_id": "Fork",
-            "src_id": uuid.uuid4().int & (1 << 16) - 1,
+            "src_id": _generate_shotgrid_id(),
             "type": "Asset",
             "parent": f"{parent['parent']}{parent['_id']},PRP,",
         },
     ]
+
+
+def _get_prp_asset_with_tasks(parent, task_num):
+    asset = _get_prp_asset(parent)
+    tasks = [
+        {
+            "_id": f"{random.choice(TASK_NAMES)}_{uuid.uuid4().int}",
+            "src_id": _generate_shotgrid_id(),
+            "type": "Task",
+            "task_type": random.choice(STEP_NAMES),
+            "parent": f"{asset[1]['parent']}{asset[1]['_id']},",
+        }
+        for i in range(task_num)
+    ]
+    return [*asset, *tasks]
+
+
+def _create_avalon_project_row(project_name: str) -> Map:
+    return {
+        "_id": ObjectId(),
+        "type": "project",
+        "name": project_name,
+        "schema": "openpype:project-3.0",
+        "config": {
+            "apps": [{"name": "maya/2020"}],
+            "imageio": {"hiero": {"workfile": {"logLut": "Cineon"}}},
+            "roots": {"windows": "C:/projects"},
+            "templates": {"default": {}},
+        },
+    }
 
 
 def test_update_shotgrid_to_avalon_empty(monkeypatch: MonkeyPatch):
@@ -108,6 +145,108 @@ def test_update_shotgrid_to_avalon_init_project(monkeypatch: MonkeyPatch):
     assert_that(
         client.get_database("shotgrid_openpype").list_collection_names()
     ).is_equal_to([project["_id"]])
+
+
+def test_update_shotgrid_to_avalon_update_project(monkeypatch: MonkeyPatch):
+    # Arrange
+    client = MongoClient()
+    project = _get_project()
+    data = [project]
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    command = ShotgridToAvalonBatchCommand(
+        123, project["_id"], False, ShotgridCredentials("", "", "")
+    )
+
+    project_avalon_init_data = _create_avalon_project_row(project["_id"])
+    client.get_database("avalon").get_collection(project["_id"]).insert_one(
+        project_avalon_init_data
+    )
+    # Act
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    # Assert
+    assert_that(
+        list(
+            client.get_database("avalon")
+            .get_collection(project["_id"])
+            .find({})
+        )
+    ).is_length(1)
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})
+    ).is_not_none()
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]
+    ).is_type_of(dict)
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]
+    ).contains_key("apps", "imageio", "roots", "tasks", "templates")
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]["apps"]
+    ).is_equal_to(project_avalon_init_data["config"]["apps"])
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]["imageio"]
+    ).is_equal_to(project_avalon_init_data["config"]["imageio"])
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]["roots"]
+    ).is_equal_to(project_avalon_init_data["config"]["roots"])
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]["templates"]
+    ).is_equal_to(project_avalon_init_data["config"]["templates"])
+
+
+def test_update_shotgrid_to_avalon_update_project_tasks(
+    monkeypatch: MonkeyPatch,
+):
+    # Arrange
+    task_num = 3
+    client = MongoClient()
+    project = _get_project()
+    asset_grp = _get_asset_group(project)
+    asset_and_type = _get_prp_asset_with_tasks(asset_grp, task_num)
+    data = [project, asset_grp, *asset_and_type]
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    command = ShotgridToAvalonBatchCommand(
+        123, project["_id"], False, ShotgridCredentials("", "", "")
+    )
+
+    project_avalon_init_data = _create_avalon_project_row(project["_id"])
+    client.get_database("avalon").get_collection(project["_id"]).insert_one(
+        project_avalon_init_data
+    )
+    # Act
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    # Assert
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]
+    ).contains_key("tasks")
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"type": "project"})["config"]["tasks"]
+        .keys()
+    ).contains(*[x["task_type"] for x in asset_and_type[2:]])
 
 
 def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):

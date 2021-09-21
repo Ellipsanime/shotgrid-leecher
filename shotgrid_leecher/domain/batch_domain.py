@@ -15,7 +15,7 @@ from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
 )
 from shotgrid_leecher.record.results import BatchCheckResult
-from shotgrid_leecher.repository import hierarchy_repo
+from shotgrid_leecher.repository import avalon_repo, hierarchy_repo
 from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
@@ -96,17 +96,45 @@ def batch_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
         avalon_tree[row["name"]]["_id"] = object_id
 
 
+def _get_avalon_project_entity(project_name: str, hierarchy_rows: List[Map]):
+    avalon_entity = avalon_repo.get_project_entity(project_name)
+    hierarchy_entity = next(
+        item for item in hierarchy_rows if item["type"] == "Project"
+    )
+    if avalon_entity and hierarchy_entity:
+        return {
+            "_id": hierarchy_entity["_id"],
+            "src_id": hierarchy_entity["src_id"],
+            "object_id": avalon_entity["_id"],
+            "type": "Project",
+            "parent": None,
+        }
+    return {}
+
+
 def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,
     )
+
+    # Collect Shotgrid datas
     hierarchy_rows = repository.get_hierarchy_by_project(query)
     if not hierarchy_rows:
         return
+
+    # Collect Last batch datas
     last_hierarchy_rows = list(
         hierarchy_repo.get_last_rows(command.project_name)
     )
+    if not last_hierarchy_rows:
+        # Collect at least the current avalon project entity
+        avalon_project_entity = _get_avalon_project_entity(
+            command.project_name, hierarchy_rows
+        )
+        if avalon_project_entity:
+            last_hierarchy_rows = [avalon_project_entity]
+
     hierarchy_rows = list(
         _assign_object_ids(hierarchy_rows, last_hierarchy_rows)
     )

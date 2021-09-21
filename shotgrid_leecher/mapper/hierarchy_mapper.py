@@ -133,11 +133,7 @@ def _create_avalon_project_row(hierarchy_row: Map) -> Map:
         "data": _default_avalon_project_data(),
         "schema": "openpype:project-3.0",
         "config": {
-            "apps": [],
-            "imageio": {},
-            "roots": {},
             "tasks": {},
-            "templates": {},
         },
     }
 
@@ -147,7 +143,7 @@ def _create_avalon_asset_row(
 ) -> Map:
     data = _default_avalon_asset_data()
     data["visualParent"] = visual_parent
-    data["parent"] = hierarchy_row['parent'].split(',')[2:-1]
+    data["parents"] = hierarchy_row['parent'].split(',')[2:-1]
     return {
         "_id": hierarchy_row.get("object_id"),
         "type": "asset",
