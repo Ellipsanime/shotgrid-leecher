@@ -85,7 +85,7 @@ def test_update_shotgrid_to_avalon_init_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     command = ShotgridToAvalonBatchCommand(
-        123, project['_id'], True, ShotgridCredentials("", "", "")
+        123, project["_id"], True, ShotgridCredentials("", "", "")
     )
 
     # Act
@@ -121,7 +121,7 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     command = ShotgridToAvalonBatchCommand(
-        123, project['_id'], True, ShotgridCredentials("", "", "")
+        123, project["_id"], True, ShotgridCredentials("", "", "")
     )
 
     # Act
@@ -225,7 +225,7 @@ def test_update_shotgrid_to_avalon_update_values(monkeypatch: MonkeyPatch):
     asset_grp = _get_asset_group(project)
     asset_prp, asset = _get_prp_asset(asset_grp)
     asset_updated = dict(asset)
-    asset_updated['_id'] = "Knife"
+    asset_updated["_id"] = "Knife"
 
     predata = [project, asset_grp, asset_prp, asset]
     data = [project, asset_grp, asset_prp, asset_updated]
@@ -291,3 +291,62 @@ def test_update_shotgrid_to_avalon_update_values(monkeypatch: MonkeyPatch):
         .get_collection(project["_id"])
         .find_one({"name": "Knife"})["_id"]
     ).is_equal_to(avalon_asset_mid_id)
+
+
+def test_update_shotgrid_to_avalon_update_asset_type(monkeypatch: MonkeyPatch):
+    # Arrange
+    client = MongoClient()
+    project = _get_project()
+    asset_grp = _get_asset_group(project)
+    asset_and_type = _get_prp_asset(asset_grp)
+    predata = [project, asset_grp, *asset_and_type]
+
+    asset_type = dict(predata[2])
+    asset_type["_id"] = "PROPS"
+    asset = dict(predata[3])
+    asset["parent"] = f",{project['_id']},Asset,PROPS,"
+    data = [project, asset_grp, asset_type, asset]
+
+    mockdata = Mock()
+    mockdata.side_effect = [predata, data]
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", mockdata)
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    command = ShotgridToAvalonBatchCommand(
+        123, project["_id"], False, ShotgridCredentials("", "", "")
+    )
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    avalon_asset_mid_id = (
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "Fork"})["_id"]
+    )
+
+    # Act
+    sut.batch_update_shotgrid_to_avalon(command)
+
+    # Assert
+    assert_that(
+        list(
+            client.get_database("avalon")
+            .get_collection(project["_id"])
+            .find({})
+        )
+    ).is_length(5)
+
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "Fork"})["_id"]
+    ).is_equal_to(avalon_asset_mid_id)
+
+    assert_that(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "Fork"})["data"]["visualParent"]
+    ).is_equal_to(
+        client.get_database("avalon")
+        .get_collection(project["_id"])
+        .find_one({"name": "PROPS"})["_id"]
+    )
