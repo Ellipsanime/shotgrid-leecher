@@ -113,6 +113,34 @@ def _create_avalon_project_row(project_name: str) -> Map:
     }
 
 
+def _avalon_collections(client: MongoClient) -> List[str]:
+    return client.get_database(DbName.AVALON.value).list_collection_names()
+
+
+def _intermediate_collections(client: MongoClient) -> List[str]:
+    return client.get_database(
+        DbName.INTERMEDIATE.value
+    ).list_collection_names()
+
+
+def _all_avalon(client: MongoClient) -> List[Map]:
+    col = client.get_database(DbName.AVALON.value).list_collection_names()[0]
+    return (
+        client.get_database(DbName.AVALON.value).get_collection(col).find({})
+    )
+
+
+def _all_intermediate(client: MongoClient) -> List[Map]:
+    col = client.get_database(
+        DbName.INTERMEDIATE.value
+    ).list_collection_names()[0]
+    return (
+        client.get_database(DbName.INTERMEDIATE.value)
+        .get_collection(col)
+        .find({})
+    )
+
+
 def _populate_db(db: Collection, data: List[Map]) -> None:
     db.delete_many({})
     db.insert_many(data)
@@ -152,22 +180,13 @@ def test_update_shotgrid_to_avalon_init_project(monkeypatch: MonkeyPatch):
     sut.batch_update_shotgrid_to_avalon(command)
 
     # Assert
-    assert_that(client.list_database_names()).is_length(2)
     assert_that(client.list_database_names()).is_equal_to(
         [DbName.INTERMEDIATE.value, DbName.AVALON.value]
     )
-    assert_that(
-        client.get_database(DbName.AVALON.value).list_collection_names()
-    ).is_length(1)
-    assert_that(
-        client.get_database(DbName.AVALON.value).list_collection_names()
-    ).is_equal_to([project["_id"]])
-    assert_that(
-        client.get_database(DbName.INTERMEDIATE.value).list_collection_names()
-    ).is_length(1)
-    assert_that(
-        client.get_database(DbName.INTERMEDIATE.value).list_collection_names()
-    ).is_equal_to([project["_id"]])
+    assert_that(_avalon_collections(client)).is_equal_to([project["_id"]])
+    assert_that(_intermediate_collections(client)).is_equal_to(
+        [project["_id"]]
+    )
 
 
 def test_update_shotgrid_to_avalon_update_project(monkeypatch: MonkeyPatch):
