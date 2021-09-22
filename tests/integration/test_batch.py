@@ -1,16 +1,22 @@
-import uuid
 import random
+import uuid
 from typing import Any, Dict, Callable, List
 from unittest.mock import Mock
 
+import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from mongomock import MongoClient, ObjectId
+from mongomock.collection import Collection
 
-import shotgrid_leecher.utils.connectivity as conn
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+import shotgrid_leecher.utils.connectivity as conn
+from asset import overwrite_data
+from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
+from shotgrid_leecher.record.enums import DbName
+from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -65,6 +71,18 @@ def _get_prp_asset(parent):
     ]
 
 
+def _batch_config(project_name: str) -> BatchConfig:
+    return BatchConfig(
+        shotgrid_project_id=123,
+        project_name=project_name,
+        overwrite=True,
+        shotgrid_url="http://google.com",
+        script_name="1",
+        script_key="1",
+        fields_mapping={},
+    )
+
+
 def _get_prp_asset_with_tasks(parent, task_num):
     asset = _get_prp_asset(parent)
     tasks = [
@@ -93,6 +111,11 @@ def _create_avalon_project_row(project_name: str) -> Map:
             "templates": {"default": {}},
         },
     }
+
+
+def _populate_db(db: Collection, data: List[Map]) -> None:
+    db.delete_many({})
+    db.insert_many(data)
 
 
 def test_update_shotgrid_to_avalon_empty(monkeypatch: MonkeyPatch):
@@ -131,19 +154,19 @@ def test_update_shotgrid_to_avalon_init_project(monkeypatch: MonkeyPatch):
     # Assert
     assert_that(client.list_database_names()).is_length(2)
     assert_that(client.list_database_names()).is_equal_to(
-        ["shotgrid_openpype", "avalon"]
+        [DbName.INTERMEDIATE.value, DbName.AVALON.value]
     )
     assert_that(
-        client.get_database("avalon").list_collection_names()
+        client.get_database(DbName.AVALON.value).list_collection_names()
     ).is_length(1)
     assert_that(
-        client.get_database("avalon").list_collection_names()
+        client.get_database(DbName.AVALON.value).list_collection_names()
     ).is_equal_to([project["_id"]])
     assert_that(
-        client.get_database("shotgrid_openpype").list_collection_names()
+        client.get_database(DbName.INTERMEDIATE.value).list_collection_names()
     ).is_length(1)
     assert_that(
-        client.get_database("shotgrid_openpype").list_collection_names()
+        client.get_database(DbName.INTERMEDIATE.value).list_collection_names()
     ).is_equal_to([project["_id"]])
 
 
@@ -160,52 +183,52 @@ def test_update_shotgrid_to_avalon_update_project(monkeypatch: MonkeyPatch):
     )
 
     project_avalon_init_data = _create_avalon_project_row(project["_id"])
-    client.get_database("avalon").get_collection(project["_id"]).insert_one(
-        project_avalon_init_data
-    )
+    client.get_database(DbName.AVALON.value).get_collection(
+        project["_id"]
+    ).insert_one(project_avalon_init_data)
     # Act
     sut.batch_update_shotgrid_to_avalon(command)
 
     # Assert
     assert_that(
         list(
-            client.get_database("avalon")
+            client.get_database(DbName.AVALON.value)
             .get_collection(project["_id"])
             .find({})
         )
     ).is_length(1)
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})
     ).is_not_none()
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]
     ).is_type_of(dict)
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]
     ).contains_key("apps", "imageio", "roots", "tasks", "templates")
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]["apps"]
     ).is_equal_to(project_avalon_init_data["config"]["apps"])
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]["imageio"]
     ).is_equal_to(project_avalon_init_data["config"]["imageio"])
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]["roots"]
     ).is_equal_to(project_avalon_init_data["config"]["roots"])
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]["templates"]
     ).is_equal_to(project_avalon_init_data["config"]["templates"])
@@ -229,20 +252,20 @@ def test_update_shotgrid_to_avalon_update_project_tasks(
     )
 
     project_avalon_init_data = _create_avalon_project_row(project["_id"])
-    client.get_database("avalon").get_collection(project["_id"]).insert_one(
-        project_avalon_init_data
-    )
+    client.get_database(DbName.AVALON.value).get_collection(
+        project["_id"]
+    ).insert_one(project_avalon_init_data)
     # Act
     sut.batch_update_shotgrid_to_avalon(command)
 
     # Assert
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]
     ).contains_key("tasks")
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"type": "project"})["config"]["tasks"]
         .keys()
@@ -269,7 +292,7 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     # Assert
     assert_that(
         list(
-            client.get_database("avalon")
+            client.get_database(DbName.AVALON.value)
             .get_collection(project["_id"])
             .find({})
         )
@@ -277,7 +300,7 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
 
     assert_that(
         list(
-            client.get_database("avalon")
+            client.get_database(DbName.AVALON.value)
             .get_collection(project["_id"])
             .find({"type": "project"})
         )
@@ -285,7 +308,7 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
 
     assert_that(
         list(
-            client.get_database("avalon")
+            client.get_database(DbName.AVALON.value)
             .get_collection(project["_id"])
             .find({"type": "asset"})
         )
@@ -293,7 +316,7 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
 
     assert_that(
         list(
-            client.get_database("shotgrid_openpype")
+            client.get_database(DbName.INTERMEDIATE.value)
             .get_collection(project["_id"])
             .find({})
         )
@@ -303,7 +326,7 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
         [
             {k: v for (k, v) in x.items() if k != "object_id"}
             for x in list(
-                client.get_database("shotgrid_openpype")
+                client.get_database(DbName.INTERMEDIATE.value)
                 .get_collection(project["_id"])
                 .find({})
             )
@@ -311,50 +334,53 @@ def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     ).is_equal_to(data)
 
 
-def test_update_shotgrid_to_avalon_overwrite(monkeypatch: MonkeyPatch):
+@pytest.mark.asyncio
+async def test_update_shotgrid_to_avalon_overwrite(monkeypatch: MonkeyPatch):
     # Arrange
+    project_id = "Project_bebc4f75"
     client = MongoClient()
-    project = _get_project()
-    asset_grp = _get_asset_group(project)
-    asset_and_type = _get_prp_asset(asset_grp)
-    predata = [project, asset_grp, *asset_and_type]
-
-    data = [_get_project()]
-
-    mockdata = Mock()
-    mockdata.side_effect = [predata, data]
-
-    monkeypatch.setattr(repository, "get_hierarchy_by_project", mockdata)
-    monkeypatch.setattr(conn, "get_db_client", _fun(client))
-    command = ShotgridToAvalonBatchCommand(
-        123, project["_id"], True, ShotgridCredentials("", "", "")
+    _populate_db(
+        client.get_database(DbName.AVALON.value).get_collection(
+            overwrite_data.OVERWRITE_PROJECT_ID
+        ),
+        overwrite_data.OVERWRITE_AVALON_DATA,
     )
-    sut.batch_update_shotgrid_to_avalon(command)
-
+    _populate_db(
+        client.get_database(DbName.INTERMEDIATE.value).get_collection(
+            overwrite_data.OVERWRITE_PROJECT_ID
+        ),
+        overwrite_data.OVERWRITE_INTERMEDIATE_DB_DATA,
+    )
+    monkeypatch.setattr(
+        repository,
+        "get_hierarchy_by_project",
+        Mock(return_value=overwrite_data.OVERWRITE_SHOTGRID_DATA),
+    )
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     # Act
-    sut.batch_update_shotgrid_to_avalon(command)
+    await batch_controller.batch(project_id, _batch_config(project_id))
 
     # Assert
     assert_that(
-        client.get_database("avalon").list_collection_names()
+        client.get_database(DbName.AVALON.value).list_collection_names()
     ).is_length(1)
     assert_that(
         list(
-            client.get_database("avalon")
-            .get_collection(project["_id"])
+            client.get_database(DbName.AVALON.value)
+            .get_collection(project_id)
             .find({})
         )
     ).is_length(1)
     assert_that(
-        client.get_database("avalon")
-        .get_collection(project["_id"])
+        client.get_database(DbName.AVALON.value)
+        .get_collection(project_id)
         .find({})[0]["type"]
     ).is_equal_to("project")
     assert_that(
-        client.get_database("avalon")
-        .get_collection(project["_id"])
+        client.get_database(DbName.AVALON.value)
+        .get_collection(project_id)
         .find({})[0]["name"]
-    ).is_equal_to(data[0]["_id"])
+    ).is_equal_to(overwrite_data.OVERWRITE_INTERMEDIATE_DB_DATA[0]["_id"])
 
 
 def test_update_shotgrid_to_avalon_update_values(monkeypatch: MonkeyPatch):
@@ -380,22 +406,22 @@ def test_update_shotgrid_to_avalon_update_values(monkeypatch: MonkeyPatch):
     sut.batch_update_shotgrid_to_avalon(command)
 
     avalon_project_mid_id = (
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": project["_id"]})["_id"]
     )
     avalon_asset_grp_mid_id = (
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "Asset"})["_id"]
     )
     avalon_asset_prp_mid_id = (
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "PRP"})["_id"]
     )
     avalon_asset_mid_id = (
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "Fork"})["_id"]
     )
@@ -405,28 +431,28 @@ def test_update_shotgrid_to_avalon_update_values(monkeypatch: MonkeyPatch):
     # Assert
     assert_that(
         list(
-            client.get_database("avalon")
+            client.get_database(DbName.AVALON.value)
             .get_collection(project["_id"])
             .find({})
         )
     ).is_length(4)
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": project["_id"]})["_id"]
     ).is_equal_to(avalon_project_mid_id)
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "Asset"})["_id"]
     ).is_equal_to(avalon_asset_grp_mid_id)
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "PRP"})["_id"]
     ).is_equal_to(avalon_asset_prp_mid_id)
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "Knife"})["_id"]
     ).is_equal_to(avalon_asset_mid_id)
@@ -457,7 +483,7 @@ def test_update_shotgrid_to_avalon_update_asset_type(monkeypatch: MonkeyPatch):
     sut.batch_update_shotgrid_to_avalon(command)
 
     avalon_asset_mid_id = (
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "Fork"})["_id"]
     )
@@ -468,24 +494,24 @@ def test_update_shotgrid_to_avalon_update_asset_type(monkeypatch: MonkeyPatch):
     # Assert
     assert_that(
         list(
-            client.get_database("avalon")
+            client.get_database(DbName.AVALON.value)
             .get_collection(project["_id"])
             .find({})
         )
     ).is_length(5)
 
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "Fork"})["_id"]
     ).is_equal_to(avalon_asset_mid_id)
 
     assert_that(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "Fork"})["data"]["visualParent"]
     ).is_equal_to(
-        client.get_database("avalon")
+        client.get_database(DbName.AVALON.value)
         .get_collection(project["_id"])
         .find_one({"name": "PROPS"})["_id"]
     )

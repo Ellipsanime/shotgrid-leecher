@@ -2,6 +2,12 @@ from enum import Enum, unique
 
 
 @unique
+class DbName(Enum):
+    AVALON = "avalon"
+    INTERMEDIATE = "shotgrid_openpype"
+
+
+@unique
 class ShotgridTypes(Enum):
     PROJECT = "Project"
     ASSET = "Asset"

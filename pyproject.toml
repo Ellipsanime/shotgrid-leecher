@@ -19,6 +19,7 @@ dacite = "^1.6.0"
 motor = "^2.5.0"
 assertpy = "^1.1"
 pydantic = "^1.8.2"
+pytest-asyncio = "^0.15.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
