@@ -1,9 +1,9 @@
-UPDATE_ASSET_PROJECT_ID = "Project_8e19ffaa"
-UPDATE_ASSET_AVALON_DATA = [
+PROJECT_ID = "Project_8e19ffaa"
+AVALON_DATA = [
     {
         "_id": "614b46d27f4b49b1ae47eed6",
         "type": "project",
-        "name": UPDATE_ASSET_PROJECT_ID,
+        "name": PROJECT_ID,
         "data": {
             "clipIn": 1,
             "clipOut": 1,
@@ -97,25 +97,26 @@ UPDATE_ASSET_AVALON_DATA = [
         "parent": "614b46d27f4b49b1ae47eed6",
     },
 ]
-UPDATE_ASSET_SHOTGRID_DATA = [
+SHOTGRID_DATA = [
     {
-        "_id": UPDATE_ASSET_PROJECT_ID,
+        "_id": PROJECT_ID,
         "src_id": 111,
         "type": "Project",
         "parent": None,
     },
-    {"_id": "Asset", "type": "Group", "parent": ",Project_8e19ffaa,"},
-    {"_id": "PROPS", "type": "Group", "parent": ",Project_8e19ffaa,Asset,"},
+    {"_id": "Asset", "type": "Group", "parent": f",{PROJECT_ID},"},
+    {"_id": "PROPS", "type": "Group", "parent": f",{PROJECT_ID},Asset,"},
     {
         "_id": "Fork",
         "src_id": 50711,
         "type": "Asset",
-        "parent": ",Project_8e19ffaa,Asset,PROPS,",
+        "parent": f",{PROJECT_ID},Asset,PROPS,",
     },
+    {"_id": "PRP", "type": "Group", "parent": f",{PROJECT_ID},Asset,"},
 ]
-UPDATE_ASSET_INTERMEDIATE_DB_DATA = [
+INTERMEDIATE_DB_DATA = [
     {
-        "_id": UPDATE_ASSET_PROJECT_ID,
+        "_id": PROJECT_ID,
         "src_id": 111,
         "type": "Project",
         "parent": None,
@@ -124,20 +125,20 @@ UPDATE_ASSET_INTERMEDIATE_DB_DATA = [
     {
         "_id": "Asset",
         "type": "Group",
-        "parent": ",Project_8e19ffaa,",
+        "parent": f",{PROJECT_ID},",
         "object_id": "614b46d27f4b49b1ae47eed7",
     },
     {
         "_id": "PRP",
         "type": "Group",
-        "parent": ",Project_8e19ffaa,Asset,",
+        "parent": f",{PROJECT_ID},Asset,",
         "object_id": "614b46d27f4b49b1ae47eed8",
     },
     {
         "_id": "Fork",
         "src_id": 50711,
         "type": "Asset",
-        "parent": ",Project_8e19ffaa,Asset,PRP,",
+        "parent": f",{PROJECT_ID},Asset,PRP,",
         "object_id": "614b46d27f4b49b1ae47eed9",
     },
 ]

@@ -1,9 +1,9 @@
-UPDATE_VALUES_PROJECT_ID = "Project_564e3805"
-UPDATE_VALUES_AVALON_DATA = [
+PROJECT_ID = "Project_564e3805"
+AVALON_DATA = [
     {
         "_id": "614b3e4214dbac102817bb1b",
         "type": "project",
-        "name": UPDATE_VALUES_PROJECT_ID,
+        "name": PROJECT_ID,
         "data": {
             "clipIn": 1,
             "clipOut": 1,
@@ -97,9 +97,9 @@ UPDATE_VALUES_AVALON_DATA = [
         "parent": "614b3e4214dbac102817bb1b",
     },
 ]
-UPDATE_VALUES_SHOTGRID_DATA = [
+SHOTGRID_DATA = [
     {
-        "_id": UPDATE_VALUES_PROJECT_ID,
+        "_id": PROJECT_ID,
         "src_id": 111,
         "type": "Project",
         "parent": None,
@@ -113,9 +113,9 @@ UPDATE_VALUES_SHOTGRID_DATA = [
         "parent": ",Project_564e3805,Asset,PRP,",
     },
 ]
-UPDATE_VALUES_INTERMEDIATE_DB_DATA = [
+INTERMEDIATE_DB_DATA = [
     {
-        "_id": UPDATE_VALUES_PROJECT_ID,
+        "_id": PROJECT_ID,
         "src_id": 111,
         "type": "Project",
         "parent": None,

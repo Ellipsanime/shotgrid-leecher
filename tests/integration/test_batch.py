@@ -20,6 +20,7 @@ from asset import (
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import DbName
 from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.utils import generator
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
@@ -325,35 +326,46 @@ async def test_update_shotgrid_to_avalon_update_values(
     monkeypatch: MonkeyPatch,
 ):
     # Arrange
+    object_ids = list(range(2))
     client = MongoClient()
-    project_id = update_values_data.UPDATE_VALUES_PROJECT_ID
+    project_id = update_values_data.PROJECT_ID
     _populate_db(
         client.get_database(DbName.AVALON.value).get_collection(project_id),
-        update_values_data.UPDATE_VALUES_AVALON_DATA,
+        update_values_data.AVALON_DATA,
     )
     _populate_db(
         client.get_database(DbName.INTERMEDIATE.value).get_collection(
             project_id
         ),
-        update_values_data.UPDATE_VALUES_INTERMEDIATE_DB_DATA,
+        update_values_data.INTERMEDIATE_DB_DATA,
     )
     monkeypatch.setattr(
         repository,
         "get_hierarchy_by_project",
-        Mock(return_value=update_values_data.UPDATE_VALUES_SHOTGRID_DATA),
+        Mock(return_value=update_values_data.SHOTGRID_DATA),
     )
+    monkeypatch.setattr(generator, "object_id", Mock(side_effect=object_ids))
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
 
     # Act
     await batch_controller.batch(project_id, _batch_config(project_id))
 
     # Assert
+    assert_that(_all_avalon(client)).is_length(
+        len(update_values_data.AVALON_DATA)
+    )
     assert_that(_all_avalon(client)).extracting("_id", "name").is_equal_to(
         [
-            (x["_id"], x["name"].replace("Fork", "Knife"))
-            for x in update_values_data.UPDATE_VALUES_AVALON_DATA
+            (
+                x["_id"] if not x["name"] == "Fork" else object_ids[0],
+                x["name"].replace("Fork", "Knife"),
+            )
+            for x in update_values_data.AVALON_DATA
         ]
     )
+    assert_that(_all_avalon(client)).extracting(
+        "_id", filter={"name": "Fork"}
+    ).is_empty()
 
 
 @pytest.mark.asyncio
@@ -362,41 +374,46 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
 ):
     # Arrange
     client = MongoClient()
-    project_id = update_asset_data.UPDATE_ASSET_PROJECT_ID
+    project_id = update_asset_data.PROJECT_ID
     _populate_db(
         client.get_database(DbName.AVALON.value).get_collection(project_id),
-        update_asset_data.UPDATE_ASSET_AVALON_DATA,
+        update_asset_data.AVALON_DATA,
     )
     _populate_db(
         client.get_database(DbName.INTERMEDIATE.value).get_collection(
             project_id
         ),
-        update_asset_data.UPDATE_ASSET_INTERMEDIATE_DB_DATA,
+        update_asset_data.INTERMEDIATE_DB_DATA,
     )
+    object_ids = list(range(2))
     monkeypatch.setattr(
         repository,
         "get_hierarchy_by_project",
-        Mock(return_value=update_asset_data.UPDATE_ASSET_SHOTGRID_DATA),
+        Mock(return_value=update_asset_data.SHOTGRID_DATA),
     )
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    monkeypatch.setattr(generator, "object_id", Mock(side_effect=object_ids))
 
     # Act
     await batch_controller.batch(project_id, _batch_config(project_id, False))
 
     # Assert
     assert_that(_all_avalon(client)).is_length(
-        len(update_asset_data.UPDATE_ASSET_AVALON_DATA) + 1
+        len(update_asset_data.AVALON_DATA) + 1
     )
-
     assert_that(_all_avalon(client)).extracting(
         "_id", filter={"name": "Fork"}
-    ).is_equal_to([update_asset_data.UPDATE_ASSET_AVALON_DATA[3]["_id"]])
+    ).is_in(object_ids[1:])
+    assert_that(_all_avalon(client)).extracting(
+        "_id", filter={"name": "PROPS"}
+    ).is_in(object_ids[0:1])
     assert_that(_all_avalon(client)).extracting(
         "data", filter={"name": "Fork"}
-    ).extracting("visualParent").is_equal_to([_all_avalon(client)[-1]["_id"]])
+    ).extracting("visualParent").is_equal_to(
+        [_all_avalon(client)[-2:-1][0]["_id"]]
+    )
 
 
-@pytest.mark.skip(reason="WIP")
 @pytest.mark.asyncio
 async def test_update_shotgrid_when_some_assets_deleted(
     monkeypatch: MonkeyPatch,

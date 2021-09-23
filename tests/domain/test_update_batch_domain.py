@@ -105,7 +105,9 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     upsert_mock = Mock(return_value=last_batch_data[0]["object_id"])
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(
+        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+    )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
@@ -140,7 +142,9 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
 
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(
+        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+    )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
@@ -178,7 +182,9 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
 
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(
+        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+    )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", insert_intermediate)
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
@@ -234,7 +240,9 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
 
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(hierarchy_repo, "get_last_rows", _fun(last_batch_data))
+    monkeypatch.setattr(
+        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+    )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
