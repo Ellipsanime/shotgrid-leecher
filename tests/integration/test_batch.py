@@ -11,7 +11,12 @@ from mongomock.collection import Collection
 
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
-from asset import overwrite_data, update_values_data, update_asset_data
+from asset import (
+    overwrite_data,
+    update_values_data,
+    update_asset_data,
+    delete_asset_data,
+)
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import DbName
 from shotgrid_leecher.record.http_models import BatchConfig
@@ -389,3 +394,35 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
     assert_that(_all_avalon(client)).extracting(
         "data", filter={"name": "Fork"}
     ).extracting("visualParent").is_equal_to([_all_avalon(client)[-1]["_id"]])
+
+
+@pytest.mark.skip(reason="WIP")
+@pytest.mark.asyncio
+async def test_update_shotgrid_when_some_assets_deleted(
+    monkeypatch: MonkeyPatch,
+):
+    # Arrange
+    client = MongoClient()
+    project_id = delete_asset_data.PROJECT_ID
+    _populate_db(
+        client.get_database(DbName.AVALON.value).get_collection(project_id),
+        delete_asset_data.AVALON_DATA,
+    )
+    _populate_db(
+        client.get_database(DbName.INTERMEDIATE.value).get_collection(
+            project_id
+        ),
+        delete_asset_data.INTERMEDIATE_DB_DATA,
+    )
+    monkeypatch.setattr(
+        repository,
+        "get_hierarchy_by_project",
+        Mock(return_value=delete_asset_data.SHOTGRID_DATA),
+    )
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    # Act
+    await batch_controller.batch(project_id, _batch_config(project_id, False))
+    # Assert
+    assert_that(_all_avalon(client)).is_length(
+        len(delete_asset_data.AVALON_DATA) - 2
+    )
