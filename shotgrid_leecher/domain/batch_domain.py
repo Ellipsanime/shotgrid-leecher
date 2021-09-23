@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Iterator
 from bson.objectid import ObjectId
 from toolz import get_in
 
-import shotgrid_leecher.mapper.hierarchy_mapper as mapper
+import shotgrid_leecher.mapper.hierarchy_mapper as hierarchy_mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from shotgrid_leecher.mapper import avalon_mapper
@@ -112,7 +112,7 @@ def batch_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     )
     shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
     # TODO get rid of mutability and avalon_tree
-    avalon_tree = mapper.shotgrid_to_avalon(shotgrid_hierarchy)
+    avalon_tree = hierarchy_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
 
     if not avalon_tree:
         return
@@ -131,7 +131,7 @@ def batch_update_shotgrid_to_avalon(command: ShotgridToAvalonBatchCommand):
     if not shotgrid_hierarchy:
         return
     # TODO get rid of mutability and avalon_tree
-    avalon_tree = mapper.shotgrid_to_avalon(shotgrid_hierarchy)
+    avalon_tree = hierarchy_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
     avalon_rows = list(avalon_tree.values())
 
     if command.overwrite:
