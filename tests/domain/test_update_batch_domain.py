@@ -90,7 +90,7 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
     )
 
     # Act
-    sut.batch_update_shotgrid_to_avalon(command)
+    sut.update_shotgrid_in_avalon(command)
 
     # Assert
     assert_that(client["avalon"].list_collection_names()).is_length(0)
@@ -114,7 +114,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     )
 
     # Act
-    sut.batch_update_shotgrid_to_avalon(command)
+    sut.update_shotgrid_in_avalon(command)
 
     # Assert
     assert_that(upsert_mock.call_args).is_length(2)
@@ -149,7 +149,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     )
 
     # Act
-    sut.batch_update_shotgrid_to_avalon(command)
+    sut.update_shotgrid_in_avalon(command)
 
     # Assert
     assert_that(call_list).is_length(4)
@@ -187,7 +187,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     )
 
     # Act
-    sut.batch_update_shotgrid_to_avalon(command)
+    sut.update_shotgrid_in_avalon(command)
 
     # Assert
     assert_that(insert_intermediate.call_count).is_equal_to(1)
@@ -243,7 +243,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     )
 
     # Act
-    sut.batch_update_shotgrid_to_avalon(command)
+    sut.update_shotgrid_in_avalon(command)
 
     # Assert
     assert_that(call_list).is_length(4)

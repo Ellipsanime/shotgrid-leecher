@@ -1,7 +1,7 @@
 import random
 import uuid
 from typing import Dict, Any, Callable, List
-from unittest.mock import PropertyMock, Mock
+from unittest.mock import Mock
 
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
@@ -123,7 +123,6 @@ def _assert_db(
 
 def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     # Arrange
-    client = PropertyMock()
     _patch_adjacent(monkeypatch, {}, [])
     insert_avalon = Mock(return_value=1)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
@@ -131,7 +130,7 @@ def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
         123, "", True, ShotgridCredentials("", "", "")
     )
     # Act
-    sut.batch_shotgrid_to_avalon(command)
+    sut.create_shotgrid_in_avalon(command)
     # Assert
     assert_that(insert_avalon.called).is_false()
 
@@ -151,7 +150,7 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
     insert_avalon = Mock(return_value=1)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
     # Act
-    sut.batch_shotgrid_to_avalon(command)
+    sut.create_shotgrid_in_avalon(command)
     # Assert
     assert_that([x[0][0] for x in insert_avalon.call_args_list]).is_equal_to(
         [project_name]
@@ -177,7 +176,7 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
         123, project_name, True, ShotgridCredentials("", "", "")
     )
     # Act
-    sut.batch_shotgrid_to_avalon(command)
+    sut.create_shotgrid_in_avalon(command)
     # Assert
     assert_that([x[0][0] for x in insert_avalon.call_args_list]).is_equal_to(
         [project_name for _ in range(task_num)]

@@ -27,7 +27,7 @@ async def batch(project_name: str, batch_config: BatchConfig):
         batch_config.overwrite,
         credentials,
     )
-    return batch_domain.batch_update_shotgrid_to_avalon(command)
+    return batch_domain.update_shotgrid_in_avalon(command)
 
 
 @router.get("/{project_name}/check")

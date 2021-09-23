@@ -117,7 +117,7 @@ SHOTGRID_DATA = [
         "parent": f",{PROJECT_ID},",
     },
     {
-        "_id": "PROPS",
+        "_id": "PRP",
         "type": "Group",
         "parent": f",{PROJECT_ID},Asset,",
     },
@@ -125,7 +125,7 @@ SHOTGRID_DATA = [
         "_id": "Fork",
         "src_id": 50711,
         "type": "Asset",
-        "parent": f",{PROJECT_ID},Asset,PROPS,",
+        "parent": f",{PROJECT_ID},Asset,PRP,",
     },
 ]
 INTERMEDIATE_DB_DATA = [
