@@ -11,11 +11,19 @@ import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.enums import ShotgridTypes
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
-    ShotgridFindAssetsByProjectQuery, ShotgridFindShotsByProjectQuery,
+    ShotgridFindAssetsByProjectQuery,
+    ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
 )
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
-from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.record.shotgrid_subtypes import (
+    ShotgridProject,
+    FieldsMapping,
+    ProjectFieldMapping,
+    AssetFieldMapping,
+    ShotFieldMapping,
+    TaskFieldMapping,
+)
 
 
 def _fun(param: Any) -> Callable[[Any], Any]:
@@ -30,6 +38,15 @@ def _credentials():
     )
 
 
+def _default_fields_mapping() -> FieldsMapping:
+    return FieldsMapping(
+        ProjectFieldMapping({}),
+        AssetFieldMapping({}),
+        ShotFieldMapping({}),
+        TaskFieldMapping({}),
+    )
+
+
 def test_find_project_by_id(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
@@ -37,7 +54,9 @@ def test_find_project_by_id(monkeypatch: MonkeyPatch):
     expected = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find_one.return_value = asdict(expected)
-    query = ShotgridFindProjectByIdQuery(p_id, _credentials())
+    query = ShotgridFindProjectByIdQuery(
+        p_id, _credentials(), _default_fields_mapping().project_mapping
+    )
     # Act
     actual = sut.find_project_by_id(query)
     # Assert
@@ -55,7 +74,9 @@ def test_find_assets_for_project(monkeypatch: MonkeyPatch):
     expected = [{str(uuid.uuid4()): uuid.uuid4().int}]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find.return_value = expected
-    query = ShotgridFindAssetsByProjectQuery(project, _credentials())
+    query = ShotgridFindAssetsByProjectQuery(
+        project, _credentials(), _default_fields_mapping().asset_mapping
+    )
     # Act
     actual = sut.find_assets_for_project(query)
     # Assert
@@ -75,7 +96,9 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     expected = [{str(uuid.uuid4()): uuid.uuid4().int}]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find.return_value = expected
-    query = ShotgridFindShotsByProjectQuery(project, _credentials())
+    query = ShotgridFindShotsByProjectQuery(
+        project, _credentials(), _default_fields_mapping().shot_mapping
+    )
     # Act
     actual = sut.find_shots_for_project(query)
     # Assert
@@ -95,7 +118,11 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
     expected = [{str(uuid.uuid4()): uuid.uuid4().int}]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find.return_value = expected
-    query = ShotgridFindTasksByProjectQuery(project, _credentials())
+    query = ShotgridFindTasksByProjectQuery(
+        project,
+        _credentials(),
+        _default_fields_mapping().task_mapping,
+    )
     # Act
     actual = sut.find_tasks_for_project(query)
     # Assert

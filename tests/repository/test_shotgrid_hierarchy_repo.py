@@ -17,7 +17,14 @@ import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
 from shotgrid_leecher.record.enums import ShotgridTypes
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
-from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.record.shotgrid_subtypes import (
+    ShotgridProject,
+    FieldsMapping,
+    ProjectFieldMapping,
+    AssetFieldMapping,
+    ShotFieldMapping,
+    TaskFieldMapping,
+)
 
 _RAND = random.randint
 
@@ -197,6 +204,15 @@ def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
     ]
 
 
+def _default_fields_mapping() -> FieldsMapping:
+    return FieldsMapping(
+        ProjectFieldMapping({}),
+        AssetFieldMapping({}),
+        ShotFieldMapping({}),
+        TaskFieldMapping({}),
+    )
+
+
 def _patch_repo(
     monkeypatch: MonkeyPatch,
     project: ShotgridProject,
@@ -212,7 +228,9 @@ def _patch_repo(
 
 def _to_query(project_id: int) -> ShotgridHierarchyByProjectQuery:
     return ShotgridHierarchyByProjectQuery(
-        project_id, ShotgridCredentials("", "", "")
+        project_id,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
 
 

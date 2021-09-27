@@ -111,6 +111,7 @@ def _fetch_and_augment_hierarchy(
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,
+        command.fields_mapping,
     )
     shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
     if not shotgrid_hierarchy:
@@ -172,6 +173,7 @@ def create_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,
+        command.fields_mapping,
     )
     shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
     # TODO get rid of mutability and avalon_tree
