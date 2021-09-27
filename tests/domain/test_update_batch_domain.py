@@ -13,6 +13,13 @@ import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import (
+    FieldsMapping,
+    ProjectFieldMapping,
+    AssetFieldMapping,
+    ShotFieldMapping,
+    TaskFieldMapping,
+)
 from shotgrid_leecher.repository import hierarchy_repo
 from shotgrid_leecher.writers import db_writer
 
@@ -27,6 +34,15 @@ def _fun(param: Any) -> Callable[[Any], Any]:
 def _patch_adjacent(patcher: MonkeyPatch, client, hierarchy: List) -> None:
     patcher.setattr(conn, "get_db_client", _fun(client))
     patcher.setattr(repository, "get_hierarchy_by_project", _fun(hierarchy))
+
+
+def _default_fields_mapping() -> FieldsMapping:
+    return FieldsMapping(
+        ProjectFieldMapping({}),
+        AssetFieldMapping({}),
+        ShotFieldMapping({}),
+        TaskFieldMapping({}),
+    )
 
 
 def _get_project():
@@ -86,7 +102,11 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
     client = MongoClient()
     _patch_adjacent(monkeypatch, client, [])
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123,
+        "",
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
 
     # Act
@@ -112,7 +132,11 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, "test", True, ShotgridCredentials("", "", "")
+        123,
+        "test",
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
 
     # Act
@@ -149,7 +173,11 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, project["_id"], True, ShotgridCredentials("", "", "")
+        123,
+        project["_id"],
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
 
     # Act
@@ -189,7 +217,11 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, project["_id"], True, ShotgridCredentials("", "", "")
+        123,
+        project["_id"],
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
 
     # Act
@@ -247,7 +279,11 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = ShotgridToAvalonBatchCommand(
-        123, project["_id"], True, ShotgridCredentials("", "", "")
+        123,
+        project["_id"],
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
 
     # Act

@@ -13,6 +13,13 @@ import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import (
+    FieldsMapping,
+    ProjectFieldMapping,
+    AssetFieldMapping,
+    ShotFieldMapping,
+    TaskFieldMapping,
+)
 from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
@@ -23,6 +30,15 @@ STEP_NAMES = ["modeling", "shading", "rigging"]
 
 def _fun(param: Any) -> Callable[[Any], Any]:
     return lambda *_: param
+
+
+def _default_fields_mapping() -> FieldsMapping:
+    return FieldsMapping(
+        ProjectFieldMapping({}),
+        AssetFieldMapping({}),
+        ShotFieldMapping({}),
+        TaskFieldMapping({}),
+    )
 
 
 def _default_avalon_data() -> Map:
@@ -127,7 +143,11 @@ def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     insert_avalon = Mock(return_value=1)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
     command = ShotgridToAvalonBatchCommand(
-        123, "", True, ShotgridCredentials("", "", "")
+        123,
+        "",
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
     # Act
     sut.create_shotgrid_in_avalon(command)
@@ -145,7 +165,11 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
         [{"_id": project["name"]}],
     )
     command = ShotgridToAvalonBatchCommand(
-        123, project_name, True, ShotgridCredentials("", "", "")
+        123,
+        project_name,
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
     insert_avalon = Mock(return_value=1)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
@@ -173,7 +197,11 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     insert_avalon = Mock(side_effect=ids)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
     command = ShotgridToAvalonBatchCommand(
-        123, project_name, True, ShotgridCredentials("", "", "")
+        123,
+        project_name,
+        True,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
     )
     # Act
     sut.create_shotgrid_in_avalon(command)

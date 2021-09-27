@@ -7,6 +7,7 @@ from pydantic.main import ModelMetaclass
 
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
 
 
 class BatchConfig(BaseModel):
@@ -42,7 +43,6 @@ class BatchConfig(BaseModel):
     def to_batch_command(
         self,
         project_name: str,
-        overwrite: bool,
     ) -> ShotgridToAvalonBatchCommand:
         credentials = ShotgridCredentials(
             self.shotgrid_url,
@@ -52,6 +52,7 @@ class BatchConfig(BaseModel):
         return ShotgridToAvalonBatchCommand(
             self.shotgrid_project_id,
             project_name,
-            overwrite,
+            self.overwrite,
             credentials,
+            FieldsMapping.from_dict(self.fields_mapping),
         )
