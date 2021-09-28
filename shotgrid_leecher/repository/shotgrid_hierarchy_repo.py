@@ -17,10 +17,10 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
 )
+from shotgrid_leecher.record.shotgrid_structures import ShotgridTask
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     ShotFieldMapping,
-    TaskFieldMapping,
 )
 from shotgrid_leecher.utils.logger import get_logger
 from shotgrid_leecher.utils.timer import timed
@@ -37,14 +37,14 @@ def _fetch_project_tasks(
 ) -> Iterator[Map]:
     # TODO: Fields should be configurable
     raw_tasks = entity_repo.find_tasks_for_project(query)
-    asset_tasks = [task for task in raw_tasks if task.get("step")]
+    asset_tasks = [task for task in raw_tasks if task.step]
     for task in asset_tasks:
-        key = task[query.task_mapping.entity()]["id"]
-        entity_row = rows.get(key)
+        key = task.entity.id
+        entity_row = rows.get(str(key))
         if not entity_row:
             continue
         parent_path = f"{entity_row['parent']}{entity_row['_id']},"
-        yield _get_task_row(task, parent_path, query.task_mapping)
+        yield _get_task_row(task, parent_path)
 
 
 @curry
@@ -201,15 +201,13 @@ def _get_top_asset_row(project: ShotgridProject) -> Map:
     }
 
 
-def _get_task_row(
-    task: Map, parent_task_path: str, mapping: TaskFieldMapping
-) -> Map:
+def _get_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
     return {
-        "_id": f"{task[mapping.content()]}_{task[mapping.id()]}",
-        "src_id": task[mapping.id()],
+        "_id": f"{task.content}_{task.id}",
+        "src_id": task.id,
         "type": ShotgridTypes.TASK.value,
         "parent": parent_task_path,
-        "task_type": task[mapping.step()]["name"],
+        "task_type": task.step.name,
     }
 
 

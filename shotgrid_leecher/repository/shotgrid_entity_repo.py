@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 
 import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
 from shotgrid_leecher.record.enums import ShotgridTypes
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
@@ -13,6 +14,7 @@ from shotgrid_leecher.record.shotgrid_filters import (
     IsFilter,
     IsNotFilter,
 )
+from shotgrid_leecher.record.shotgrid_structures import ShotgridTask
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
 _F = CompositeFilter
@@ -60,9 +62,9 @@ def find_shots_for_project(
 
 def find_tasks_for_project(
     query: ShotgridFindTasksByProjectQuery
-) -> List[Dict[str, Any]]:
+) -> List[ShotgridTask]:
     client = conn.get_shotgrid_client(query.credentials)
-    return client.find(
+    data = client.find(
         ShotgridTypes.TASK.value,
         _F.filter_by(
             _IS(ShotgridTypes.PROJECT.value.lower(), query.project.to_dict()),
@@ -70,3 +72,4 @@ def find_tasks_for_project(
         ),
         list(query.task_mapping.mapping_table.values())
     )
+    return [to_shotgrid_task(query.task_mapping, x) for x in data]

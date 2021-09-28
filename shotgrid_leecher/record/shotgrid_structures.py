@@ -6,6 +6,29 @@ from shotgrid_leecher.utils.strings import format_path
 
 
 @dataclass(frozen=True)
+class ShotgridEntity:
+    id: int
+
+
+@dataclass(frozen=True)
+class ShotgridTaskStep(ShotgridEntity):
+    name: str
+
+
+@dataclass(frozen=True)
+class ShotgridTaskEntity(ShotgridEntity):
+    name: str
+
+
+@dataclass(frozen=True)
+class ShotgridTask(ShotgridEntity):
+    content: str
+    name: str
+    step: Optional[ShotgridTaskStep]
+    entity: ShotgridTaskEntity
+
+
+@dataclass(frozen=True)
 class ShotgridCredentials:
     shotgrid_url: str
     script_name: str

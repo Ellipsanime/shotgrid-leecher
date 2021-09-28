@@ -14,9 +14,11 @@ from toolz.curried import (
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
+from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
 from shotgrid_leecher.record.enums import ShotgridTypes
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials, \
+    ShotgridTask
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
@@ -59,7 +61,7 @@ def _get_random_broken_tasks(num: int) -> List[Dict]:
 
 def _get_random_assets_with_tasks(
     groups_n: int, num: int
-) -> Tuple[List[Dict], List[Dict]]:
+) -> Tuple[List[Dict], List[ShotgridTask]]:
     names = ["lines", "color", "look", "dev"]
     steps = ["modeling", "shading", "rigging"]
     assets = [
@@ -73,8 +75,9 @@ def _get_random_assets_with_tasks(
             "tasks": [
                 {
                     "id": uuid.uuid4().int,
+                    "name": str(uuid.uuid4()),
                     "content": random.choice(names),
-                    "step": {"name": random.choice(steps)},
+                    "step": {"name": random.choice(steps), "id": -1},
                     "entity": {
                         "type": "Asset",
                         "name": f"Fork{n+1}",
@@ -91,6 +94,7 @@ def _get_random_assets_with_tasks(
         assets,
         select(lambda x: x["tasks"]),
         lambda x: chain(*x),
+        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
         list,
     )
     return assets, tasks
