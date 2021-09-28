@@ -206,10 +206,10 @@ def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
 
 def _default_fields_mapping() -> FieldsMapping:
     return FieldsMapping(
-        ProjectFieldMapping({}),
-        AssetFieldMapping({}),
-        ShotFieldMapping({}),
-        TaskFieldMapping({}),
+        ProjectFieldMapping.from_dict({}),
+        AssetFieldMapping.from_dict({}),
+        ShotFieldMapping.from_dict({}),
+        TaskFieldMapping.from_dict({}),
     )
 
 

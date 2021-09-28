@@ -12,7 +12,10 @@ class ShotgridTypes(Enum):
     PROJECT = "Project"
     ASSET = "Asset"
     SHOT = "Shot"
+    EPISODE = "Episode"
+    SEQUENCE = "Sequence"
     TASK = "Task"
+    GROUP = "Group"
 
 
 @unique

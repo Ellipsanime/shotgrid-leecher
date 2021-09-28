@@ -23,7 +23,7 @@ _NOT = IsNotFilter
 
 def find_project_by_id(query: ShotgridFindProjectByIdQuery) -> ShotgridProject:
     client = conn.get_shotgrid_client(query.credentials)
-    fields = ["name"]
+    fields = list(query.project_mapping.mapping_table.values())
     raw = client.find_one(
         ShotgridTypes.PROJECT.value,
         _F.filter_by(_ID(query.project_id)),
@@ -41,7 +41,7 @@ def find_assets_for_project(
         _F.filter_by(
             _IS(ShotgridTypes.PROJECT.value.lower(), query.project.to_dict())
         ),
-        ["code", "sg_asset_type"],
+        list(query.asset_mapping.mapping_table.values()),
     )
 
 
@@ -54,14 +54,7 @@ def find_shots_for_project(
         _F.filter_by(
             _IS(ShotgridTypes.PROJECT.value.lower(), query.project.to_dict())
         ),
-        [
-            "sg_sequence",
-            "sg_episode",
-            "sg_cut_duration",
-            "sg_frame_rate",
-            "sg_sequence.Sequence.episode",
-            "code",
-        ],
+        list(query.shot_mapping.mapping_table.values()),
     )
 
 
@@ -75,5 +68,5 @@ def find_tasks_for_project(
             _IS(ShotgridTypes.PROJECT.value.lower(), query.project.to_dict()),
             _NOT("entity", None),
         ),
-        ["content", "name", "id", "step", "entity"],
+        list(query.task_mapping.mapping_table.values())
     )

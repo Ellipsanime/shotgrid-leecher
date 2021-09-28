@@ -40,10 +40,10 @@ def _credentials():
 
 def _default_fields_mapping() -> FieldsMapping:
     return FieldsMapping(
-        ProjectFieldMapping({}),
-        AssetFieldMapping({}),
-        ShotFieldMapping({}),
-        TaskFieldMapping({}),
+        ProjectFieldMapping.from_dict({}),
+        AssetFieldMapping.from_dict({}),
+        ShotFieldMapping.from_dict({}),
+        TaskFieldMapping.from_dict({}),
     )
 
 
@@ -62,7 +62,9 @@ def test_find_project_by_id(monkeypatch: MonkeyPatch):
     # Assert
     assert_that(actual).is_equal_to(expected)
     client.find_one.assert_called_once_with(
-        ShotgridTypes.PROJECT.value, [["id", "is", p_id]], ["name"]
+        ShotgridTypes.PROJECT.value,
+        [["id", "is", p_id]],
+        list(ProjectFieldMapping.from_dict({}).mapping_table.values()),
     )
 
 

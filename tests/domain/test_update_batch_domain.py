@@ -38,10 +38,10 @@ def _patch_adjacent(patcher: MonkeyPatch, client, hierarchy: List) -> None:
 
 def _default_fields_mapping() -> FieldsMapping:
     return FieldsMapping(
-        ProjectFieldMapping({}),
-        AssetFieldMapping({}),
-        ShotFieldMapping({}),
-        TaskFieldMapping({}),
+        ProjectFieldMapping.from_dict({}),
+        AssetFieldMapping.from_dict({}),
+        ShotFieldMapping.from_dict({}),
+        TaskFieldMapping.from_dict({}),
     )
 
 
