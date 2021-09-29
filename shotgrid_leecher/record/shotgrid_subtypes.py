@@ -20,6 +20,7 @@ class TaskFieldMapping(GenericFieldMapping):
     _ID = "id"
     _STEP = "step"
     _CONTENT = "content"
+    _NAME = "name"
     type: ShotgridTypes = field(init=False, default=ShotgridTypes.TASK)
 
     def entity(self) -> Optional[str]:
@@ -31,6 +32,9 @@ class TaskFieldMapping(GenericFieldMapping):
     def step(self) -> Optional[str]:
         return self.mapping_table.get(self._STEP)
 
+    def name(self) -> Optional[str]:
+        return self.mapping_table.get(self._NAME)
+
     def content(self) -> Optional[str]:
         return self.mapping_table.get(self._CONTENT)
 
@@ -39,7 +43,7 @@ class TaskFieldMapping(GenericFieldMapping):
         return TaskFieldMapping(
             {
                 TaskFieldMapping._CONTENT: "content",
-                "name": "name",
+                TaskFieldMapping._NAME: "name",
                 TaskFieldMapping._ID: "id",
                 TaskFieldMapping._STEP: "step",
                 TaskFieldMapping._ENTITY: "entity",

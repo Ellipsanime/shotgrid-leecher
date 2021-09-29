@@ -24,8 +24,17 @@ class ShotgridTaskEntity(ShotgridEntity):
 class ShotgridTask(ShotgridEntity):
     content: str
     name: str
-    step: Optional[ShotgridTaskStep]
     entity: ShotgridTaskEntity
+    step: Optional[ShotgridTaskStep]
+
+    def copy_with_step(self, step: ShotgridTaskStep) -> "ShotgridTask":
+        return ShotgridTask(
+            **{
+                **self.__dict__,
+                "entity": self.entity,
+                "step": step,
+            }
+        )
 
 
 @dataclass(frozen=True)
