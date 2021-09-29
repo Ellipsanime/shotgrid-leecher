@@ -39,3 +39,19 @@ class EventTypes(Enum):
 @unique
 class ShotgridEventEntries(Enum):
     EVENT_ENTRY = "EventLogEntry"
+
+
+@unique
+class ShotgridField(Enum):
+    ENTITY = "entity"
+    ID = "id"
+    STEP = "step"
+    CONTENT = "content"
+    NAME = "name"
+    SEQUENCE = "sequence"
+    EPISODE = "episode"
+    SEQUENCE_EPISODE = "sequence.episode"
+    CUT_DURATION = "cut_duration"
+    FRAME_RATE = "frame_rate"
+    CODE = "code"
+    ASSET_TYPE = "asset_type"

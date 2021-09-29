@@ -21,6 +21,62 @@ class ShotgridTaskEntity(ShotgridEntity):
 
 
 @dataclass(frozen=True)
+class ShotgridShotEpisode(ShotgridEntity):
+    name: str
+    type: str
+
+
+@dataclass(frozen=True)
+class ShotgridShotSequence(ShotgridEntity):
+    name: str
+    type: str
+
+
+@dataclass(frozen=True)
+class ShotgridShot(ShotgridEntity):
+    cut_duration: float
+    frame_rate: float
+    code: str
+    type: str
+    id: int
+    sequence: Optional[ShotgridShotSequence]
+    episode: Optional[ShotgridShotEpisode]
+    sequence_episode: Optional[ShotgridShotEpisode]
+
+    def copy_with_sequence(self, seq: ShotgridShotSequence) -> "ShotgridShot":
+        return ShotgridShot(
+            **{
+                **self.__dict__,
+                "episode": self.episode,
+                "sequence_episode": self.sequence_episode,
+                "sequence": seq,
+            }
+        )
+
+    def copy_with_episode(self, ep: ShotgridShotEpisode) -> "ShotgridShot":
+        return ShotgridShot(
+            **{
+                **self.__dict__,
+                "sequence_episode": self.sequence_episode,
+                "sequence": self.sequence,
+                "episode": ep,
+            }
+        )
+
+    def copy_with_sequence_episode(
+        self, ep: ShotgridShotEpisode,
+    ) -> "ShotgridShot":
+        return ShotgridShot(
+            **{
+                **self.__dict__,
+                "sequence": self.sequence,
+                "episode": self.episode,
+                "sequence_episode": ep,
+            }
+        )
+
+
+@dataclass(frozen=True)
 class ShotgridTask(ShotgridEntity):
     content: str
     name: str
