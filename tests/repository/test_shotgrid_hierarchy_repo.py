@@ -17,8 +17,10 @@ import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
 from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
 from shotgrid_leecher.record.enums import ShotgridTypes
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials, \
-    ShotgridTask
+from shotgrid_leecher.record.shotgrid_structures import (
+    ShotgridCredentials,
+    ShotgridTask,
+)
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
@@ -43,20 +45,30 @@ def _get_project(id_: int) -> ShotgridProject:
     )
 
 
-def _get_random_broken_tasks(num: int) -> List[Dict]:
-    return [
+def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
+    tasks = [
         {
             "id": uuid.uuid4().int,
-            "content": uuid.uuid4(),
-            "step": {"name": uuid.uuid4()} if _RAND(1, 10) % 2 == 0 else None,
+            "content": str(uuid.uuid4()),
+            "name": str(uuid.uuid4()),
+            "step": (
+                {"name": str(uuid.uuid4()), "id": -1}
+                if _RAND(1, 10) % 2 == 0
+                else None
+            ),
             "entity": {
-                "type": uuid.uuid4(),
-                "name": uuid.uuid4(),
+                "type": str(uuid.uuid4()),
+                "name": str(uuid.uuid4()),
                 "id": uuid.uuid4().int,
             },
         }
         for _ in range(num)
     ]
+    return pipe(
+        tasks,
+        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
+        list,
+    )
 
 
 def _get_random_assets_with_tasks(
@@ -100,28 +112,33 @@ def _get_random_assets_with_tasks(
     return assets, tasks
 
 
-def _get_shut_tasks(shots: List[Dict], num: int) -> List[Dict]:
+def _get_shut_tasks(shots: List[Dict], num: int) -> List[ShotgridTask]:
     names = ["lines", "color", "look", "dev"]
     steps = ["layout", "animation", "render"]
-    return list(
-        chain(
-            *[
-                [
-                    {
-                        "id": uuid.uuid4().int,
-                        "content": random.choice(names),
-                        "step": {"name": random.choice(steps)},
-                        "entity": {
-                            "type": "Shot",
-                            "name": shot["code"],
-                            "id": shot["id"],
-                        },
-                    }
-                    for _ in range(num)
-                ]
-                for shot in shots
-            ]
-        )
+
+    tasks = [
+        [
+            {
+                "id": uuid.uuid4().int,
+                "content": random.choice(names),
+                "name": str(uuid.uuid4()),
+                "step": {"name": random.choice(steps), "id": -1},
+                "entity": {
+                    "type": "Shot",
+                    "name": shot["code"],
+                    "id": shot["id"],
+                },
+            }
+            for _ in range(num)
+        ]
+        for shot in shots
+    ]
+
+    return pipe(
+        tasks,
+        lambda x: chain(*x),
+        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
+        list,
     )
 
 

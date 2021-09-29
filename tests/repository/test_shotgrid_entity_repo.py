@@ -8,6 +8,7 @@ from assertpy import assert_that
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as sut
 import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
 from shotgrid_leecher.record.enums import ShotgridTypes
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
@@ -117,9 +118,20 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
     client = PropertyMock()
     p_id = uuid.uuid4().int
     project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
-    expected = [{str(uuid.uuid4()): uuid.uuid4().int}]
+    shotgrid_result = [
+        {
+            "id": uuid.uuid4().int,
+            "name": str(uuid.uuid4()),
+            "content": str(uuid.uuid4()),
+            "entity": {"name": str(uuid.uuid4()), "id": -1},
+        }
+    ]
+    expected = [
+        to_shotgrid_task(_default_fields_mapping().task_mapping, x)
+        for x in shotgrid_result
+    ]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
-    client.find.return_value = expected
+    client.find.return_value = shotgrid_result
     query = ShotgridFindTasksByProjectQuery(
         project,
         _credentials(),

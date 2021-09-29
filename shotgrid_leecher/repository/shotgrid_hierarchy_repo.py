@@ -40,7 +40,7 @@ def _fetch_project_tasks(
     asset_tasks = [task for task in raw_tasks if task.step]
     for task in asset_tasks:
         key = task.entity.id
-        entity_row = rows.get(str(key))
+        entity_row = rows.get(str(key), rows.get(key))
         if not entity_row:
             continue
         parent_path = f"{entity_row['parent']}{entity_row['_id']},"
