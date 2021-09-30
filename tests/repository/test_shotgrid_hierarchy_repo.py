@@ -14,12 +14,16 @@ from toolz.curried import (
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
-from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
+from shotgrid_leecher.mapper.entity_mapper import (
+    to_shotgrid_task,
+    to_shotgrid_shot,
+)
 from shotgrid_leecher.record.enums import ShotgridTypes
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridCredentials,
     ShotgridTask,
+    ShotgridShot,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -112,7 +116,7 @@ def _get_random_assets_with_tasks(
     return assets, tasks
 
 
-def _get_shut_tasks(shots: List[Dict], num: int) -> List[ShotgridTask]:
+def _get_shut_tasks(shots: List[ShotgridShot], num: int) -> List[ShotgridTask]:
     names = ["lines", "color", "look", "dev"]
     steps = ["layout", "animation", "render"]
 
@@ -125,8 +129,8 @@ def _get_shut_tasks(shots: List[Dict], num: int) -> List[ShotgridTask]:
                 "step": {"name": random.choice(steps), "id": -1},
                 "entity": {
                     "type": "Shot",
-                    "name": shot["code"],
-                    "id": shot["id"],
+                    "name": shot.code,
+                    "id": shot.id,
                 },
             }
             for _ in range(num)
@@ -142,9 +146,14 @@ def _get_shut_tasks(shots: List[Dict], num: int) -> List[ShotgridTask]:
     )
 
 
-def _get_full_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
+def _get_full_shots(
+    ep: int,
+    seq: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
     # Shot/EP_OF_SHOT_N/SQ_OF_SHOT_N/SHOT_N/Task_M
-    return [
+    shots = [
         {
             "type": "Shot",
             "id": uuid.uuid4().int,
@@ -167,11 +176,20 @@ def _get_full_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
         }
         for x in range(num)
     ]
-
-
-def _get_odd_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
-    # Shot/EP_OF_SHOT_N/SQ_OF_SHOT_N/SHOT_N/Task_M
     return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
+    ]
+
+
+def _get_odd_shots(
+    ep: int,
+    seq: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
+    # Shot/EP_OF_SHOT_N/SQ_OF_SHOT_N/SHOT_N/Task_M
+    shots = [
         {
             "type": "Shot",
             "id": uuid.uuid4().int,
@@ -189,11 +207,19 @@ def _get_odd_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
         }
         for x in range(num)
     ]
+    return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
+    ]
 
 
-def _get_shots_without_seq(ep: int, num: int, order: int = 1) -> List[Dict]:
+def _get_shots_without_seq(
+    ep: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
     # Shot/EP_OF_SHOT_N/SHOT_N/Task_M
-    return [
+    shots = [
         {
             "type": "Shot",
             "id": uuid.uuid4().int,
@@ -206,11 +232,19 @@ def _get_shots_without_seq(ep: int, num: int, order: int = 1) -> List[Dict]:
         }
         for x in range(num)
     ]
-
-
-def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
-    # Shot/SQ_OF_SHOT_N/SHOT_N/Task_M
     return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
+    ]
+
+
+def _get_shots_without_ep(
+    seq: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
+    # Shot/SQ_OF_SHOT_N/SHOT_N/Task_M
+    shots = [
         {
             "type": "Shot",
             "id": 100 + order + x,
@@ -222,6 +256,10 @@ def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
             "code": f"SHOT{order}{x}",
         }
         for x in range(num)
+    ]
+    return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
     ]
 
 

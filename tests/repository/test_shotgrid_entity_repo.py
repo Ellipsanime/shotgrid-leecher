@@ -96,7 +96,10 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     client = PropertyMock()
     p_id = uuid.uuid4().int
     project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
-    expected = [{str(uuid.uuid4()): uuid.uuid4().int}]
+    expected = [{
+        "id": uuid.uuid4().int,
+        "code": str(uuid.uuid4()),
+    }]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find.return_value = expected
     query = ShotgridFindShotsByProjectQuery(
@@ -105,7 +108,9 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     # Act
     actual = sut.find_shots_for_project(query)
     # Assert
-    assert_that(actual).is_equal_to(expected)
+    assert_that(actual).is_length(len(expected))
+    assert_that(actual[0].id).is_equal_to(expected[0]["id"])
+    assert_that(actual[0].code).is_equal_to(expected[0]["code"])
     assert_that(client.find.call_count).is_equal_to(1)
     assert_that(client.find.call_args[0][0]).is_equal_to(
         ShotgridTypes.SHOT.value

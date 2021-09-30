@@ -54,4 +54,5 @@ class ShotgridField(Enum):
     CUT_DURATION = "cut_duration"
     FRAME_RATE = "frame_rate"
     CODE = "code"
+    TYPE = "type"
     ASSET_TYPE = "asset_type"

@@ -1,12 +1,12 @@
 from typing import Dict, Any, List, Iterator
 
-from toolz import pipe, get_in, curry
+from toolz import pipe, curry
 from toolz.curried import (
     filter as where,
     map as select,
     unique,
 )
-from toolz.curried import groupby, get_in as get_in_
+from toolz.curried import groupby
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 from shotgrid_leecher.record.enums import ShotgridTypes, ShotgridField
@@ -17,10 +17,14 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
 )
-from shotgrid_leecher.record.shotgrid_structures import ShotgridTask
+from shotgrid_leecher.record.shotgrid_structures import (
+    ShotgridTask,
+    ShotgridShot,
+    ShotgridShotEpisode,
+    ShotgridShotSequence,
+)
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
-    ShotFieldMapping,
 )
 from shotgrid_leecher.utils.logger import get_logger
 from shotgrid_leecher.utils.timer import timed
@@ -47,17 +51,10 @@ def _fetch_project_tasks(
         yield _get_task_row(task, parent_path)
 
 
-@curry
-def _patch_up_shot(fields_mapping: ShotFieldMapping, shot: Map) -> Map:
-    sequence_ep_field = fields_mapping.value(ShotgridField.SEQUENCE_EPISODE)
-    episode_field = fields_mapping.value(ShotgridField.EPISODE)
-
-    if shot.get(episode_field) or not shot.get(sequence_ep_field):
+def _patch_up_shot(shot: ShotgridShot) -> ShotgridShot:
+    if shot.episode or not shot.sequence:
         return shot
-    return {
-        **shot,
-        episode_field: shot[sequence_ep_field],
-    }
+    return shot.copy_with_episode(shot.sequence_episode)
 
 
 def _fetch_project_shots(
@@ -72,108 +69,83 @@ def _fetch_project_shots(
 
     shots = pipe(
         raw_shots,
-        select(_patch_up_shot(query.shot_mapping)),
+        select(_patch_up_shot),
         list,
     )
-    yield from _tackle_partial_shots(project, shots, query.shot_mapping)
-    yield from _tackle_shot_episodes(project, shots, query.shot_mapping)
-    yield from _tackle_shot_sequences(project, shots, query.shot_mapping)
-    yield from _tackle_full_shots(project, shots, query.shot_mapping)
+    yield from _tackle_partial_shots(project, shots)
+    yield from _tackle_shot_episodes(project, shots)
+    yield from _tackle_shot_sequences(project, shots)
+    yield from _tackle_full_shots(project, shots)
 
 
 def _tackle_full_shots(
     project: ShotgridProject,
-    shots: List[Map],
-    fields_mapping: ShotFieldMapping,
+    shots: List[ShotgridShot],
 ) -> Iterator[Map]:
-    sequence_field = fields_mapping.value(ShotgridField.SEQUENCE)
-    episode_field = fields_mapping.value(ShotgridField.EPISODE)
-    name_field = ShotgridField.NAME.value
     shot_type = ShotgridTypes.SHOT.value
     full_shots = pipe(
         shots,
-        where(
-            lambda x: get_in([sequence_field, name_field], x)
-            and get_in([episode_field, name_field], x)
-        ),
+        where(lambda x: x.sequence_name() and x.episode_name()),
         list,
     )
     for shot in full_shots:
-        episode = shot[episode_field][name_field]
-        sequence_ = shot[sequence_field][name_field]
+        episode = shot.episode_name()
+        sequence_ = shot.sequence_name()
         parent_path = f",{project.name},{shot_type},{episode},{sequence_},"
         yield _get_shot_row(shot, parent_path)
 
 
 def _tackle_shot_sequences(
     project: ShotgridProject,
-    shots: List[Map],
-    fields_mapping: ShotFieldMapping,
+    shots: List[ShotgridShot],
 ) -> Iterator[Map]:
-    sequence_field = fields_mapping.value(ShotgridField.SEQUENCE)
-    episode_field = fields_mapping.value(ShotgridField.EPISODE)
-    name_field = ShotgridField.NAME.value
     shot_type = ShotgridTypes.SHOT.value
     sequence_group = pipe(
         shots,
-        where(get_in_([sequence_field, name_field])),
-        groupby(get_in_([sequence_field, name_field])),
+        where(lambda x: x.sequence_name()),
+        groupby(lambda x: x.sequence_name()),
     )
     for sq, sq_shots in sequence_group.items():
-        get_unique_ids = get_in_([episode_field, ShotgridField.ID.value])
-        for shot in unique(sq_shots, get_unique_ids):
-            episode = get_in([episode_field, name_field], shot)
+        for shot in unique(sq_shots, lambda x: x.episode_id()):
+            episode = shot.episode_name()
             base_path = f",{project.name},{shot_type},"
             parent_path = f"{base_path}{episode}," if episode else base_path
-            yield _get_sequence_shot_group_row(
-                shot[sequence_field],
-                parent_path,
-            )
+            yield _get_sequence_shot_group_row(shot.sequence, parent_path)
 
 
 def _tackle_shot_episodes(
     project: ShotgridProject,
-    shots: List[Map],
-    fields_mapping: ShotFieldMapping,
+    shots: List[ShotgridShot],
 ) -> Iterator[Map]:
-    episode_field = fields_mapping.value(ShotgridField.EPISODE)
-    name_field = ShotgridField.NAME.value
     episode_groups = pipe(
         shots,
-        where(get_in_([episode_field, name_field])),
-        groupby(get_in_([episode_field, name_field])),
+        where(lambda x: x.episode_name()),
+        groupby(lambda x: x.episode_name()),
     )
     for ep, ep_shots in episode_groups.items():
-        yield _get_episode_shot_group_row(ep_shots[-1][episode_field], project)
+        yield _get_episode_shot_group_row(ep_shots[-1].episode, project)
 
 
 def _tackle_partial_shots(
     project: ShotgridProject,
-    shots: List[Map],
-    fields_mapping: ShotFieldMapping,
+    shots: List[ShotgridShot],
 ) -> Iterator[Map]:
-    sequence_field = fields_mapping.value(ShotgridField.SEQUENCE)
-    episode_field = fields_mapping.value(ShotgridField.EPISODE)
-    name_field = ShotgridField.NAME.value
     shot_type = ShotgridTypes.SHOT.value
     partial_shots = pipe(
         shots,
-        where(
-            lambda x: not get_in([sequence_field, name_field], x)
-            or not get_in([episode_field, name_field], x)
-        ),
+        where(lambda x: not x.sequence_name() or not x.episode_name()),
         list,
     )
     for shot in partial_shots:
-        if not shot.get(episode_field) and not shot.get(sequence_field):
+        if not shot.episode and not shot.sequence:
             parent_path = f",{project.name},{shot_type},"
             yield _get_shot_row(shot, parent_path)
-        if not shot.get(episode_field) and shot.get(sequence_field):
-            sequence_ = shot.get(sequence_field)[name_field]
+        if not shot.episode and shot.sequence:
+            sequence_ = shot.sequence.name
             parent_path = f",{project.name},{shot_type},{sequence_},"
             yield _get_shot_row(shot, parent_path)
-        if shot.get(episode_field) and not shot.get(sequence_field):
-            episode = shot[episode_field][name_field]
+        if shot.episode and not shot.sequence:
+            episode = shot.episode.name
             parent_path = f",{project.name},{shot_type},{episode},"
             yield _get_shot_row(shot, parent_path)
 
@@ -233,10 +205,10 @@ def _get_asset_row(asset: Map, parent_path: str) -> Map:
     }
 
 
-def _get_shot_row(shot: Map, parent_path: str) -> Map:
+def _get_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
     return {
-        "_id": shot["code"],
-        "src_id": shot["id"],
+        "_id": shot.code,
+        "src_id": shot.id,
         "type": ShotgridTypes.SHOT.value,
         "parent": parent_path,
     }
@@ -250,20 +222,25 @@ def _get_asset_group_row(asset_type: str, project: ShotgridProject) -> Map:
     }
 
 
-def _get_episode_shot_group_row(episode: Map, project: ShotgridProject) -> Map:
+def _get_episode_shot_group_row(
+    episode: ShotgridShotEpisode,
+    project: ShotgridProject,
+) -> Map:
     return {
-        "_id": episode["name"],
+        "_id": episode.name,
         "type": ShotgridTypes.EPISODE.value,
-        "src_id": episode["id"],
+        "src_id": episode.id,
         "parent": f",{project.name},{ShotgridTypes.SHOT.value},",
     }
 
 
-def _get_sequence_shot_group_row(shot_sequence: Map, parent_path: str) -> Map:
+def _get_sequence_shot_group_row(
+    sequence: ShotgridShotSequence, parent_path: str
+) -> Map:
     return {
-        "_id": shot_sequence["name"],
+        "_id": sequence.name,
         "type": ShotgridTypes.SEQUENCE.value,
-        "src_id": shot_sequence["id"],
+        "src_id": sequence.id,
         "parent": parent_path,
     }
 

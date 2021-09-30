@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import dataclass
 from enum import unique, Enum
 from typing import Optional, List, Dict, Any, Iterator
@@ -34,8 +35,8 @@ class ShotgridShotSequence(ShotgridEntity):
 
 @dataclass(frozen=True)
 class ShotgridShot(ShotgridEntity):
-    cut_duration: float
-    frame_rate: float
+    cut_duration: Optional[float]
+    frame_rate: Optional[float]
     code: str
     type: str
     id: int
@@ -43,37 +44,26 @@ class ShotgridShot(ShotgridEntity):
     episode: Optional[ShotgridShotEpisode]
     sequence_episode: Optional[ShotgridShotEpisode]
 
+    def episode_id(self) -> Optional[int]:
+        return self.episode.id if self.episode else None
+
+    def episode_name(self) -> Optional[str]:
+        return self.episode.name if self.episode else None
+
+    def sequence_name(self) -> Optional[str]:
+        return self.sequence.name if self.sequence else None
+
     def copy_with_sequence(self, seq: ShotgridShotSequence) -> "ShotgridShot":
-        return ShotgridShot(
-            **{
-                **self.__dict__,
-                "episode": self.episode,
-                "sequence_episode": self.sequence_episode,
-                "sequence": seq,
-            }
-        )
+        return dataclasses.replace(self, **{"sequence": seq})
 
     def copy_with_episode(self, ep: ShotgridShotEpisode) -> "ShotgridShot":
-        return ShotgridShot(
-            **{
-                **self.__dict__,
-                "sequence_episode": self.sequence_episode,
-                "sequence": self.sequence,
-                "episode": ep,
-            }
-        )
+        return dataclasses.replace(self, **{"episode": ep})
 
     def copy_with_sequence_episode(
-        self, ep: ShotgridShotEpisode,
+        self,
+        ep: ShotgridShotEpisode,
     ) -> "ShotgridShot":
-        return ShotgridShot(
-            **{
-                **self.__dict__,
-                "sequence": self.sequence,
-                "episode": self.episode,
-                "sequence_episode": ep,
-            }
-        )
+        return dataclasses.replace(self, **{"sequence_episode": ep})
 
 
 @dataclass(frozen=True)
@@ -84,13 +74,7 @@ class ShotgridTask(ShotgridEntity):
     step: Optional[ShotgridTaskStep]
 
     def copy_with_step(self, step: ShotgridTaskStep) -> "ShotgridTask":
-        return ShotgridTask(
-            **{
-                **self.__dict__,
-                "entity": self.entity,
-                "step": step,
-            }
-        )
+        return dataclasses.replace(self, **{"step": step})
 
 
 @dataclass(frozen=True)
