@@ -19,6 +19,7 @@ class ShotgridTaskStep(ShotgridEntity):
 @dataclass(frozen=True)
 class ShotgridTaskEntity(ShotgridEntity):
     name: str
+    type: str
 
 
 @dataclass(frozen=True)
@@ -75,6 +76,18 @@ class ShotgridTask(ShotgridEntity):
 
     def copy_with_step(self, step: ShotgridTaskStep) -> "ShotgridTask":
         return dataclasses.replace(self, **{"step": step})
+
+
+@dataclass(frozen=True)
+class ShotgridAsset(ShotgridEntity):
+    id: int
+    type: str
+    code: str
+    asset_type: str
+    tasks: List[ShotgridTask]
+
+    def copy_with_tasks(self, tasks: List[ShotgridTask]) -> "ShotgridAsset":
+        return dataclasses.replace(self, **{"tasks": tasks})
 
 
 @dataclass(frozen=True)

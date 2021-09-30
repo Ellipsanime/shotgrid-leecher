@@ -8,7 +8,7 @@ class DbName(Enum):
 
 
 @unique
-class ShotgridTypes(Enum):
+class ShotgridType(Enum):
     PROJECT = "Project"
     ASSET = "Asset"
     SHOT = "Shot"
@@ -55,4 +55,5 @@ class ShotgridField(Enum):
     FRAME_RATE = "frame_rate"
     CODE = "code"
     TYPE = "type"
+    TASKS = "tasks"
     ASSET_TYPE = "asset_type"

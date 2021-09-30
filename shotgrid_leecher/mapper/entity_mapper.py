@@ -2,7 +2,7 @@ from typing import Dict, Any, Optional, Callable, TypeVar
 
 from toolz import curry, get_in
 
-from shotgrid_leecher.record.enums import ShotgridField, ShotgridTypes
+from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridTaskEntity,
@@ -10,10 +10,12 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
     ShotgridShotSequence,
     ShotgridShotEpisode,
+    ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
-    TaskFieldMapping,
-    ShotFieldMapping,
+    TaskFieldsMapping,
+    ShotFieldsMapping,
+    AssetFieldsMapping,
 )
 from shotgrid_leecher.utils.collections import swap_mapping_keys_values
 
@@ -21,9 +23,28 @@ Map = Dict[str, Any]
 TOut = TypeVar("TOut")
 
 
+def to_shotgrid_asset(
+    asset_mapping: AssetFieldsMapping,
+    task_mapping: TaskFieldsMapping,
+    target: Map,
+) -> ShotgridAsset:
+    data = swap_mapping_keys_values(asset_mapping.mapping_table, target)
+    tasks = [
+        to_shotgrid_task(task_mapping, x)
+        for x in data.get(ShotgridField.TASKS.value, [])
+    ]
+    return ShotgridAsset(
+        id=data[ShotgridField.ID.value],
+        type=data.get(ShotgridField.ID.value, ShotgridType.ASSET.value),
+        code=data[ShotgridField.CODE.value],
+        asset_type=data[ShotgridField.ASSET_TYPE.value],
+        tasks=tasks,
+    )
+
+
 @curry
 def to_shotgrid_shot(
-    shot_mapping: ShotFieldMapping,
+    shot_mapping: ShotFieldsMapping,
     target: Map,
 ) -> ShotgridShot:
     data = swap_mapping_keys_values(shot_mapping.mapping_table, target)
@@ -47,7 +68,7 @@ def to_shotgrid_shot(
         cut_duration=data.get(ShotgridField.CUT_DURATION.value),
         frame_rate=data.get(ShotgridField.FRAME_RATE.value),
         code=data[ShotgridField.CODE.value],
-        type=data.get(ShotgridField.TYPE.value, ShotgridTypes.SHOT.value),
+        type=data.get(ShotgridField.TYPE.value, ShotgridType.SHOT.value),
         sequence=sequence,
         episode=episode,
         sequence_episode=sequence_episode,
@@ -56,23 +77,15 @@ def to_shotgrid_shot(
 
 @curry
 def to_shotgrid_task(
-    task_mapping: TaskFieldMapping,
+    task_mapping: TaskFieldsMapping,
     target: Map,
 ) -> ShotgridTask:
     step_field = ShotgridField.STEP.value
-    entity_field = ShotgridField.ENTITY.value
     data = swap_mapping_keys_values(task_mapping.mapping_table, target)
-    entity_id = get_in(
-        [entity_field, ShotgridField.ID.value],
+    entity: ShotgridTaskEntity = _sub_entity(
+        ShotgridField.ENTITY.value,
+        ShotgridTaskEntity,
         data,
-    )
-    entity_name = get_in(
-        [entity_field, ShotgridField.NAME.value],
-        data,
-    )
-    entity = ShotgridTaskEntity(
-        id=entity_id,
-        name=entity_name,
     )
     task = ShotgridTask(
         id=data[ShotgridField.ID.value],

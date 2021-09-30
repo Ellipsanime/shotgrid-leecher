@@ -18,7 +18,7 @@ from shotgrid_leecher.mapper.entity_mapper import (
     to_shotgrid_task,
     to_shotgrid_shot,
 )
-from shotgrid_leecher.record.enums import ShotgridTypes
+from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridCredentials,
@@ -28,10 +28,10 @@ from shotgrid_leecher.record.shotgrid_structures import (
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
-    ProjectFieldMapping,
-    AssetFieldMapping,
-    ShotFieldMapping,
-    TaskFieldMapping,
+    ProjectFieldsMapping,
+    AssetFieldsMapping,
+    ShotFieldsMapping,
+    TaskFieldsMapping,
 )
 
 _RAND = random.randint
@@ -45,7 +45,7 @@ def _get_project(id_: int) -> ShotgridProject:
     return ShotgridProject(
         id_,
         f"Project_{str(uuid.uuid4())[-2:]}",
-        ShotgridTypes.PROJECT.value,
+        ShotgridType.PROJECT.value,
     )
 
 
@@ -265,10 +265,10 @@ def _get_shots_without_ep(
 
 def _default_fields_mapping() -> FieldsMapping:
     return FieldsMapping(
-        ProjectFieldMapping.from_dict({}),
-        AssetFieldMapping.from_dict({}),
-        ShotFieldMapping.from_dict({}),
-        TaskFieldMapping.from_dict({}),
+        ProjectFieldsMapping.from_dict({}),
+        AssetFieldsMapping.from_dict({}),
+        ShotFieldsMapping.from_dict({}),
+        TaskFieldsMapping.from_dict({}),
     )
 
 

@@ -9,7 +9,7 @@ from toolz.curried import (
 from toolz.curried import groupby
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
-from shotgrid_leecher.record.enums import ShotgridTypes, ShotgridField
+from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
     ShotgridFindProjectByIdQuery,
@@ -82,7 +82,7 @@ def _tackle_full_shots(
     project: ShotgridProject,
     shots: List[ShotgridShot],
 ) -> Iterator[Map]:
-    shot_type = ShotgridTypes.SHOT.value
+    shot_type = ShotgridType.SHOT.value
     full_shots = pipe(
         shots,
         where(lambda x: x.sequence_name() and x.episode_name()),
@@ -99,7 +99,7 @@ def _tackle_shot_sequences(
     project: ShotgridProject,
     shots: List[ShotgridShot],
 ) -> Iterator[Map]:
-    shot_type = ShotgridTypes.SHOT.value
+    shot_type = ShotgridType.SHOT.value
     sequence_group = pipe(
         shots,
         where(lambda x: x.sequence_name()),
@@ -130,7 +130,7 @@ def _tackle_partial_shots(
     project: ShotgridProject,
     shots: List[ShotgridShot],
 ) -> Iterator[Map]:
-    shot_type = ShotgridTypes.SHOT.value
+    shot_type = ShotgridType.SHOT.value
     partial_shots = pipe(
         shots,
         where(lambda x: not x.sequence_name() or not x.episode_name()),
@@ -157,7 +157,7 @@ def _fetch_project_assets(
     project = query.project
     assets = entity_repo.find_assets_for_project(query)
     asset_type_field = query.asset_mapping.value(ShotgridField.ASSET_TYPE)
-    asset_type = ShotgridTypes.ASSET.value
+    asset_type = ShotgridType.ASSET.value
 
     if assets:
         yield _get_top_asset_row(project)
@@ -172,16 +172,16 @@ def _fetch_project_assets(
 
 def _get_top_shot_row(project: ShotgridProject) -> Map:
     return {
-        "_id": ShotgridTypes.SHOT.value,
-        "type": ShotgridTypes.GROUP.value,
+        "_id": ShotgridType.SHOT.value,
+        "type": ShotgridType.GROUP.value,
         "parent": f",{project.name},",
     }
 
 
 def _get_top_asset_row(project: ShotgridProject) -> Map:
     return {
-        "_id": ShotgridTypes.ASSET.value,
-        "type": ShotgridTypes.GROUP.value,
+        "_id": ShotgridType.ASSET.value,
+        "type": ShotgridType.GROUP.value,
         "parent": f",{project.name},",
     }
 
@@ -190,7 +190,7 @@ def _get_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
     return {
         "_id": f"{task.content}_{task.id}",
         "src_id": task.id,
-        "type": ShotgridTypes.TASK.value,
+        "type": ShotgridType.TASK.value,
         "parent": parent_task_path,
         "task_type": task.step.name,
     }
@@ -200,7 +200,7 @@ def _get_asset_row(asset: Map, parent_path: str) -> Map:
     return {
         "_id": asset["code"],
         "src_id": asset["id"],
-        "type": ShotgridTypes.ASSET.value,
+        "type": ShotgridType.ASSET.value,
         "parent": parent_path,
     }
 
@@ -209,7 +209,7 @@ def _get_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
     return {
         "_id": shot.code,
         "src_id": shot.id,
-        "type": ShotgridTypes.SHOT.value,
+        "type": ShotgridType.SHOT.value,
         "parent": parent_path,
     }
 
@@ -217,8 +217,8 @@ def _get_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
 def _get_asset_group_row(asset_type: str, project: ShotgridProject) -> Map:
     return {
         "_id": asset_type,
-        "type": ShotgridTypes.GROUP.value,
-        "parent": f",{project.name},{ShotgridTypes.ASSET.value},",
+        "type": ShotgridType.GROUP.value,
+        "parent": f",{project.name},{ShotgridType.ASSET.value},",
     }
 
 
@@ -228,9 +228,9 @@ def _get_episode_shot_group_row(
 ) -> Map:
     return {
         "_id": episode.name,
-        "type": ShotgridTypes.EPISODE.value,
+        "type": ShotgridType.EPISODE.value,
         "src_id": episode.id,
-        "parent": f",{project.name},{ShotgridTypes.SHOT.value},",
+        "parent": f",{project.name},{ShotgridType.SHOT.value},",
     }
 
 
@@ -239,7 +239,7 @@ def _get_sequence_shot_group_row(
 ) -> Map:
     return {
         "_id": sequence.name,
-        "type": ShotgridTypes.SEQUENCE.value,
+        "type": ShotgridType.SEQUENCE.value,
         "src_id": sequence.id,
         "parent": parent_path,
     }
@@ -249,7 +249,7 @@ def _get_project_row(project: ShotgridProject) -> Map:
     return {
         "_id": project.name,
         "src_id": project.id,
-        "type": ShotgridTypes.PROJECT.value,
+        "type": ShotgridType.PROJECT.value,
         "parent": None,
     }
 
