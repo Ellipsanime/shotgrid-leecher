@@ -1,6 +1,8 @@
 from itertools import chain, starmap
 from typing import Dict, Any, Tuple, Iterable
 
+Map = Dict[str, Any]
+
 
 def _unpack_nested(
     key: str, value: Any, sep: str = "."
@@ -15,7 +17,7 @@ def _unpack_nested(
         yield key, value
 
 
-def flatten_dict(dictionary: Dict[str, Any]) -> Dict[str, Any]:
+def flatten_dict(dictionary: Map) -> Map:
     dict_ = dictionary
     while True:
         dict_ = dict(
@@ -23,3 +25,7 @@ def flatten_dict(dictionary: Dict[str, Any]) -> Dict[str, Any]:
         )
         if not any(type(x) is dict for x in dict_.values()):
             return dict_
+
+
+def swap_mapping_keys_values(mapping: Dict[str, str], target: Map) -> Map:
+    return {k: target[v] for k, v in mapping.items() if v in target}

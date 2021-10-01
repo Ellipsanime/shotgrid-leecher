@@ -8,7 +8,7 @@ class DbName(Enum):
 
 
 @unique
-class ShotgridTypes(Enum):
+class ShotgridType(Enum):
     PROJECT = "Project"
     ASSET = "Asset"
     SHOT = "Shot"
@@ -39,3 +39,21 @@ class EventTypes(Enum):
 @unique
 class ShotgridEventEntries(Enum):
     EVENT_ENTRY = "EventLogEntry"
+
+
+@unique
+class ShotgridField(Enum):
+    ENTITY = "entity"
+    ID = "id"
+    STEP = "step"
+    CONTENT = "content"
+    NAME = "name"
+    SEQUENCE = "sequence"
+    EPISODE = "episode"
+    SEQUENCE_EPISODE = "sequence.episode"
+    CUT_DURATION = "cut_duration"
+    FRAME_RATE = "frame_rate"
+    CODE = "code"
+    TYPE = "type"
+    TASKS = "tasks"
+    ASSET_TYPE = "asset_type"

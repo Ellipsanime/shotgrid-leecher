@@ -15,10 +15,10 @@ from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     FieldsMapping,
-    ProjectFieldMapping,
-    AssetFieldMapping,
-    ShotFieldMapping,
-    TaskFieldMapping,
+    ProjectFieldsMapping,
+    AssetFieldsMapping,
+    ShotFieldsMapping,
+    TaskFieldsMapping,
 )
 from shotgrid_leecher.repository import hierarchy_repo
 from shotgrid_leecher.writers import db_writer
@@ -38,10 +38,10 @@ def _patch_adjacent(patcher: MonkeyPatch, client, hierarchy: List) -> None:
 
 def _default_fields_mapping() -> FieldsMapping:
     return FieldsMapping(
-        ProjectFieldMapping.from_dict({}),
-        AssetFieldMapping.from_dict({}),
-        ShotFieldMapping.from_dict({}),
-        TaskFieldMapping.from_dict({}),
+        ProjectFieldsMapping.from_dict({}),
+        AssetFieldsMapping.from_dict({}),
+        ShotFieldsMapping.from_dict({}),
+        TaskFieldsMapping.from_dict({}),
     )
 
 

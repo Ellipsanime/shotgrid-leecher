@@ -1,9 +1,24 @@
+import random
 import uuid
+from typing import Dict, Any, Tuple
 
+import pytest
 from assertpy import assert_that
 from mongomock.object_id import ObjectId
 
-from shotgrid_leecher.utils.collections import flatten_dict
+from shotgrid_leecher.utils.collections import flatten_dict, \
+    swap_mapping_keys_values
+
+_RAND = random.randint
+
+
+def _swap_data(size: int) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    mapping = {str(uuid.uuid4()): str(uuid.uuid4()) for _ in range(size)}
+    data = {
+        **{v: str(uuid.uuid4()) for k, v in mapping.items()},
+        **{str(uuid.uuid4()): str(uuid.uuid4()) for _ in range(size)},
+    }
+    return mapping, data
 
 
 def test_flatten_dict_non_dicts():
@@ -61,3 +76,24 @@ def test_flatten_dict_nested_with_sets():
     assert_that(actual).is_type_of(dict)
     assert_that(actual.get("_ids")).is_equal_to({1, 2, 3})
     assert_that(actual.get(f"{k1}.{k2}.{k3}")).is_equal_to({1, 2, k3.int})
+
+
+@pytest.mark.parametrize(
+    "data",
+    list(
+        [
+            _swap_data(_RAND(10, 250)),
+            _swap_data(_RAND(251, 1555)),
+            _swap_data(_RAND(5600, 10_000)),
+        ]
+    ),
+)
+def test_swap_mapping_keys_values(data: Tuple[Dict[str, Any], Dict[str, Any]]):
+    # Arrange
+    mapping, target = data
+    # Act
+    actual = swap_mapping_keys_values(mapping, target)
+    # Assert
+    assert_that(actual).is_equal_to(
+        {k: target[v] for k, v in mapping.items() if v in target}
+    )
