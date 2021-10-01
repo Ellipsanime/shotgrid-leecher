@@ -16,11 +16,21 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
     ShotFieldsMapping,
     AssetFieldsMapping,
+    ProjectFieldsMapping,
+    ShotgridProject,
 )
 from shotgrid_leecher.utils.collections import swap_mapping_keys_values
 
 Map = Dict[str, Any]
 TOut = TypeVar("TOut")
+
+
+def to_shotgrid_project(
+    project_mapping: ProjectFieldsMapping,
+    target: Map,
+) -> ShotgridProject:
+    data = swap_mapping_keys_values(project_mapping.mapping_table, target)
+    return ShotgridProject.from_dict(data)
 
 
 def to_shotgrid_asset(
@@ -90,7 +100,6 @@ def to_shotgrid_task(
     task = ShotgridTask(
         id=data[ShotgridField.ID.value],
         content=data[ShotgridField.CONTENT.value],
-        name=data[ShotgridField.NAME.value],
         entity=entity,
         step=None,
     )

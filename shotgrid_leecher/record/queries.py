@@ -43,7 +43,7 @@ class ShotgridFindProjectByIdQuery(ShotgridBaseEntityQuery):
         return ShotgridFindProjectByIdQuery(
             entity.project_id,
             entity.credentials,
-            entity.fields_mapping.project_mapping,
+            entity.fields_mapping.project,
         )
 
 
@@ -60,8 +60,8 @@ class ShotgridFindAssetsByProjectQuery(ShotgridBoundEntityQuery):
         return ShotgridFindAssetsByProjectQuery(
             project,
             query.credentials,
-            query.fields_mapping.asset_mapping,
-            query.fields_mapping.task_mapping,
+            query.fields_mapping.asset,
+            query.fields_mapping.task,
         )
 
 
@@ -77,7 +77,7 @@ class ShotgridFindShotsByProjectQuery(ShotgridBoundEntityQuery):
         return ShotgridFindShotsByProjectQuery(
             project,
             query.credentials,
-            query.fields_mapping.shot_mapping,
+            query.fields_mapping.shot,
         )
 
 
@@ -93,5 +93,5 @@ class ShotgridFindTasksByProjectQuery(ShotgridBoundEntityQuery):
         return ShotgridFindTasksByProjectQuery(
             project,
             query.credentials,
-            query.fields_mapping.task_mapping,
+            query.fields_mapping.task,
         )

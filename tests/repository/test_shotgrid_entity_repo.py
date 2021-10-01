@@ -60,7 +60,7 @@ def test_find_project_by_id(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find_one.return_value = asdict(expected)
     query = ShotgridFindProjectByIdQuery(
-        p_id, _credentials(), _default_fields_mapping().project_mapping
+        p_id, _credentials(), _default_fields_mapping().project
     )
     # Act
     actual = sut.find_project_by_id(query)
@@ -85,8 +85,8 @@ def test_find_assets_for_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(entity_mapper, "to_shotgrid_asset", mapper)
     client.find.return_value = raw_assets
     mapper.return_value = asset
-    asset_mapping = _default_fields_mapping().asset_mapping
-    task_mapping = _default_fields_mapping().task_mapping
+    asset_mapping = _default_fields_mapping().asset
+    task_mapping = _default_fields_mapping().task
     query = ShotgridFindAssetsByProjectQuery(
         project,
         _credentials(),
@@ -121,7 +121,7 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find.return_value = expected
     query = ShotgridFindShotsByProjectQuery(
-        project, _credentials(), _default_fields_mapping().shot_mapping
+        project, _credentials(), _default_fields_mapping().shot
     )
     # Act
     actual = sut.find_shots_for_project(query)
@@ -150,7 +150,7 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
         }
     ]
     expected = [
-        to_shotgrid_task(_default_fields_mapping().task_mapping, x)
+        to_shotgrid_task(_default_fields_mapping().task, x)
         for x in shotgrid_result
     ]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
@@ -158,7 +158,7 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
     query = ShotgridFindTasksByProjectQuery(
         project,
         _credentials(),
-        _default_fields_mapping().task_mapping,
+        _default_fields_mapping().task,
     )
     # Act
     actual = sut.find_tasks_for_project(query)

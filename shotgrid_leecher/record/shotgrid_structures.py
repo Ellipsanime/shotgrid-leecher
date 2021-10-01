@@ -70,7 +70,6 @@ class ShotgridShot(ShotgridEntity):
 @dataclass(frozen=True)
 class ShotgridTask(ShotgridEntity):
     content: str
-    name: str
     entity: ShotgridTaskEntity
     step: Optional[ShotgridTaskStep]
 

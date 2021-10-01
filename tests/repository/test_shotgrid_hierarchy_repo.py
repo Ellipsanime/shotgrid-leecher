@@ -71,7 +71,7 @@ def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
     ]
     return pipe(
         tasks,
-        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
+        select(to_shotgrid_task(_default_fields_mapping().task)),
         list,
     )
 
@@ -111,13 +111,13 @@ def _get_random_assets_with_tasks(
         assets,
         select(lambda x: x["tasks"]),
         lambda x: chain(*x),
-        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
+        select(to_shotgrid_task(_default_fields_mapping().task)),
         list,
     )
     return [
         to_shotgrid_asset(
-            _default_fields_mapping().asset_mapping,
-            _default_fields_mapping().task_mapping,
+            _default_fields_mapping().asset,
+            _default_fields_mapping().task,
             x,
         )
         for x in assets
@@ -149,7 +149,7 @@ def _get_shut_tasks(shots: List[ShotgridShot], num: int) -> List[ShotgridTask]:
     return pipe(
         tasks,
         lambda x: chain(*x),
-        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
+        select(to_shotgrid_task(_default_fields_mapping().task)),
         list,
     )
 
@@ -185,7 +185,7 @@ def _get_full_shots(
         for x in range(num)
     ]
     return [
-        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        to_shotgrid_shot(_default_fields_mapping().shot, x)
         for x in shots
     ]
 
@@ -216,7 +216,7 @@ def _get_odd_shots(
         for x in range(num)
     ]
     return [
-        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        to_shotgrid_shot(_default_fields_mapping().shot, x)
         for x in shots
     ]
 
@@ -241,7 +241,7 @@ def _get_shots_without_seq(
         for x in range(num)
     ]
     return [
-        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        to_shotgrid_shot(_default_fields_mapping().shot, x)
         for x in shots
     ]
 
@@ -266,7 +266,7 @@ def _get_shots_without_ep(
         for x in range(num)
     ]
     return [
-        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        to_shotgrid_shot(_default_fields_mapping().shot, x)
         for x in shots
     ]
 

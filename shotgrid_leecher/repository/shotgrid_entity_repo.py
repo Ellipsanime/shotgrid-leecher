@@ -36,7 +36,7 @@ def find_project_by_id(query: ShotgridFindProjectByIdQuery) -> ShotgridProject:
         _F.filter_by(_ID(query.project_id)),
         fields,
     )
-    return ShotgridProject.from_dict(raw)
+    return mapper.to_shotgrid_project(query.project_mapping, raw)
 
 
 def find_assets_for_project(
