@@ -74,10 +74,9 @@ def _get_prp_asset(parent):
     ]
 
 
-def _batch_config(project_name: str, overwrite=True) -> BatchConfig:
+def _batch_config(overwrite=True) -> BatchConfig:
     return BatchConfig(
         shotgrid_project_id=123,
-        project_name=project_name,
         overwrite=overwrite,
         shotgrid_url="http://google.com",
         script_name="1",
@@ -159,7 +158,7 @@ async def test_update_shotgrid_to_avalon_empty(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
 
     # Act
-    await batch_controller.batch("1", _batch_config("1"))
+    await batch_controller.batch("1", _batch_config())
 
     # Assert
     assert_that(client.list_database_names()).is_length(0)
@@ -178,7 +177,7 @@ async def test_update_shotgrid_to_avalon_init_project(
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
 
     # Act
-    await batch_controller.batch(project["_id"], _batch_config(project["_id"]))
+    await batch_controller.batch(project["_id"], _batch_config())
 
     # Assert
     assert_that(client.list_database_names()).is_equal_to(
@@ -208,7 +207,7 @@ async def test_update_shotgrid_to_avalon_update_project(
     ).insert_one(project_avalon_init_data)
     # Act
     await batch_controller.batch(
-        project["_id"], _batch_config(project["_id"], False)
+        project["_id"], _batch_config(False)
     )
 
     # Assert
@@ -248,7 +247,7 @@ async def test_update_shotgrid_to_avalon_update_project_tasks(
         project["_id"]
     ).insert_one(project_avalon_init_data)
     # Act
-    await batch_controller.batch(project["_id"], _batch_config(project["_id"]))
+    await batch_controller.batch(project["_id"], _batch_config())
 
     # Assert
     assert_that(_all_avalon(client)).extracting(
@@ -274,7 +273,7 @@ async def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
 
     # Act
-    await batch_controller.batch(project["_id"], _batch_config(project["_id"]))
+    await batch_controller.batch(project["_id"], _batch_config())
 
     # Assert
     assert_that(_all_avalon(client)).extracting("type").is_equal_to(
@@ -310,7 +309,7 @@ async def test_update_shotgrid_to_avalon_overwrite(monkeypatch: MonkeyPatch):
     )
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     # Act
-    await batch_controller.batch(project_id, _batch_config(project_id))
+    await batch_controller.batch(project_id, _batch_config())
 
     # Assert
     assert_that(_avalon_collections(client)).is_length(1)
@@ -348,7 +347,7 @@ async def test_update_shotgrid_to_avalon_update_values(
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
 
     # Act
-    await batch_controller.batch(project_id, _batch_config(project_id))
+    await batch_controller.batch(project_id, _batch_config())
 
     # Assert
     assert_that(_all_avalon(client)).is_length(
@@ -395,7 +394,7 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
     monkeypatch.setattr(generator, "object_id", Mock(side_effect=object_ids))
 
     # Act
-    await batch_controller.batch(project_id, _batch_config(project_id, False))
+    await batch_controller.batch(project_id, _batch_config(False))
 
     # Assert
     assert_that(_all_avalon(client)).is_length(
@@ -438,7 +437,7 @@ async def test_update_shotgrid_when_some_assets_deleted(
     )
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     # Act
-    await batch_controller.batch(project_id, _batch_config(project_id, False))
+    await batch_controller.batch(project_id, _batch_config(False))
     # Assert
     assert_that(_all_avalon(client)).is_length(
         len(delete_asset_data.AVALON_DATA) - 2
