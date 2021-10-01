@@ -1,8 +1,93 @@
+import dataclasses
 from dataclasses import dataclass
 from enum import unique, Enum
 from typing import Optional, List, Dict, Any, Iterator
 
 from shotgrid_leecher.utils.strings import format_path
+
+
+@dataclass(frozen=True)
+class ShotgridEntity:
+    id: int
+
+
+@dataclass(frozen=True)
+class ShotgridTaskStep(ShotgridEntity):
+    name: str
+
+
+@dataclass(frozen=True)
+class ShotgridTaskEntity(ShotgridEntity):
+    name: str
+    type: str
+
+
+@dataclass(frozen=True)
+class ShotgridShotEpisode(ShotgridEntity):
+    name: str
+    type: str
+
+
+@dataclass(frozen=True)
+class ShotgridShotSequence(ShotgridEntity):
+    name: str
+    type: str
+
+
+@dataclass(frozen=True)
+class ShotgridShot(ShotgridEntity):
+    cut_duration: Optional[float]
+    frame_rate: Optional[float]
+    code: str
+    type: str
+    id: int
+    sequence: Optional[ShotgridShotSequence]
+    episode: Optional[ShotgridShotEpisode]
+    sequence_episode: Optional[ShotgridShotEpisode]
+
+    def episode_id(self) -> Optional[int]:
+        return self.episode.id if self.episode else None
+
+    def episode_name(self) -> Optional[str]:
+        return self.episode.name if self.episode else None
+
+    def sequence_name(self) -> Optional[str]:
+        return self.sequence.name if self.sequence else None
+
+    def copy_with_sequence(self, seq: ShotgridShotSequence) -> "ShotgridShot":
+        return dataclasses.replace(self, **{"sequence": seq})
+
+    def copy_with_episode(self, ep: ShotgridShotEpisode) -> "ShotgridShot":
+        return dataclasses.replace(self, **{"episode": ep})
+
+    def copy_with_sequence_episode(
+        self,
+        ep: ShotgridShotEpisode,
+    ) -> "ShotgridShot":
+        return dataclasses.replace(self, **{"sequence_episode": ep})
+
+
+@dataclass(frozen=True)
+class ShotgridTask(ShotgridEntity):
+    content: str
+    name: str
+    entity: ShotgridTaskEntity
+    step: Optional[ShotgridTaskStep]
+
+    def copy_with_step(self, step: ShotgridTaskStep) -> "ShotgridTask":
+        return dataclasses.replace(self, **{"step": step})
+
+
+@dataclass(frozen=True)
+class ShotgridAsset(ShotgridEntity):
+    id: int
+    type: str
+    code: str
+    asset_type: str
+    tasks: List[ShotgridTask]
+
+    def copy_with_tasks(self, tasks: List[ShotgridTask]) -> "ShotgridAsset":
+        return dataclasses.replace(self, **{"tasks": tasks})
 
 
 @dataclass(frozen=True)

@@ -2,7 +2,7 @@ import random
 import uuid
 from itertools import chain
 from string import ascii_uppercase
-from typing import Dict, Any, List, Tuple, Callable
+from typing import Any, List, Tuple, Callable
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -14,16 +14,25 @@ from toolz.curried import (
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
-from shotgrid_leecher.record.enums import ShotgridTypes
+from shotgrid_leecher.mapper.entity_mapper import (
+    to_shotgrid_task,
+    to_shotgrid_shot,
+    to_shotgrid_asset,
+)
+from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_structures import (
+    ShotgridCredentials,
+    ShotgridTask,
+    ShotgridShot, ShotgridAsset,
+)
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
-    ProjectFieldMapping,
-    AssetFieldMapping,
-    ShotFieldMapping,
-    TaskFieldMapping,
+    ProjectFieldsMapping,
+    AssetFieldsMapping,
+    ShotFieldsMapping,
+    TaskFieldsMapping,
 )
 
 _RAND = random.randint
@@ -37,29 +46,39 @@ def _get_project(id_: int) -> ShotgridProject:
     return ShotgridProject(
         id_,
         f"Project_{str(uuid.uuid4())[-2:]}",
-        ShotgridTypes.PROJECT.value,
+        ShotgridType.PROJECT.value,
     )
 
 
-def _get_random_broken_tasks(num: int) -> List[Dict]:
-    return [
+def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
+    tasks = [
         {
             "id": uuid.uuid4().int,
-            "content": uuid.uuid4(),
-            "step": {"name": uuid.uuid4()} if _RAND(1, 10) % 2 == 0 else None,
+            "content": str(uuid.uuid4()),
+            "name": str(uuid.uuid4()),
+            "step": (
+                {"name": str(uuid.uuid4()), "id": -1}
+                if _RAND(1, 10) % 2 == 0
+                else None
+            ),
             "entity": {
-                "type": uuid.uuid4(),
-                "name": uuid.uuid4(),
+                "type": str(uuid.uuid4()),
+                "name": str(uuid.uuid4()),
                 "id": uuid.uuid4().int,
             },
         }
         for _ in range(num)
     ]
+    return pipe(
+        tasks,
+        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
+        list,
+    )
 
 
 def _get_random_assets_with_tasks(
     groups_n: int, num: int
-) -> Tuple[List[Dict], List[Dict]]:
+) -> Tuple[List[ShotgridAsset], List[ShotgridTask]]:
     names = ["lines", "color", "look", "dev"]
     steps = ["modeling", "shading", "rigging"]
     assets = [
@@ -73,8 +92,9 @@ def _get_random_assets_with_tasks(
             "tasks": [
                 {
                     "id": uuid.uuid4().int,
+                    "name": str(uuid.uuid4()),
                     "content": random.choice(names),
-                    "step": {"name": random.choice(steps)},
+                    "step": {"name": random.choice(steps), "id": -1},
                     "entity": {
                         "type": "Asset",
                         "name": f"Fork{n+1}",
@@ -91,39 +111,57 @@ def _get_random_assets_with_tasks(
         assets,
         select(lambda x: x["tasks"]),
         lambda x: chain(*x),
+        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
         list,
     )
-    return assets, tasks
+    return [
+        to_shotgrid_asset(
+            _default_fields_mapping().asset_mapping,
+            _default_fields_mapping().task_mapping,
+            x,
+        )
+        for x in assets
+    ], tasks
 
 
-def _get_shut_tasks(shots: List[Dict], num: int) -> List[Dict]:
+def _get_shut_tasks(shots: List[ShotgridShot], num: int) -> List[ShotgridTask]:
     names = ["lines", "color", "look", "dev"]
     steps = ["layout", "animation", "render"]
-    return list(
-        chain(
-            *[
-                [
-                    {
-                        "id": uuid.uuid4().int,
-                        "content": random.choice(names),
-                        "step": {"name": random.choice(steps)},
-                        "entity": {
-                            "type": "Shot",
-                            "name": shot["code"],
-                            "id": shot["id"],
-                        },
-                    }
-                    for _ in range(num)
-                ]
-                for shot in shots
-            ]
-        )
+
+    tasks = [
+        [
+            {
+                "id": uuid.uuid4().int,
+                "content": random.choice(names),
+                "name": str(uuid.uuid4()),
+                "step": {"name": random.choice(steps), "id": -1},
+                "entity": {
+                    "type": "Shot",
+                    "name": shot.code,
+                    "id": shot.id,
+                },
+            }
+            for _ in range(num)
+        ]
+        for shot in shots
+    ]
+
+    return pipe(
+        tasks,
+        lambda x: chain(*x),
+        select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
+        list,
     )
 
 
-def _get_full_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
+def _get_full_shots(
+    ep: int,
+    seq: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
     # Shot/EP_OF_SHOT_N/SQ_OF_SHOT_N/SHOT_N/Task_M
-    return [
+    shots = [
         {
             "type": "Shot",
             "id": uuid.uuid4().int,
@@ -146,11 +184,20 @@ def _get_full_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
         }
         for x in range(num)
     ]
-
-
-def _get_odd_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
-    # Shot/EP_OF_SHOT_N/SQ_OF_SHOT_N/SHOT_N/Task_M
     return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
+    ]
+
+
+def _get_odd_shots(
+    ep: int,
+    seq: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
+    # Shot/EP_OF_SHOT_N/SQ_OF_SHOT_N/SHOT_N/Task_M
+    shots = [
         {
             "type": "Shot",
             "id": uuid.uuid4().int,
@@ -168,11 +215,19 @@ def _get_odd_shots(ep: int, seq: int, num: int, order: int = 1) -> List[Dict]:
         }
         for x in range(num)
     ]
+    return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
+    ]
 
 
-def _get_shots_without_seq(ep: int, num: int, order: int = 1) -> List[Dict]:
+def _get_shots_without_seq(
+    ep: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
     # Shot/EP_OF_SHOT_N/SHOT_N/Task_M
-    return [
+    shots = [
         {
             "type": "Shot",
             "id": uuid.uuid4().int,
@@ -185,11 +240,19 @@ def _get_shots_without_seq(ep: int, num: int, order: int = 1) -> List[Dict]:
         }
         for x in range(num)
     ]
-
-
-def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
-    # Shot/SQ_OF_SHOT_N/SHOT_N/Task_M
     return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
+    ]
+
+
+def _get_shots_without_ep(
+    seq: int,
+    num: int,
+    order: int = 1,
+) -> List[ShotgridShot]:
+    # Shot/SQ_OF_SHOT_N/SHOT_N/Task_M
+    shots = [
         {
             "type": "Shot",
             "id": 100 + order + x,
@@ -202,14 +265,18 @@ def _get_shots_without_ep(seq: int, num: int, order: int = 1) -> List[Dict]:
         }
         for x in range(num)
     ]
+    return [
+        to_shotgrid_shot(_default_fields_mapping().shot_mapping, x)
+        for x in shots
+    ]
 
 
 def _default_fields_mapping() -> FieldsMapping:
     return FieldsMapping(
-        ProjectFieldMapping.from_dict({}),
-        AssetFieldMapping.from_dict({}),
-        ShotFieldMapping.from_dict({}),
-        TaskFieldMapping.from_dict({}),
+        ProjectFieldsMapping.from_dict({}),
+        AssetFieldsMapping.from_dict({}),
+        ShotFieldsMapping.from_dict({}),
+        TaskFieldsMapping.from_dict({}),
     )
 
 

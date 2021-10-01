@@ -1,140 +1,115 @@
 import json
 from dataclasses import dataclass, asdict, field
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from dacite import from_dict
 
-from shotgrid_leecher.record.enums import ShotgridTypes
+from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 
 
 @dataclass(frozen=True)
 class GenericFieldMapping:
-    type: ShotgridTypes
+    type: ShotgridType
     mapping_table: Dict[str, str]
 
+    def value(self, sg_field: ShotgridField):
+        return self.mapping_table.get(sg_field.value)
+
 
 @dataclass(frozen=True)
-class TaskFieldMapping(GenericFieldMapping):
-    _ENTITY = "entity"
-    _ID = "id"
-    _STEP = "step"
-    _CONTENT = "content"
-    type: ShotgridTypes = field(init=False, default=ShotgridTypes.TASK)
-
-    def entity(self) -> Optional[str]:
-        return self.mapping_table.get(self._ENTITY)
-
-    def id(self) -> Optional[str]:
-        return self.mapping_table.get(self._ID)
-
-    def step(self) -> Optional[str]:
-        return self.mapping_table.get(self._STEP)
-
-    def content(self) -> Optional[str]:
-        return self.mapping_table.get(self._CONTENT)
+class TaskFieldsMapping(GenericFieldMapping):
+    type: ShotgridType = field(init=False, default=ShotgridType.TASK)
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "TaskFieldMapping":
-        return TaskFieldMapping(
+    def from_dict(dic: Dict[str, Any]) -> "TaskFieldsMapping":
+        return TaskFieldsMapping(
             {
-                TaskFieldMapping._CONTENT: "content",
-                "name": "name",
-                TaskFieldMapping._ID: "id",
-                TaskFieldMapping._STEP: "step",
-                TaskFieldMapping._ENTITY: "entity",
-                **dic.get(ShotgridTypes.TASK.value.lower(), dict()),
+                ShotgridField.CONTENT.value: ShotgridField.CONTENT.value,
+                ShotgridField.NAME.value: ShotgridField.NAME.value,
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.STEP.value: ShotgridField.STEP.value,
+                ShotgridField.ENTITY.value: ShotgridField.ENTITY.value,
+                **dic.get(ShotgridType.TASK.value.lower(), dict()),
             }
         )
 
 
 @dataclass(frozen=True)
-class ShotFieldMapping(GenericFieldMapping):
-    _SEQUENCE = "sequence"
-    _EPISODE = "episode"
-    _SEQUENCE_EPISODE = "sequence.episode"
-    type: ShotgridTypes = field(init=False, default=ShotgridTypes.SHOT)
-
-    def sequence(self) -> Optional[str]:
-        return self.mapping_table.get(self._SEQUENCE)
-
-    def sequence_episode(self) -> Optional[str]:
-        return self.mapping_table.get(self._SEQUENCE_EPISODE)
-
-    def episode(self) -> Optional[str]:
-        return self.mapping_table.get(self._EPISODE)
+class ShotFieldsMapping(GenericFieldMapping):
+    type: ShotgridType = field(init=False, default=ShotgridType.SHOT)
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "ShotFieldMapping":
-        return ShotFieldMapping(
+    def from_dict(dic: Dict[str, Any]) -> "ShotFieldsMapping":
+        return ShotFieldsMapping(
             {
-                ShotFieldMapping._SEQUENCE: "sg_sequence",
-                ShotFieldMapping._EPISODE: "sg_episode",
-                "cut_duration": "sg_cut_duration",
-                "frame_rate": "sg_frame_rate",
-                ShotFieldMapping._SEQUENCE_EPISODE: "sg_sequence."
-                "Sequence.episode",
-                "code": "code",
-                "id": "id",
-                **dic.get(ShotgridTypes.SHOT.value.lower(), dict()),
+                ShotgridField.SEQUENCE.value: "sg_sequence",
+                ShotgridField.EPISODE.value: "sg_episode",
+                ShotgridField.CUT_DURATION.value: "sg_cut_duration",
+                ShotgridField.FRAME_RATE.value: "sg_frame_rate",
+                ShotgridField.SEQUENCE_EPISODE.value: ".".join(
+                    ["sg_sequence", "Sequence", "episode"]
+                ),
+                ShotgridField.CODE.value: ShotgridField.CODE.value,
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                **dic.get(ShotgridType.SHOT.value.lower(), dict()),
             }
         )
 
 
 @dataclass(frozen=True)
-class ProjectFieldMapping(GenericFieldMapping):
-    type: ShotgridTypes = field(init=False, default=ShotgridTypes.PROJECT)
+class ProjectFieldsMapping(GenericFieldMapping):
+    type: ShotgridType = field(init=False, default=ShotgridType.PROJECT)
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "ProjectFieldMapping":
-        return ProjectFieldMapping(
+    def from_dict(dic: Dict[str, Any]) -> "ProjectFieldsMapping":
+        return ProjectFieldsMapping(
             {
-                "name": "name",
-                **dic.get(ShotgridTypes.PROJECT.value.lower(), dict()),
+                ShotgridField.NAME.value: ShotgridField.NAME.value,
+                **dic.get(ShotgridType.PROJECT.value.lower(), dict()),
             }
         )
 
 
 @dataclass(frozen=True)
-class AssetFieldMapping(GenericFieldMapping):
-    _ASSET_TYPE = "asset_type"
-    type: ShotgridTypes = field(init=False, default=ShotgridTypes.ASSET)
-
-    def asset_type(self) -> Optional[str]:
-        return self.mapping_table.get(self._ASSET_TYPE)
+class AssetFieldsMapping(GenericFieldMapping):
+    type: ShotgridType = field(init=False, default=ShotgridType.ASSET)
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "AssetFieldMapping":
-        return AssetFieldMapping(
+    def from_dict(dic: Dict[str, Any]) -> "AssetFieldsMapping":
+        return AssetFieldsMapping(
             {
-                AssetFieldMapping._ASSET_TYPE: "sg_asset_type",
-                "code": "code",
-                **dic.get(ShotgridTypes.ASSET.value.lower(), dict()),
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.TYPE.value: ShotgridField.TYPE.value,
+                ShotgridField.TASKS.value: ShotgridField.TASKS.value,
+                ShotgridField.ASSET_TYPE.value: "sg_asset_type",
+                ShotgridField.CODE.value: ShotgridField.CODE.value,
+                **dic.get(ShotgridType.ASSET.value.lower(), dict()),
             }
         )
 
 
 @dataclass(frozen=True)
 class FieldsMapping:
-    project_mapping: ProjectFieldMapping
-    asset_mapping: AssetFieldMapping
-    shot_mapping: ShotFieldMapping
-    task_mapping: TaskFieldMapping
+    project_mapping: ProjectFieldsMapping
+    asset_mapping: AssetFieldsMapping
+    shot_mapping: ShotFieldsMapping
+    task_mapping: TaskFieldsMapping
 
     @staticmethod
     def from_dict(dic: Dict[str, Any]) -> "FieldsMapping":
         return FieldsMapping(
-            project_mapping=ProjectFieldMapping.from_dict(
-                dic.get(ShotgridTypes.PROJECT.value.lower(), {})
+            project_mapping=ProjectFieldsMapping.from_dict(
+                dic.get(ShotgridType.PROJECT.value.lower(), {})
             ),
-            asset_mapping=AssetFieldMapping.from_dict(
-                dic.get(ShotgridTypes.ASSET.value.lower(), {})
+            asset_mapping=AssetFieldsMapping.from_dict(
+                dic.get(ShotgridType.ASSET.value.lower(), {})
             ),
-            shot_mapping=ShotFieldMapping.from_dict(
-                dic.get(ShotgridTypes.SHOT.value.lower(), {})
+            shot_mapping=ShotFieldsMapping.from_dict(
+                dic.get(ShotgridType.SHOT.value.lower(), {})
             ),
-            task_mapping=TaskFieldMapping.from_dict(
-                dic.get(ShotgridTypes.TASK.value.lower(), {})
+            task_mapping=TaskFieldsMapping.from_dict(
+                dic.get(ShotgridType.TASK.value.lower(), {})
             ),
         )
 

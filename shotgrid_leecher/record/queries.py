@@ -6,10 +6,10 @@ from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
-    ProjectFieldMapping,
-    AssetFieldMapping,
-    ShotFieldMapping,
-    TaskFieldMapping,
+    ProjectFieldsMapping,
+    AssetFieldsMapping,
+    ShotFieldsMapping,
+    TaskFieldsMapping,
 )
 
 
@@ -34,7 +34,7 @@ class ShotgridBoundEntityQuery:
 
 @dataclass(frozen=True)
 class ShotgridFindProjectByIdQuery(ShotgridBaseEntityQuery):
-    project_mapping: ProjectFieldMapping
+    project_mapping: ProjectFieldsMapping
 
     @staticmethod
     def from_query(
@@ -49,7 +49,8 @@ class ShotgridFindProjectByIdQuery(ShotgridBaseEntityQuery):
 
 @dataclass(frozen=True)
 class ShotgridFindAssetsByProjectQuery(ShotgridBoundEntityQuery):
-    asset_mapping: AssetFieldMapping
+    asset_mapping: AssetFieldsMapping
+    task_mapping: TaskFieldsMapping
 
     @staticmethod
     @curry
@@ -60,12 +61,13 @@ class ShotgridFindAssetsByProjectQuery(ShotgridBoundEntityQuery):
             project,
             query.credentials,
             query.fields_mapping.asset_mapping,
+            query.fields_mapping.task_mapping,
         )
 
 
 @dataclass(frozen=True)
 class ShotgridFindShotsByProjectQuery(ShotgridBoundEntityQuery):
-    shot_mapping: ShotFieldMapping
+    shot_mapping: ShotFieldsMapping
 
     @staticmethod
     @curry
@@ -81,7 +83,7 @@ class ShotgridFindShotsByProjectQuery(ShotgridBoundEntityQuery):
 
 @dataclass(frozen=True)
 class ShotgridFindTasksByProjectQuery(ShotgridBoundEntityQuery):
-    task_mapping: TaskFieldMapping
+    task_mapping: TaskFieldsMapping
 
     @staticmethod
     @curry
