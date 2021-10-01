@@ -9,7 +9,7 @@ from toolz.curried import (
 from toolz.curried import groupby
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
-from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
+from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
     ShotgridFindProjectByIdQuery,
@@ -21,7 +21,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridShot,
     ShotgridShotEpisode,
-    ShotgridShotSequence,
+    ShotgridShotSequence, ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -156,17 +156,16 @@ def _fetch_project_assets(
     # TODO: Fields should be configurable
     project = query.project
     assets = entity_repo.find_assets_for_project(query)
-    asset_type_field = query.asset_mapping.value(ShotgridField.ASSET_TYPE)
-    asset_type = ShotgridType.ASSET.value
+    archetype = ShotgridType.ASSET.value
 
     if assets:
         yield _get_top_asset_row(project)
 
-    for g, g_assets in groupby(asset_type_field, assets).items():
-        yield _get_asset_group_row(g_assets[0][asset_type_field], project)
+    for g, g_assets in groupby(lambda x: x.asset_type, assets).items():
+        yield _get_asset_group_row(g_assets[0].asset_type, project)
         for asset in g_assets:
-            asset_value = asset[asset_type_field]
-            parent_path = f",{project.name},{asset_type},{asset_value},"
+            asset_type = asset.asset_type
+            parent_path = f",{project.name},{archetype},{asset_type},"
             yield _get_asset_row(asset, parent_path)
 
 
@@ -196,10 +195,10 @@ def _get_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
     }
 
 
-def _get_asset_row(asset: Map, parent_path: str) -> Map:
+def _get_asset_row(asset: ShotgridAsset, parent_path: str) -> Map:
     return {
-        "_id": asset["code"],
-        "src_id": asset["id"],
+        "_id": asset.code,
+        "src_id": asset.id,
         "type": ShotgridType.ASSET.value,
         "parent": parent_path,
     }

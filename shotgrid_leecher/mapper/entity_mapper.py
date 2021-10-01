@@ -35,7 +35,7 @@ def to_shotgrid_asset(
     ]
     return ShotgridAsset(
         id=data[ShotgridField.ID.value],
-        type=data.get(ShotgridField.ID.value, ShotgridType.ASSET.value),
+        type=data.get(ShotgridField.TYPE.value, ShotgridType.ASSET.value),
         code=data[ShotgridField.CODE.value],
         asset_type=data[ShotgridField.ASSET_TYPE.value],
         tasks=tasks,

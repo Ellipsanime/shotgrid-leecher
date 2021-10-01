@@ -2,7 +2,7 @@ import random
 import uuid
 from itertools import chain
 from string import ascii_uppercase
-from typing import Dict, Any, List, Tuple, Callable
+from typing import Any, List, Tuple, Callable
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -17,13 +17,14 @@ import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
 from shotgrid_leecher.mapper.entity_mapper import (
     to_shotgrid_task,
     to_shotgrid_shot,
+    to_shotgrid_asset,
 )
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridCredentials,
     ShotgridTask,
-    ShotgridShot,
+    ShotgridShot, ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -77,7 +78,7 @@ def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
 
 def _get_random_assets_with_tasks(
     groups_n: int, num: int
-) -> Tuple[List[Dict], List[ShotgridTask]]:
+) -> Tuple[List[ShotgridAsset], List[ShotgridTask]]:
     names = ["lines", "color", "look", "dev"]
     steps = ["modeling", "shading", "rigging"]
     assets = [
@@ -113,7 +114,14 @@ def _get_random_assets_with_tasks(
         select(to_shotgrid_task(_default_fields_mapping().task_mapping)),
         list,
     )
-    return assets, tasks
+    return [
+        to_shotgrid_asset(
+            _default_fields_mapping().asset_mapping,
+            _default_fields_mapping().task_mapping,
+            x,
+        )
+        for x in assets
+    ], tasks
 
 
 def _get_shut_tasks(shots: List[ShotgridShot], num: int) -> List[ShotgridTask]:

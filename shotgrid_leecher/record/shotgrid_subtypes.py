@@ -79,6 +79,9 @@ class AssetFieldsMapping(GenericFieldMapping):
     def from_dict(dic: Dict[str, Any]) -> "AssetFieldsMapping":
         return AssetFieldsMapping(
             {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.TYPE.value: ShotgridField.TYPE.value,
+                ShotgridField.TASKS.value: ShotgridField.TASKS.value,
                 ShotgridField.ASSET_TYPE.value: "sg_asset_type",
                 ShotgridField.CODE.value: ShotgridField.CODE.value,
                 **dic.get(ShotgridType.ASSET.value.lower(), dict()),

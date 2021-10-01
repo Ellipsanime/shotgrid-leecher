@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List
 
 import shotgrid_leecher.mapper.entity_mapper as mapper
 import shotgrid_leecher.utils.connectivity as conn
@@ -18,6 +18,7 @@ from shotgrid_leecher.record.shotgrid_filters import (
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridShot,
+    ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
@@ -40,16 +41,20 @@ def find_project_by_id(query: ShotgridFindProjectByIdQuery) -> ShotgridProject:
 
 def find_assets_for_project(
     query: ShotgridFindAssetsByProjectQuery,
-) -> List[Dict[str, Any]]:
+) -> List[ShotgridAsset]:
     client = conn.get_shotgrid_client(query.credentials)
 
-    return client.find(
+    assets = client.find(
         ShotgridType.ASSET.value,
         _F.filter_by(
             _IS(ShotgridType.PROJECT.value.lower(), query.project.to_dict())
         ),
         list(query.asset_mapping.mapping_table.values()),
     )
+    return [
+        mapper.to_shotgrid_asset(query.asset_mapping, query.task_mapping, x)
+        for x in assets
+    ]
 
 
 def find_shots_for_project(
