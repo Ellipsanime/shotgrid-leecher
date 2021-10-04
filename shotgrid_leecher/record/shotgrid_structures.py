@@ -1,40 +1,40 @@
-import dataclasses
-from dataclasses import dataclass
 from enum import unique, Enum
 from typing import Optional, List, Dict, Any, Iterator
+
+import attr
 
 from shotgrid_leecher.utils.strings import format_path
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridEntity:
     id: int
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridTaskStep(ShotgridEntity):
     name: str
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridTaskEntity(ShotgridEntity):
     name: str
     type: str
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridShotEpisode(ShotgridEntity):
     name: str
     type: str
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridShotSequence(ShotgridEntity):
     name: str
     type: str
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridShot(ShotgridEntity):
     cut_duration: Optional[float]
     frame_rate: Optional[float]
@@ -55,29 +55,29 @@ class ShotgridShot(ShotgridEntity):
         return self.sequence.name if self.sequence else None
 
     def copy_with_sequence(self, seq: ShotgridShotSequence) -> "ShotgridShot":
-        return dataclasses.replace(self, **{"sequence": seq})
+        return attr.evolve(self, **{"sequence": seq})
 
     def copy_with_episode(self, ep: ShotgridShotEpisode) -> "ShotgridShot":
-        return dataclasses.replace(self, **{"episode": ep})
+        return attr.evolve(self, **{"episode": ep})
 
     def copy_with_sequence_episode(
         self,
         ep: ShotgridShotEpisode,
     ) -> "ShotgridShot":
-        return dataclasses.replace(self, **{"sequence_episode": ep})
+        return attr.evolve(self, **{"sequence_episode": ep})
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridTask(ShotgridEntity):
     content: str
     entity: ShotgridTaskEntity
     step: Optional[ShotgridTaskStep]
 
     def copy_with_step(self, step: ShotgridTaskStep) -> "ShotgridTask":
-        return dataclasses.replace(self, **{"step": step})
+        return attr.evolve(self, **{"step": step})
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridAsset(ShotgridEntity):
     id: int
     type: str
@@ -86,10 +86,10 @@ class ShotgridAsset(ShotgridEntity):
     tasks: List[ShotgridTask]
 
     def copy_with_tasks(self, tasks: List[ShotgridTask]) -> "ShotgridAsset":
-        return dataclasses.replace(self, **{"tasks": tasks})
+        return attr.evolve(self, **{"tasks": tasks})
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridCredentials:
     shotgrid_url: str
     script_name: str
@@ -111,7 +111,7 @@ class ShotgridRefType(Enum):
     TASK = "Task"
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridRef:
     type: ShotgridRefType
     id: Optional[int]
@@ -123,7 +123,7 @@ class ShotgridRef:
         }
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ExtraNodeParams:
     fps: float
     frame_start: int
@@ -154,7 +154,7 @@ class ExtraNodeParams:
         }
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridParentPaths:
     system_path: str
     short_path: str
@@ -173,7 +173,7 @@ class ShotgridParentPaths:
         }
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridNode:
     label: str
     system_path: str

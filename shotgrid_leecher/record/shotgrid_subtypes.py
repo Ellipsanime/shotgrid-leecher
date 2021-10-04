@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import Dict, Any
 
 import attr
@@ -8,7 +8,7 @@ from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class GenericFieldMapping:
     type: ShotgridType
     mapping_table: Dict[str, str]
@@ -17,7 +17,7 @@ class GenericFieldMapping:
         return self.mapping_table.get(sg_field.value)
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class TaskFieldsMapping(GenericFieldMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.TASK)
 
@@ -34,7 +34,7 @@ class TaskFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotFieldsMapping(GenericFieldMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.SHOT)
 
@@ -56,7 +56,7 @@ class ShotFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ProjectFieldsMapping(GenericFieldMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.PROJECT)
 
@@ -72,7 +72,7 @@ class ProjectFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class AssetFieldsMapping(GenericFieldMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.ASSET)
 
@@ -90,7 +90,7 @@ class AssetFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class FieldsMapping:
     project: ProjectFieldsMapping
     asset: AssetFieldsMapping
