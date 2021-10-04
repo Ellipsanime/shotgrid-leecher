@@ -1,7 +1,8 @@
 import datetime
 import json
-from dataclasses import dataclass
 from typing import Any, Dict
+
+import attr
 
 from shotgrid_leecher.record.enums import ShotgridEvents
 from shotgrid_leecher.record.shotgrid_subtypes import (
@@ -12,7 +13,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
 from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class NewAssetEvent:
     shotgrid_id: int
     shotgrid_name: str

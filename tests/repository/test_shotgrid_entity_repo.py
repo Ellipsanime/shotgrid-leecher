@@ -5,6 +5,7 @@ from unittest.mock import PropertyMock
 
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
+from attr import asdict
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as sut
 import shotgrid_leecher.utils.connectivity as conn

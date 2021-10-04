@@ -3,7 +3,6 @@ import random
 import uuid
 
 from assertpy import assert_that
-from dacite import from_dict
 
 from shotgrid_leecher.mapper.asset_events_mapper import (
     new_asset_event_from_dict,
@@ -19,7 +18,6 @@ def _get_meta_dict():
     dic = {
         "type": str(uuid.uuid4()),
         "name": str(uuid.uuid4()),
-        str(uuid.uuid4()): str(uuid.uuid4()),
         "id": random.randint(1, 10_000),
     }
     return dic
@@ -46,11 +44,11 @@ def test_new_asset_event_from_dict():
     assert_that(actual.shotgrid_id).is_equal_to(data["id"])
     assert_that(actual.shotgrid_name).is_equal_to(data["entity"]["name"])
     assert_that(actual.shotgrid_entity).is_equal_to(
-        from_dict(ShotgridEntity, entity)
+        ShotgridEntity(**entity)
     )
     assert_that(actual.shotgrid_user).is_equal_to(
-        from_dict(ShotgridUser, data["user"])
+        ShotgridUser(**data["user"])
     )
     assert_that(actual.shotgrid_project).is_equal_to(
-        from_dict(ShotgridProject, data["project"])
+        ShotgridProject(**data["project"])
     )

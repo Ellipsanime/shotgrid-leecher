@@ -1,6 +1,5 @@
 from typing import Dict, Any
 
-import dacite as converter
 from toolz import get_in, curry
 
 from shotgrid_leecher.record.enums import EventTypes
@@ -14,9 +13,9 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
 
 
 def new_asset_event_from_dict(dic: Dict[str, Any]) -> NewAssetEvent:
-    project = converter.from_dict(ShotgridProject, dic.get("project"))
-    user = converter.from_dict(ShotgridUser, dic.get("user"))
-    entity = converter.from_dict(ShotgridEntity, dic.get("entity"))
+    project = ShotgridProject(**dic.get("project"))
+    user = ShotgridUser(**dic.get("user"))
+    entity = ShotgridEntity(**dic.get("entity"))
     return NewAssetEvent(
         int(str(dic.get("id"))),
         get_in(["entity", "name"], dic),

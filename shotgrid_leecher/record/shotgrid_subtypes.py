@@ -1,6 +1,8 @@
 import json
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from typing import Dict, Any
+
+import attr
 
 from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
@@ -113,7 +115,7 @@ class FieldsMapping:
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class GenericSubtype:
     id: int
     name: str
@@ -123,15 +125,15 @@ class GenericSubtype:
         return json.dumps(self, cls=DataclassJSONEncoder)
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        return attr.asdict(self)
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridUser(GenericSubtype):
     pass
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridProject(GenericSubtype):
     @staticmethod
     def from_dict(dic: Dict[str, Any]) -> "ShotgridProject":
@@ -142,6 +144,6 @@ class ShotgridProject(GenericSubtype):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridEntity(GenericSubtype):
     pass
