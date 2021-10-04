@@ -17,7 +17,7 @@ from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 class NewAssetEvent:
     shotgrid_id: int
     shotgrid_name: str
-    shotgrid_creation_date: datetime
+    shotgrid_creation_date: datetime.datetime
     shotgrid_user: ShotgridUser
     shotgrid_project: ShotgridProject
     shotgrid_entity: ShotgridEntity
