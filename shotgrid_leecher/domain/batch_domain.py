@@ -16,6 +16,7 @@ from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
 )
 from shotgrid_leecher.record.results import BatchCheckResult
+from shotgrid_leecher.record.shotgrid_subtypes import ProjectFieldsMapping
 from shotgrid_leecher.repository import avalon_repo, hierarchy_repo
 from shotgrid_leecher.utils import generator
 from shotgrid_leecher.writers import db_writer
@@ -71,9 +72,12 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
 def check_shotgrid_before_batch(
     command: ShotgridCheckCommand,
 ) -> BatchCheckResult:
-    project = entity_repo.find_project_by_id(
-        ShotgridFindProjectByIdQuery(command.project_id, command.credentials)
+    query = ShotgridFindProjectByIdQuery(
+        command.project_id,
+        command.credentials,
+        ProjectFieldsMapping.from_dict({}),  # TODO make it differently
     )
+    project = entity_repo.find_project_by_id(query)
     status = "OK" if project else "KO"
     return BatchCheckResult(status)
 
