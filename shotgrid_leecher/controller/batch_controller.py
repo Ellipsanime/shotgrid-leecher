@@ -1,6 +1,6 @@
-from dataclasses import asdict
 from typing import Dict, Any
 
+from attr import asdict
 from fastapi import APIRouter
 
 from shotgrid_leecher.domain import batch_domain
