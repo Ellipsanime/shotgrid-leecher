@@ -73,6 +73,9 @@ class ShotgridTask(ShotgridEntity):
     entity: ShotgridTaskEntity
     step: Optional[ShotgridTaskStep]
 
+    def step_name(self) -> Optional[str]:
+        return self.step.name if self.step else None
+
     def copy_with_step(self, step: ShotgridTaskStep) -> "ShotgridTask":
         return attr.evolve(self, **{"step": step})
 
@@ -208,23 +211,9 @@ class ShotgridNode:
     def copy_with_children(
         self, children: List["ShotgridNode"]
     ) -> "ShotgridNode":
-        return ShotgridNode(
-            self.label,
-            self.system_path,
-            self.ref,
-            children,
-            self.parent_paths,
-            self.extra_params,
-        )
+        return attr.evolve(self, children=children)
 
     def copy_with_parent_paths(
         self, parent_paths: ShotgridParentPaths
     ) -> "ShotgridNode":
-        return ShotgridNode(
-            self.label,
-            self.system_path,
-            self.ref,
-            self.children,
-            parent_paths,
-            self.extra_params,
-        )
+        return attr.evolve(self, parent_paths=parent_paths)

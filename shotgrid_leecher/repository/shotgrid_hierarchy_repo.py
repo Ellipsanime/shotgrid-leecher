@@ -36,7 +36,7 @@ Map = Dict[str, Any]
 
 @curry
 def _fetch_project_tasks(
-    rows: Map,
+    rows: Dict[int, Any],
     query: ShotgridFindTasksByProjectQuery,
 ) -> Iterator[Map]:
     # TODO: Fields should be configurable
@@ -44,7 +44,7 @@ def _fetch_project_tasks(
     asset_tasks = [task for task in raw_tasks if task.step]
     for task in asset_tasks:
         key = task.entity.id
-        entity_row = rows.get(str(key), rows.get(key))
+        entity_row = rows.get(key)
         if not entity_row:
             continue
         parent_path = f"{entity_row['parent']}{entity_row['_id']},"
@@ -53,6 +53,8 @@ def _fetch_project_tasks(
 
 def _patch_up_shot(shot: ShotgridShot) -> ShotgridShot:
     if shot.episode or not shot.sequence:
+        return shot
+    if not shot.sequence_episode:
         return shot
     return shot.copy_with_episode(shot.sequence_episode)
 
@@ -191,7 +193,7 @@ def _get_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
         "src_id": task.id,
         "type": ShotgridType.TASK.value,
         "parent": parent_task_path,
-        "task_type": task.step.name,
+        "task_type": task.step_name(),
     }
 
 
@@ -270,7 +272,7 @@ def get_hierarchy_by_project(
         _fetch_project_shots,
         list,
     )
-    rows_dict = {x["src_id"]: x for x in assets + shots if "src_id" in x}
+    rows_dict = {int(x["src_id"]): x for x in assets + shots if "src_id" in x}
     tasks = pipe(
         ShotgridFindTasksByProjectQuery.from_query(project, query),
         _fetch_project_tasks(rows_dict),

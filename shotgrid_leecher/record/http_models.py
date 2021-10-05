@@ -20,7 +20,7 @@ class BatchConfig(BaseModel):
         title="Flag that specifies whether batch "
         "should overwrite existing data or not",
     )
-    fields_mapping: Optional[Dict[str, Any]]
+    fields_mapping: Dict[str, Dict[str, str]]
 
     @validator("shotgrid_url")
     def validate_shotgrid_url(cls, url: str) -> str:

@@ -21,7 +21,7 @@ DEFAULT_LIMIT = 100
 
 
 def _find_events(
-    filters: List[List[str]], limit: int = 100
+    filters: List[List[Any]], limit: int = 100
 ) -> List[Dict[str, Any]]:
     return connectivity.get_shotgrid_client().find(
         ShotgridEventEntries.EVENT_ENTRY.value,
@@ -35,7 +35,7 @@ def _find_events(
 def get_recent_events(
     event: ShotgridEvents, last_id: int
 ) -> List[Dict[str, Any]]:
-    filters = [
+    filters: List[List[Any]] = [
         ["id", "greater_than", last_id],
         ["event_type", "is", event.value],
     ]

@@ -58,17 +58,17 @@ def to_shotgrid_shot(
     target: Map,
 ) -> ShotgridShot:
     data = swap_mapping_keys_values(shot_mapping.mapping_table, target)
-    sequence: ShotgridShotSequence = _sub_entity(
+    sequence: Optional[ShotgridShotSequence] = _sub_entity(
         ShotgridField.SEQUENCE.value,
         ShotgridShotSequence,
         data,
     )
-    episode: ShotgridShotEpisode = _sub_entity(
+    episode: Optional[ShotgridShotEpisode] = _sub_entity(
         ShotgridField.EPISODE.value,
         ShotgridShotEpisode,
         data,
     )
-    sequence_episode: ShotgridShotEpisode = _sub_entity(
+    sequence_episode: Optional[ShotgridShotEpisode] = _sub_entity(
         ShotgridField.SEQUENCE_EPISODE.value,
         ShotgridShotEpisode,
         data,
@@ -92,11 +92,14 @@ def to_shotgrid_task(
 ) -> ShotgridTask:
     step_field = ShotgridField.STEP.value
     data = swap_mapping_keys_values(task_mapping.mapping_table, target)
-    entity: ShotgridTaskEntity = _sub_entity(
+    entity: Optional[ShotgridTaskEntity] = _sub_entity(
         ShotgridField.ENTITY.value,
         ShotgridTaskEntity,
         data,
     )
+    if not entity:
+        raise RuntimeError("Entity cannot be null")
+
     task = ShotgridTask(
         id=data[ShotgridField.ID.value],
         content=data[ShotgridField.CONTENT.value],
