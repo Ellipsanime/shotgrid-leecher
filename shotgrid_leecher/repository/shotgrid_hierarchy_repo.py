@@ -21,7 +21,8 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridShot,
     ShotgridShotEpisode,
-    ShotgridShotSequence, ShotgridAsset,
+    ShotgridShotSequence,
+    ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,

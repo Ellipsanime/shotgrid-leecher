@@ -16,4 +16,3 @@ class DataclassJSONEncoder(json.JSONEncoder):
         if isinstance(entity, (datetime, date)):
             return entity.isoformat()
         return json_util.default(entity)
-

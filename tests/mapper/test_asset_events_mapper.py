@@ -43,12 +43,8 @@ def test_new_asset_event_from_dict():
     assert_that(actual).is_not_none()
     assert_that(actual.shotgrid_id).is_equal_to(data["id"])
     assert_that(actual.shotgrid_name).is_equal_to(data["entity"]["name"])
-    assert_that(actual.shotgrid_entity).is_equal_to(
-        ShotgridEntity(**entity)
-    )
-    assert_that(actual.shotgrid_user).is_equal_to(
-        ShotgridUser(**data["user"])
-    )
+    assert_that(actual.shotgrid_entity).is_equal_to(ShotgridEntity(**entity))
+    assert_that(actual.shotgrid_user).is_equal_to(ShotgridUser(**data["user"]))
     assert_that(actual.shotgrid_project).is_equal_to(
         ShotgridProject(**data["project"])
     )

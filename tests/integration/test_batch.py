@@ -206,9 +206,7 @@ async def test_update_shotgrid_to_avalon_update_project(
         project["_id"]
     ).insert_one(project_avalon_init_data)
     # Act
-    await batch_controller.batch(
-        project["_id"], _batch_config(False)
-    )
+    await batch_controller.batch(project["_id"], _batch_config(False))
 
     # Assert
     assert_that(_all_avalon(client)).is_length(1)

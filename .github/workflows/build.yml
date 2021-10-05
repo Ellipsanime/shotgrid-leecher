@@ -27,4 +27,4 @@ jobs:
         poetry run pytest
     - name: Static type checking with MyPy
       run: |
-        mypy -p shotgrid_leecher --namespace-packages -v
+        mypy -p shotgrid_leecher --namespace-packages

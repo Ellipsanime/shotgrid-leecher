@@ -143,7 +143,7 @@ def _create_avalon_asset_row(
 ) -> Map:
     data = _default_avalon_asset_data()
     data["visualParent"] = visual_parent
-    data["parents"] = hierarchy_row['parent'].split(',')[2:-1]
+    data["parents"] = hierarchy_row["parent"].split(",")[2:-1]
     return {
         "_id": hierarchy_row.get("object_id"),
         "type": "asset",

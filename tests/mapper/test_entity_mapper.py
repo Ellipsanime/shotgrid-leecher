@@ -7,8 +7,11 @@ from assertpy import assert_that
 
 from shotgrid_leecher.mapper import entity_mapper
 from shotgrid_leecher.record.enums import ShotgridField
-from shotgrid_leecher.record.shotgrid_structures import ShotgridAsset, \
-    ShotgridShot, ShotgridTask
+from shotgrid_leecher.record.shotgrid_structures import (
+    ShotgridAsset,
+    ShotgridShot,
+    ShotgridTask,
+)
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ProjectFieldsMapping,
     GenericFieldsMapping,

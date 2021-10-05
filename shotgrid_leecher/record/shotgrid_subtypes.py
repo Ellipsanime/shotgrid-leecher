@@ -101,7 +101,10 @@ class FieldsMapping:
     def from_dict(dic: Dict[str, Dict[str, str]]) -> "FieldsMapping":
         return FieldsMapping(
             project=ProjectFieldsMapping.from_dict(
-                dic.get(ShotgridType.PROJECT.value.lower(), cast(Dict[str, str], {}))
+                dic.get(
+                    ShotgridType.PROJECT.value.lower(),
+                    cast(Dict[str, str], {}),
+                )
             ),
             asset=AssetFieldsMapping.from_dict(
                 dic.get(ShotgridType.ASSET.value.lower(), {})

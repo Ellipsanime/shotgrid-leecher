@@ -37,7 +37,7 @@ class BatchConfig(BaseModel):
         field: ModelField,
     ) -> Any:
         if value is None:
-            raise ValueError(f"Model field \"{field.name}\" can be null")
+            raise ValueError(f'Model field "{field.name}" can be null')
         return value
 
     def to_batch_command(

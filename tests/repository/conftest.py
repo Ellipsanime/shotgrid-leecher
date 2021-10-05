@@ -9,8 +9,12 @@ from toolz.curried import (
 
 
 def _find_by_type(target: List[Dict], raw_path: str, type_: str) -> List[str]:
-    exact = lambda x: x["parent"] == raw_path
-    wild = lambda x: (x.get("parent") or "").startswith(raw_path[:-1])
+    def exact(x):
+        return x["parent"] == raw_path
+
+    def wild(x):
+        return (x.get("parent") or "").startswith(raw_path[:-1])
+
     filter_fn = wild if raw_path.endswith("*") else exact
     return pipe(
         target,

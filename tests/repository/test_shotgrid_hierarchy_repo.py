@@ -24,7 +24,8 @@ from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridCredentials,
     ShotgridTask,
-    ShotgridShot, ShotgridAsset,
+    ShotgridShot,
+    ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -184,10 +185,7 @@ def _get_full_shots(
         }
         for x in range(num)
     ]
-    return [
-        to_shotgrid_shot(_default_fields_mapping().shot, x)
-        for x in shots
-    ]
+    return [to_shotgrid_shot(_default_fields_mapping().shot, x) for x in shots]
 
 
 def _get_odd_shots(
@@ -215,10 +213,7 @@ def _get_odd_shots(
         }
         for x in range(num)
     ]
-    return [
-        to_shotgrid_shot(_default_fields_mapping().shot, x)
-        for x in shots
-    ]
+    return [to_shotgrid_shot(_default_fields_mapping().shot, x) for x in shots]
 
 
 def _get_shots_without_seq(
@@ -240,10 +235,7 @@ def _get_shots_without_seq(
         }
         for x in range(num)
     ]
-    return [
-        to_shotgrid_shot(_default_fields_mapping().shot, x)
-        for x in shots
-    ]
+    return [to_shotgrid_shot(_default_fields_mapping().shot, x) for x in shots]
 
 
 def _get_shots_without_ep(
@@ -265,10 +257,7 @@ def _get_shots_without_ep(
         }
         for x in range(num)
     ]
-    return [
-        to_shotgrid_shot(_default_fields_mapping().shot, x)
-        for x in shots
-    ]
+    return [to_shotgrid_shot(_default_fields_mapping().shot, x) for x in shots]
 
 
 def _default_fields_mapping() -> FieldsMapping:
