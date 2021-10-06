@@ -3,8 +3,7 @@ import uuid
 
 from assertpy import assert_that
 
-from shotgrid_leecher.mapper.hierarchy_mapper import shotgrid_to_avalon
-
+from shotgrid_leecher.mapper.avalon_mapper import shotgrid_to_avalon
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
