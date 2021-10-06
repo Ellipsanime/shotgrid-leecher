@@ -35,15 +35,34 @@ class ShotgridShotSequence(ShotgridEntity):
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class ShotgridShot(ShotgridEntity):
+class ShotgridShotParams:
+    cut_in: Optional[float]
+    cut_out: Optional[float]
+    head_in: Optional[float]
+    head_out: Optional[float]
+    tail_in: Optional[float]
+    tail_out: Optional[float]
     cut_duration: Optional[float]
     frame_rate: Optional[float]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return attr.asdict(self)
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridShot(ShotgridEntity):
     code: str
     type: str
     id: int
+    params: Optional[ShotgridShotParams]
     sequence: Optional[ShotgridShotSequence]
     episode: Optional[ShotgridShotEpisode]
     sequence_episode: Optional[ShotgridShotEpisode]
+
+    def has_params(self) -> bool:
+        return self.params is not None and bool(
+            tuple(filter(lambda x: x, attr.astuple(self)))
+        )
 
     def episode_id(self) -> Optional[int]:
         return self.episode.id if self.episode else None
@@ -53,6 +72,9 @@ class ShotgridShot(ShotgridEntity):
 
     def sequence_name(self) -> Optional[str]:
         return self.sequence.name if self.sequence else None
+
+    def copy_with(self, **changes) -> "ShotgridShot":
+        return attr.evolve(self, **changes)
 
     def copy_with_sequence(self, seq: ShotgridShotSequence) -> "ShotgridShot":
         return attr.evolve(self, **{"sequence": seq})

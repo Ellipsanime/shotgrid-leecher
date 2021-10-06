@@ -1,5 +1,6 @@
 from typing import Dict, Any, Optional, Callable, TypeVar
 
+import attr
 from toolz import curry, get_in
 
 from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
@@ -11,6 +12,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotSequence,
     ShotgridShotEpisode,
     ShotgridAsset,
+    ShotgridShotParams,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
@@ -75,8 +77,7 @@ def to_shotgrid_shot(
     )
     return ShotgridShot(
         id=data[ShotgridField.ID.value],
-        cut_duration=data.get(ShotgridField.CUT_DURATION.value),
-        frame_rate=data.get(ShotgridField.FRAME_RATE.value),
+        params=_to_shot_params(data),
         code=data[ShotgridField.CODE.value],
         type=data.get(ShotgridField.TYPE.value, ShotgridType.SHOT.value),
         sequence=sequence,
@@ -115,6 +116,13 @@ def to_shotgrid_task(
             name=get_in([step_field, ShotgridField.NAME.value], data),
         )
     )
+
+
+def _to_shot_params(data: Map) -> Optional[ShotgridShotParams]:
+    keys = set(attr.fields_dict(ShotgridShotParams).keys())
+    if not keys.intersection(set(data.keys())):
+        return None
+    return ShotgridShotParams(**{k: data.get(k) for k in keys})
 
 
 def _sub_entity(

@@ -211,6 +211,8 @@ def _get_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
     return {
         "_id": shot.code,
         "src_id": shot.id,
+        # "": shot.cut_duration,
+        # "": shot.frame_rate,
         "type": ShotgridType.SHOT.value,
         "parent": parent_path,
     }

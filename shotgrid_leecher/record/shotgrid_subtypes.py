@@ -46,6 +46,12 @@ class ShotFieldsMapping(GenericFieldsMapping):
                 ShotgridField.EPISODE.value: "sg_episode",
                 ShotgridField.CUT_DURATION.value: "sg_cut_duration",
                 ShotgridField.FRAME_RATE.value: "sg_frame_rate",
+                ShotgridField.CUT_IN.value: "sg_cut_in",
+                ShotgridField.CUT_OUT.value: "sg_cut_out",
+                ShotgridField.HEAD_IN.value: "sg_head_in",
+                ShotgridField.HEAD_OUT.value: "sg_head_out",
+                ShotgridField.TAIL_IN.value: "sg_tail_in",
+                ShotgridField.TAIL_OUT.value: "sg_tail_out",
                 ShotgridField.SEQUENCE_EPISODE.value: ".".join(
                     ["sg_sequence", "Sequence", "episode"]
                 ),

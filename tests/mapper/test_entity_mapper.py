@@ -60,7 +60,7 @@ def test_to_shotgrid_shot():
     assert_that(actual).is_type_of(ShotgridShot)
     assert_that(actual.id).is_not_none()
     assert_that(actual.code).is_not_none()
-    assert_that(actual.cut_duration).is_not_none()
+    assert_that(actual.has_params()).is_true()
     assert_that(actual.episode).is_not_none()
     assert_that(actual.sequence).is_not_none()
     assert_that(actual.sequence_episode).is_not_none()
