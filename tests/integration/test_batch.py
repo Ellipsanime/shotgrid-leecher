@@ -228,6 +228,32 @@ async def test_update_shotgrid_to_avalon_update_project(
 
 
 @pytest.mark.asyncio
+async def test_update_shotgrid_to_avalon_update_project_with_different_source_name(
+    monkeypatch: MonkeyPatch,
+):
+    # Arrange
+    client = MongoClient()
+    project = _get_project()
+    data = [project]
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+
+    project_avalon_init_data = _create_avalon_project_row(project["_id"])
+    client.get_database(DbName.AVALON.value).get_collection(
+        project["_id"]
+    ).insert_one(project_avalon_init_data)
+    
+    # Act
+    await batch_controller.batch(
+        "fictitious_project_name", _batch_config(False)
+    )
+
+    # Assert
+    assert_that(_all_avalon(client)).is_length(1)
+
+
+@pytest.mark.asyncio
 async def test_update_shotgrid_to_avalon_update_project_tasks(
     monkeypatch: MonkeyPatch,
 ):
