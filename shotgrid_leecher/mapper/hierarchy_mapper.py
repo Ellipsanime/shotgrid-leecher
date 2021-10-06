@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.shotgrid_structures import (
@@ -7,6 +7,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
     ShotgridShotEpisode,
     ShotgridShotSequence,
+    ShotgridShotParams,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.logger import get_logger
@@ -52,13 +53,23 @@ def to_asset_row(asset: ShotgridAsset, parent_path: str) -> Map:
 
 
 def to_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
-    return {
+    result = {
         "_id": shot.code,
         "src_id": shot.id,
-        # "": shot.cut_duration,
-        # "": shot.frame_rate,
         "type": ShotgridType.SHOT.value,
         "parent": parent_path,
+    }
+    if not shot.has_params():
+        return result
+    params: ShotgridShotParams = cast(ShotgridShotParams, shot.params)
+    return {
+        **result,
+        "params": {
+            "clip_in": params.cut_in,
+            "clip_out": params.cut_out,
+            "frame_start": params.head_in,
+            "frame_end": params.tail_out,
+        },
     }
 
 
