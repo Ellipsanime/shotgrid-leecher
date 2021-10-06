@@ -8,6 +8,7 @@ from toolz.curried import (
 )
 from toolz.curried import groupby
 
+import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.queries import (
@@ -18,11 +19,7 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindTasksByProjectQuery,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
-    ShotgridTask,
     ShotgridShot,
-    ShotgridShotEpisode,
-    ShotgridShotSequence,
-    ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -49,7 +46,7 @@ def _fetch_project_tasks(
         if not entity_row:
             continue
         parent_path = f"{entity_row['parent']}{entity_row['_id']},"
-        yield _get_task_row(task, parent_path)
+        yield mapper.to_task_row(task, parent_path)
 
 
 def _patch_up_shot(shot: ShotgridShot) -> ShotgridShot:
@@ -68,7 +65,7 @@ def _fetch_project_shots(
     raw_shots = entity_repo.find_shots_for_project(query)
 
     if raw_shots:
-        yield _get_top_shot_row(project)
+        yield mapper.to_top_shot_row(project)
 
     shots = pipe(
         raw_shots,
@@ -95,7 +92,7 @@ def _tackle_full_shots(
         episode = shot.episode_name()
         sequence_ = shot.sequence_name()
         parent_path = f",{project.name},{shot_type},{episode},{sequence_},"
-        yield _get_shot_row(shot, parent_path)
+        yield mapper.to_shot_row(shot, parent_path)
 
 
 def _tackle_shot_sequences(
@@ -113,7 +110,7 @@ def _tackle_shot_sequences(
             episode = shot.episode_name()
             base_path = f",{project.name},{shot_type},"
             parent_path = f"{base_path}{episode}," if episode else base_path
-            yield _get_sequence_shot_group_row(shot.sequence, parent_path)
+            yield mapper.to_sequence_shot_group_row(shot.sequence, parent_path)
 
 
 def _tackle_shot_episodes(
@@ -126,7 +123,7 @@ def _tackle_shot_episodes(
         groupby(lambda x: x.episode_name()),
     )
     for ep, ep_shots in episode_groups.items():
-        yield _get_episode_shot_group_row(ep_shots[-1].episode, project)
+        yield mapper.to_episode_shot_group_row(ep_shots[-1].episode, project)
 
 
 def _tackle_partial_shots(
@@ -142,15 +139,15 @@ def _tackle_partial_shots(
     for shot in partial_shots:
         if not shot.episode and not shot.sequence:
             parent_path = f",{project.name},{shot_type},"
-            yield _get_shot_row(shot, parent_path)
+            yield mapper.to_shot_row(shot, parent_path)
         if not shot.episode and shot.sequence:
             sequence_ = shot.sequence.name
             parent_path = f",{project.name},{shot_type},{sequence_},"
-            yield _get_shot_row(shot, parent_path)
+            yield mapper.to_shot_row(shot, parent_path)
         if shot.episode and not shot.sequence:
             episode = shot.episode.name
             parent_path = f",{project.name},{shot_type},{episode},"
-            yield _get_shot_row(shot, parent_path)
+            yield mapper.to_shot_row(shot, parent_path)
 
 
 def _fetch_project_assets(
@@ -162,100 +159,14 @@ def _fetch_project_assets(
     archetype = ShotgridType.ASSET.value
 
     if assets:
-        yield _get_top_asset_row(project)
+        yield mapper.to_top_asset_row(project)
 
     for g, g_assets in groupby(lambda x: x.asset_type, assets).items():
-        yield _get_asset_group_row(g_assets[0].asset_type, project)
+        yield mapper.to_asset_group_row(g_assets[0].asset_type, project)
         for asset in g_assets:
             asset_type = asset.asset_type
             parent_path = f",{project.name},{archetype},{asset_type},"
-            yield _get_asset_row(asset, parent_path)
-
-
-def _get_top_shot_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": ShotgridType.SHOT.value,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},",
-    }
-
-
-def _get_top_asset_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": ShotgridType.ASSET.value,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},",
-    }
-
-
-def _get_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
-    return {
-        "_id": f"{task.content}_{task.id}",
-        "src_id": task.id,
-        "type": ShotgridType.TASK.value,
-        "parent": parent_task_path,
-        "task_type": task.step_name(),
-    }
-
-
-def _get_asset_row(asset: ShotgridAsset, parent_path: str) -> Map:
-    return {
-        "_id": asset.code,
-        "src_id": asset.id,
-        "type": ShotgridType.ASSET.value,
-        "parent": parent_path,
-    }
-
-
-def _get_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
-    return {
-        "_id": shot.code,
-        "src_id": shot.id,
-        # "": shot.cut_duration,
-        # "": shot.frame_rate,
-        "type": ShotgridType.SHOT.value,
-        "parent": parent_path,
-    }
-
-
-def _get_asset_group_row(asset_type: str, project: ShotgridProject) -> Map:
-    return {
-        "_id": asset_type,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},{ShotgridType.ASSET.value},",
-    }
-
-
-def _get_episode_shot_group_row(
-    episode: ShotgridShotEpisode,
-    project: ShotgridProject,
-) -> Map:
-    return {
-        "_id": episode.name,
-        "type": ShotgridType.EPISODE.value,
-        "src_id": episode.id,
-        "parent": f",{project.name},{ShotgridType.SHOT.value},",
-    }
-
-
-def _get_sequence_shot_group_row(
-    sequence: ShotgridShotSequence, parent_path: str
-) -> Map:
-    return {
-        "_id": sequence.name,
-        "type": ShotgridType.SEQUENCE.value,
-        "src_id": sequence.id,
-        "parent": parent_path,
-    }
-
-
-def _get_project_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": project.name,
-        "src_id": project.id,
-        "type": ShotgridType.PROJECT.value,
-        "parent": None,
-    }
+            yield mapper.to_asset_row(asset, parent_path)
 
 
 @timed
@@ -283,7 +194,7 @@ def get_hierarchy_by_project(
     )
 
     return [
-        _get_project_row(project),
+        mapper.to_project_row(project),
         *assets,
         *shots,
         *tasks,
