@@ -27,6 +27,11 @@ _PROJ_MAPPING = ProjectFieldsMapping.from_dict({})
 _ASSET_MAPPING = AssetFieldsMapping.from_dict({})
 _SHOT_MAPPING = ShotFieldsMapping.from_dict({})
 _TASK_MAPPING = TaskFieldsMapping.from_dict({})
+_ASSET_TASK_MAPPING = {
+    ShotgridField.ID.value: ShotgridField.ID.value,
+    ShotgridField.NAME.value: ShotgridField.NAME.value,
+    ShotgridField.TYPE.value: ShotgridField.TYPE.value,
+}
 
 
 def _randomize_mapping(
@@ -87,20 +92,19 @@ def test_to_shotgrid_asset():
     asset_mapping = _randomize_mapping(
         _ASSET_MAPPING, AssetFieldsMapping.from_dict
     )
-    task_mapping = _randomize_mapping(
-        _TASK_MAPPING, TaskFieldsMapping.from_dict
-    )
     data = {
         k_1: str(uuid.uuid4())
         if k_1 != ShotgridField.TASKS.value
         else [
-            {k_2: str(uuid.uuid4()) for k_2 in task_mapping.mapping_values()}
+            {k_2: str(uuid.uuid4()) for k_2 in _ASSET_TASK_MAPPING}
             for _ in range(tasks_n)
         ]
         for k_1 in asset_mapping.mapping_values()
     }
     # Act
-    actual = entity_mapper.to_shotgrid_asset(asset_mapping, task_mapping, data)
+    actual = entity_mapper.to_shotgrid_asset(
+        asset_mapping, _TASK_MAPPING, data
+    )
     # Assert
     assert_that(actual).is_type_of(ShotgridAsset)
     assert_that(actual.id).is_not_none()

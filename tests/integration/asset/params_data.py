@@ -30,7 +30,8 @@ SHOTGRID_DATA_ASSETS = [
         "tasks": [
             {
                 "id": _RAND(10 ** 2, 10 ** 10),
-                "content": "look",
+                "name": "look",
+                "type": "Task",
                 "step": {"name": "modeling"},
                 ShotgridField.ENTITY.value: {
                     "type": "Asset",
@@ -40,7 +41,8 @@ SHOTGRID_DATA_ASSETS = [
             },
             {
                 "id": _RAND(10 ** 2, 10 ** 10),
-                "content": "dev",
+                "name": "dev",
+                "type": "Task",
                 "step": {"name": "rigging"},
                 ShotgridField.ENTITY.value: {
                     "type": "Asset",

@@ -55,7 +55,8 @@ SHOTGRID_DATA_ASSETS = [
         "tasks": [
             {
                 FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
-                "content": "look",
+                "name": "look",
+                "type": "Task",
                 FIELD_TASK_STEP: {"name": "modeling"},
                 FIELD_TASK_ENTITY: {
                     "type": "Asset",
@@ -65,7 +66,8 @@ SHOTGRID_DATA_ASSETS = [
             },
             {
                 FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
-                "content": "dev",
+                "name": "dev",
+                "type": "Task",
                 FIELD_TASK_STEP: {"name": "rigging"},
                 FIELD_TASK_ENTITY: {
                     "type": "Asset",

@@ -94,6 +94,7 @@ def _get_random_assets_with_tasks(
                 {
                     "id": uuid.uuid4().int,
                     "name": str(uuid.uuid4()),
+                    "type": "Task",
                     "content": random.choice(names),
                     "step": {"name": random.choice(steps), "id": -1},
                     "entity": {

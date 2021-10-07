@@ -13,6 +13,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotEpisode,
     ShotgridAsset,
     ShotgridShotParams,
+    ShotgridAssetTask,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
@@ -42,7 +43,7 @@ def to_shotgrid_asset(
 ) -> ShotgridAsset:
     data = swap_mapping_keys_values(asset_mapping.mapping_table, target)
     tasks = [
-        to_shotgrid_task(task_mapping, x)
+        _to_asset_task(task_mapping, x)
         for x in data.get(ShotgridField.TASKS.value, [])
     ]
     return ShotgridAsset(
@@ -115,6 +116,26 @@ def to_shotgrid_task(
             id=get_in([step_field, ShotgridField.ID.value], data),
             name=get_in([step_field, ShotgridField.NAME.value], data),
         )
+    )
+
+
+@curry
+def _to_asset_task(
+    task_mapping: TaskFieldsMapping,
+    target: Map,
+) -> ShotgridAssetTask:
+    data = swap_mapping_keys_values(
+        {
+            **task_mapping.mapping_table,
+            ShotgridField.NAME.value: ShotgridField.NAME.value,
+            ShotgridField.TYPE.value: ShotgridField.TYPE.value,
+        },
+        target,
+    )
+    return ShotgridAssetTask(
+        id=data[ShotgridField.ID.value],
+        name=data[ShotgridField.NAME.value],
+        type=data[ShotgridField.TYPE.value],
     )
 
 

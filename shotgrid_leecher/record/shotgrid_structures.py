@@ -12,26 +12,34 @@ class ShotgridEntity:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class ShotgridNamedEntity(ShotgridEntity):
+    name: str
+    type: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridTaskStep(ShotgridEntity):
     name: str
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class ShotgridTaskEntity(ShotgridEntity):
-    name: str
-    type: str
+class ShotgridTaskEntity(ShotgridNamedEntity):
+    pass
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class ShotgridShotEpisode(ShotgridEntity):
-    name: str
-    type: str
+class ShotgridShotEpisode(ShotgridNamedEntity):
+    pass
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class ShotgridShotSequence(ShotgridEntity):
-    name: str
-    type: str
+class ShotgridShotSequence(ShotgridNamedEntity):
+    pass
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridAssetTask(ShotgridNamedEntity):
+    pass
 
 
 @attr.s(auto_attribs=True, frozen=True)
