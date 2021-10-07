@@ -145,20 +145,11 @@ def _default_avalon_asset_data() -> Map:
 
 
 def _create_avalon_project_row(hierarchy_row: Map) -> Map:
-    def_ = _default_avalon_project_data()
-    params = hierarchy_row.get("params", dict())
-    data = {
-        **def_,
-        "clipIn": params.get("clip_in") or def_.get("clipIn"),
-        "clipOut": params.get("clip_out") or def_.get("clipOut"),
-        "frameStart": params.get("frame_start") or def_.get("frameStart"),
-        "frameEnd": params.get("frame_end") or def_.get("frameEnd"),
-    }
     return {
         "_id": hierarchy_row.get("object_id"),
         "type": "project",
         "name": hierarchy_row["_id"],
-        "data": data,
+        "data": _default_avalon_project_data(),
         "schema": "openpype:project-3.0",
         "config": {
             "tasks": {},
@@ -169,9 +160,17 @@ def _create_avalon_project_row(hierarchy_row: Map) -> Map:
 def _create_avalon_asset_row(
     hierarchy_row: Map, parent: str, visual_parent: Optional[str]
 ) -> Map:
-    data = _default_avalon_asset_data()
-    data["visualParent"] = visual_parent
-    data["parents"] = hierarchy_row["parent"].split(",")[2:-1]
+    def_ = _default_avalon_asset_data()
+    params = hierarchy_row.get("params", dict())
+    data = {
+        **def_,
+        "parents": hierarchy_row["parent"].split(",")[2:-1],
+        "visualParent": visual_parent,
+        "clipIn": params.get("clip_in") or def_.get("clipIn"),
+        "clipOut": params.get("clip_out") or def_.get("clipOut"),
+        "frameStart": params.get("frame_start") or def_.get("frameStart"),
+        "frameEnd": params.get("frame_end") or def_.get("frameEnd"),
+    }
     return {
         "_id": hierarchy_row.get("object_id"),
         "type": "asset",

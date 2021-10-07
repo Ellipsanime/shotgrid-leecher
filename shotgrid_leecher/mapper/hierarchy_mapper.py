@@ -67,8 +67,6 @@ def to_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
         "params": {
             "clip_in": params.cut_in,
             "clip_out": params.cut_out,
-            "frame_start": params.head_in,
-            "frame_end": params.tail_out,
         },
     }
 

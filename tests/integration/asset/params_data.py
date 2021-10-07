@@ -7,10 +7,9 @@ from shotgrid_leecher.record.enums import ShotgridField
 
 _RAND = random.randint
 
-_D = compose(
+_I32 = compose(
     lambda x: None if x % 5 == 0 else x,
-    float,
-    lambda: uuid.uuid4().int,
+    lambda: _RAND(10 ** 2, 10 ** 10),
 )
 
 PROJECT_ID = f"Project_{str(uuid.uuid4())[:5]}"
@@ -64,16 +63,8 @@ SHOTGRID_DATA_SHOTS = [
             "name": "EP_1",
             "type": "Episode",
         },
-        **(
-            {
-                ShotgridField.CUT_IN.value: _D(),
-                ShotgridField.CUT_OUT.value: _D(),
-                ShotgridField.HEAD_IN.value: _D(),
-                ShotgridField.TAIL_OUT.value: _D(),
-            }
-            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
-            else {}
-        ),
+        "sg_cut_in": _RAND(10 ** 2, 10 ** 10),
+        "sg_cut_out": _I32(),
     },
     {
         "type": "Shot",
@@ -88,10 +79,8 @@ SHOTGRID_DATA_SHOTS = [
         },
         **(
             {
-                ShotgridField.CUT_IN.value: _D(),
-                ShotgridField.CUT_OUT.value: _D(),
-                ShotgridField.HEAD_IN.value: _D(),
-                ShotgridField.TAIL_OUT.value: _D(),
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
             }
             if _RAND(10 ** 2, 10 ** 10) % 2 == 0
             else {}
@@ -110,10 +99,8 @@ SHOTGRID_DATA_SHOTS = [
         },
         **(
             {
-                ShotgridField.CUT_IN.value: _D(),
-                ShotgridField.CUT_OUT.value: _D(),
-                ShotgridField.HEAD_IN.value: _D(),
-                ShotgridField.TAIL_OUT.value: _D(),
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
             }
             if _RAND(10 ** 2, 10 ** 10) % 2 == 0
             else {}
@@ -132,10 +119,8 @@ SHOTGRID_DATA_SHOTS = [
         },
         **(
             {
-                ShotgridField.CUT_IN.value: _D(),
-                ShotgridField.CUT_OUT.value: _D(),
-                ShotgridField.HEAD_IN.value: _D(),
-                ShotgridField.TAIL_OUT.value: _D(),
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
             }
             if _RAND(10 ** 2, 10 ** 10) % 2 == 0
             else {}
@@ -154,10 +139,8 @@ SHOTGRID_DATA_SHOTS = [
         },
         **(
             {
-                ShotgridField.CUT_IN.value: _D(),
-                ShotgridField.CUT_OUT.value: _D(),
-                ShotgridField.HEAD_IN.value: _D(),
-                ShotgridField.TAIL_OUT.value: _D(),
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
             }
             if _RAND(10 ** 2, 10 ** 10) % 2 == 0
             else {}
@@ -176,10 +159,8 @@ SHOTGRID_DATA_SHOTS = [
         },
         **(
             {
-                ShotgridField.CUT_IN.value: _D(),
-                ShotgridField.CUT_OUT.value: _D(),
-                ShotgridField.HEAD_IN.value: _D(),
-                ShotgridField.TAIL_OUT.value: _D(),
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
             }
             if _RAND(10 ** 2, 10 ** 10) % 2 == 0
             else {}

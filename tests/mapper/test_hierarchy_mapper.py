@@ -10,9 +10,8 @@ from shotgrid_leecher.record.shotgrid_structures import (
 )
 
 _S = compose(str, uuid.uuid4)
-_D = compose(
+_I64 = compose(
     lambda x: x if x % 5 == 0 else None,
-    float,
     lambda: uuid.uuid4().int,
 )
 
@@ -31,7 +30,9 @@ def test_to_shot_row_without_params():
 
 def test_to_shot_row_with_params():
     # Arrange
-    params = ShotgridShotParams(_D(), _D(), _D(), _D(), _D(), _D(), _D(), _D())
+    params = ShotgridShotParams(
+        _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64()
+    )
     shot = ShotgridShot(_S(), _S(), uuid.uuid4().int, params, None, None, None)
     # Act
     actual = to_shot_row(shot, _S())
@@ -39,5 +40,3 @@ def test_to_shot_row_with_params():
     assert_that(actual).is_type_of(dict)
     assert_that(actual["params"]["clip_in"]).is_equal_to(params.cut_in)
     assert_that(actual["params"]["clip_out"]).is_equal_to(params.cut_out)
-    assert_that(actual["params"]["frame_start"]).is_equal_to(params.head_in)
-    assert_that(actual["params"]["frame_end"]).is_equal_to(params.tail_out)

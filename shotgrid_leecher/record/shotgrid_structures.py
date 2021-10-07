@@ -36,14 +36,14 @@ class ShotgridShotSequence(ShotgridEntity):
 
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridShotParams:
-    cut_in: Optional[float]
-    cut_out: Optional[float]
-    head_in: Optional[float]
-    head_out: Optional[float]
-    tail_in: Optional[float]
-    tail_out: Optional[float]
-    cut_duration: Optional[float]
-    frame_rate: Optional[float]
+    cut_in: Optional[int]
+    cut_out: Optional[int]
+    head_in: Optional[int]
+    head_out: Optional[int]
+    tail_in: Optional[int]
+    tail_out: Optional[int]
+    cut_duration: Optional[int]
+    frame_rate: Optional[int]
 
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self)
