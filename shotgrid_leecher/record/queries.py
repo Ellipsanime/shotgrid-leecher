@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-
+import attr
 from toolz import curry
 
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
@@ -13,26 +12,26 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
 )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridBaseEntityQuery:
     project_id: int
     credentials: ShotgridCredentials
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridHierarchyByProjectQuery:
     project_id: int
     credentials: ShotgridCredentials
     fields_mapping: FieldsMapping
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridBoundEntityQuery:
     project: ShotgridProject
     credentials: ShotgridCredentials
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridFindProjectByIdQuery(ShotgridBaseEntityQuery):
     project_mapping: ProjectFieldsMapping
 
@@ -47,7 +46,7 @@ class ShotgridFindProjectByIdQuery(ShotgridBaseEntityQuery):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridFindAssetsByProjectQuery(ShotgridBoundEntityQuery):
     asset_mapping: AssetFieldsMapping
     task_mapping: TaskFieldsMapping
@@ -65,7 +64,7 @@ class ShotgridFindAssetsByProjectQuery(ShotgridBoundEntityQuery):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridFindShotsByProjectQuery(ShotgridBoundEntityQuery):
     shot_mapping: ShotFieldsMapping
 
@@ -81,7 +80,7 @@ class ShotgridFindShotsByProjectQuery(ShotgridBoundEntityQuery):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridFindTasksByProjectQuery(ShotgridBoundEntityQuery):
     task_mapping: TaskFieldsMapping
 

@@ -1,7 +1,7 @@
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Union, List, Dict, Any
 
+import attr
 from toolz import pipe
 from toolz.curried import (
     map as select,
@@ -13,7 +13,7 @@ from shotgrid_leecher.record.new_asset_event import NewAssetEvent
 AnyEvent = Union[NewAssetEvent]
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class NewEventCommand:
     id: str
     event_type: EventTypes
@@ -28,7 +28,7 @@ class NewEventCommand:
         }
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class NewEventsCommand:
     event_type: EventTypes
     events: List[AnyEvent]

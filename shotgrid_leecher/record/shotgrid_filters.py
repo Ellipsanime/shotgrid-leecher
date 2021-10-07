@@ -1,5 +1,6 @@
-from dataclasses import dataclass
 from typing import List, Any, Dict
+
+import attr
 
 
 class BaseFilter:
@@ -10,7 +11,7 @@ class BaseFilter:
         return [self.to_sublist()]
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class IsFilter(BaseFilter):
     type: str
     value: Dict[str, Any]
@@ -19,7 +20,7 @@ class IsFilter(BaseFilter):
         return [self.type, "is", self.value]
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class IsNotFilter(BaseFilter):
     key: str
     value: Any
@@ -28,7 +29,7 @@ class IsNotFilter(BaseFilter):
         return [self.key, "is_not", self.value]
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class IdFilter(BaseFilter):
     id: int
 
@@ -36,7 +37,7 @@ class IdFilter(BaseFilter):
         return ["id", "is", self.id]
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class CompositeFilter(BaseFilter):
     filters: List[BaseFilter]
 

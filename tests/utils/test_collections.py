@@ -6,8 +6,10 @@ import pytest
 from assertpy import assert_that
 from mongomock.object_id import ObjectId
 
-from shotgrid_leecher.utils.collections import flatten_dict, \
-    swap_mapping_keys_values
+from shotgrid_leecher.utils.collections import (
+    flatten_dict,
+    swap_mapping_keys_values,
+)
 
 _RAND = random.randint
 

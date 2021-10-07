@@ -1,8 +1,8 @@
 import uuid
-from dataclasses import asdict
 from typing import Any, Callable
 from unittest.mock import PropertyMock
 
+import attr
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 
@@ -58,7 +58,7 @@ def test_find_project_by_id(monkeypatch: MonkeyPatch):
     p_id = uuid.uuid4().int
     expected = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
-    client.find_one.return_value = asdict(expected)
+    client.find_one.return_value = attr.asdict(expected)
     query = ShotgridFindProjectByIdQuery(
         p_id, _credentials(), _default_fields_mapping().project
     )
@@ -104,7 +104,9 @@ def test_find_assets_for_project(monkeypatch: MonkeyPatch):
     assert_that(client.find.call_args[0][0]).is_equal_to(
         ShotgridType.ASSET.value
     )
-    assert_that(client.find.call_args[0][1][0][2]).is_equal_to(asdict(project))
+    assert_that(client.find.call_args[0][1][0][2]).is_equal_to(
+        attr.asdict(project)
+    )
 
 
 def test_find_shots_for_project(monkeypatch: MonkeyPatch):
@@ -133,7 +135,9 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     assert_that(client.find.call_args[0][0]).is_equal_to(
         ShotgridType.SHOT.value
     )
-    assert_that(client.find.call_args[0][1][0][2]).is_equal_to(asdict(project))
+    assert_that(client.find.call_args[0][1][0][2]).is_equal_to(
+        attr.asdict(project)
+    )
 
 
 def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
@@ -168,4 +172,6 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
     assert_that(client.find.call_args[0][0]).is_equal_to(
         ShotgridType.TASK.value
     )
-    assert_that(client.find.call_args[0][1][0][2]).is_equal_to(asdict(project))
+    assert_that(client.find.call_args[0][1][0][2]).is_equal_to(
+        attr.asdict(project)
+    )

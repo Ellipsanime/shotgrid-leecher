@@ -8,7 +8,7 @@ from assertpy import assert_that
 from assertpy.assertpy import AssertionBuilder
 from toolz import curry
 
-import shotgrid_leecher.mapper.hierarchy_mapper as mapper
+import shotgrid_leecher.mapper.avalon_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand

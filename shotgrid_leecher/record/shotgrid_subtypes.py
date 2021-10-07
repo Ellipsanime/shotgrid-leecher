@@ -1,22 +1,24 @@
 import json
-from dataclasses import dataclass, asdict, field
-from typing import Dict, Any
+from dataclasses import field
+from typing import Dict, Any, List, cast
+
+import attr
 
 from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 
 
-@dataclass(frozen=True)
-class GenericFieldMapping:
+@attr.s(auto_attribs=True, frozen=True)
+class GenericFieldsMapping:
     type: ShotgridType
     mapping_table: Dict[str, str]
 
-    def value(self, sg_field: ShotgridField):
-        return self.mapping_table.get(sg_field.value)
+    def mapping_values(self) -> List[str]:
+        return list(self.mapping_table.values())
 
 
-@dataclass(frozen=True)
-class TaskFieldsMapping(GenericFieldMapping):
+@attr.s(auto_attribs=True, frozen=True)
+class TaskFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.TASK)
 
     @staticmethod
@@ -32,8 +34,8 @@ class TaskFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
-class ShotFieldsMapping(GenericFieldMapping):
+@attr.s(auto_attribs=True, frozen=True)
+class ShotFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.SHOT)
 
     @staticmethod
@@ -44,6 +46,12 @@ class ShotFieldsMapping(GenericFieldMapping):
                 ShotgridField.EPISODE.value: "sg_episode",
                 ShotgridField.CUT_DURATION.value: "sg_cut_duration",
                 ShotgridField.FRAME_RATE.value: "sg_frame_rate",
+                ShotgridField.CUT_IN.value: "sg_cut_in",
+                ShotgridField.CUT_OUT.value: "sg_cut_out",
+                ShotgridField.HEAD_IN.value: "sg_head_in",
+                ShotgridField.HEAD_OUT.value: "sg_head_out",
+                ShotgridField.TAIL_IN.value: "sg_tail_in",
+                ShotgridField.TAIL_OUT.value: "sg_tail_out",
                 ShotgridField.SEQUENCE_EPISODE.value: ".".join(
                     ["sg_sequence", "Sequence", "episode"]
                 ),
@@ -54,8 +62,8 @@ class ShotFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
-class ProjectFieldsMapping(GenericFieldMapping):
+@attr.s(auto_attribs=True, frozen=True)
+class ProjectFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.PROJECT)
 
     @staticmethod
@@ -70,8 +78,8 @@ class ProjectFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
-class AssetFieldsMapping(GenericFieldMapping):
+@attr.s(auto_attribs=True, frozen=True)
+class AssetFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = field(init=False, default=ShotgridType.ASSET)
 
     @staticmethod
@@ -88,7 +96,7 @@ class AssetFieldsMapping(GenericFieldMapping):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class FieldsMapping:
     project: ProjectFieldsMapping
     asset: AssetFieldsMapping
@@ -99,7 +107,10 @@ class FieldsMapping:
     def from_dict(dic: Dict[str, Dict[str, str]]) -> "FieldsMapping":
         return FieldsMapping(
             project=ProjectFieldsMapping.from_dict(
-                dic.get(ShotgridType.PROJECT.value.lower(), {})
+                dic.get(
+                    ShotgridType.PROJECT.value.lower(),
+                    cast(Dict[str, str], {}),
+                )
             ),
             asset=AssetFieldsMapping.from_dict(
                 dic.get(ShotgridType.ASSET.value.lower(), {})
@@ -113,7 +124,7 @@ class FieldsMapping:
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class GenericSubtype:
     id: int
     name: str
@@ -123,15 +134,15 @@ class GenericSubtype:
         return json.dumps(self, cls=DataclassJSONEncoder)
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        return attr.asdict(self)
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridUser(GenericSubtype):
     pass
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridProject(GenericSubtype):
     @staticmethod
     def from_dict(dic: Dict[str, Any]) -> "ShotgridProject":
@@ -142,6 +153,6 @@ class ShotgridProject(GenericSubtype):
         )
 
 
-@dataclass(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridEntity(GenericSubtype):
     pass

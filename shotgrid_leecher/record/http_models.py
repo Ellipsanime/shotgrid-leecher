@@ -20,7 +20,7 @@ class BatchConfig(BaseModel):
         title="Flag that specifies whether batch "
         "should overwrite existing data or not",
     )
-    fields_mapping: Optional[Dict[str, Any]]
+    fields_mapping: Dict[str, Dict[str, str]]
 
     @validator("shotgrid_url")
     def validate_shotgrid_url(cls, url: str) -> str:
@@ -37,7 +37,7 @@ class BatchConfig(BaseModel):
         field: ModelField,
     ) -> Any:
         if value is None:
-            raise ValueError(f"Model field \"{field.name}\" can be null")
+            raise ValueError(f'Model field "{field.name}" can be null')
         return value
 
     def to_batch_command(

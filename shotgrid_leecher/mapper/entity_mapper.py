@@ -1,5 +1,6 @@
 from typing import Dict, Any, Optional, Callable, TypeVar
 
+import attr
 from toolz import curry, get_in
 
 from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
@@ -11,6 +12,8 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotSequence,
     ShotgridShotEpisode,
     ShotgridAsset,
+    ShotgridShotParams,
+    ShotgridAssetTask,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
@@ -40,7 +43,7 @@ def to_shotgrid_asset(
 ) -> ShotgridAsset:
     data = swap_mapping_keys_values(asset_mapping.mapping_table, target)
     tasks = [
-        to_shotgrid_task(task_mapping, x)
+        _to_asset_task(task_mapping, x)
         for x in data.get(ShotgridField.TASKS.value, [])
     ]
     return ShotgridAsset(
@@ -58,25 +61,24 @@ def to_shotgrid_shot(
     target: Map,
 ) -> ShotgridShot:
     data = swap_mapping_keys_values(shot_mapping.mapping_table, target)
-    sequence: ShotgridShotSequence = _sub_entity(
+    sequence: Optional[ShotgridShotSequence] = _sub_entity(
         ShotgridField.SEQUENCE.value,
         ShotgridShotSequence,
         data,
     )
-    episode: ShotgridShotEpisode = _sub_entity(
+    episode: Optional[ShotgridShotEpisode] = _sub_entity(
         ShotgridField.EPISODE.value,
         ShotgridShotEpisode,
         data,
     )
-    sequence_episode: ShotgridShotEpisode = _sub_entity(
+    sequence_episode: Optional[ShotgridShotEpisode] = _sub_entity(
         ShotgridField.SEQUENCE_EPISODE.value,
         ShotgridShotEpisode,
         data,
     )
     return ShotgridShot(
         id=data[ShotgridField.ID.value],
-        cut_duration=data.get(ShotgridField.CUT_DURATION.value),
-        frame_rate=data.get(ShotgridField.FRAME_RATE.value),
+        params=_to_shot_params(data),
         code=data[ShotgridField.CODE.value],
         type=data.get(ShotgridField.TYPE.value, ShotgridType.SHOT.value),
         sequence=sequence,
@@ -92,11 +94,14 @@ def to_shotgrid_task(
 ) -> ShotgridTask:
     step_field = ShotgridField.STEP.value
     data = swap_mapping_keys_values(task_mapping.mapping_table, target)
-    entity: ShotgridTaskEntity = _sub_entity(
+    entity: Optional[ShotgridTaskEntity] = _sub_entity(
         ShotgridField.ENTITY.value,
         ShotgridTaskEntity,
         data,
     )
+    if not entity:
+        raise RuntimeError("Entity cannot be null")
+
     task = ShotgridTask(
         id=data[ShotgridField.ID.value],
         content=data[ShotgridField.CONTENT.value],
@@ -112,6 +117,33 @@ def to_shotgrid_task(
             name=get_in([step_field, ShotgridField.NAME.value], data),
         )
     )
+
+
+@curry
+def _to_asset_task(
+    task_mapping: TaskFieldsMapping,
+    target: Map,
+) -> ShotgridAssetTask:
+    data = swap_mapping_keys_values(
+        {
+            **task_mapping.mapping_table,
+            ShotgridField.NAME.value: ShotgridField.NAME.value,
+            ShotgridField.TYPE.value: ShotgridField.TYPE.value,
+        },
+        target,
+    )
+    return ShotgridAssetTask(
+        id=data[ShotgridField.ID.value],
+        name=data[ShotgridField.NAME.value],
+        type=data[ShotgridField.TYPE.value],
+    )
+
+
+def _to_shot_params(data: Map) -> Optional[ShotgridShotParams]:
+    keys = set(attr.fields_dict(ShotgridShotParams).keys())
+    if not keys.intersection(set(data.keys())):
+        return None
+    return ShotgridShotParams(**{k: data.get(k) for k in keys})
 
 
 def _sub_entity(

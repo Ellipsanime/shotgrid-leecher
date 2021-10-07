@@ -7,11 +7,11 @@ from assertpy import assert_that
 from mongomock.mongo_client import MongoClient
 from toolz import curry
 
+from asset import fields_mapping_data
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.results import BatchCheckResult
 from shotgrid_leecher.utils import connectivity as conn
-from tests.integration.asset import fields_mapping_data
 
 Map = Dict[str, Any]
 
@@ -44,7 +44,11 @@ async def test_batch_check(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     # Act
     actual = await batch_controller.batch_check(
-        project_id, "http://google.com", 123, "1", "1",
+        project_id,
+        "http://google.com",
+        123,
+        "1",
+        "1",
     )
 
     # Assert

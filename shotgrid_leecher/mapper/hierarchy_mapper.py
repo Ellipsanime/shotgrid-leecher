@@ -1,5 +1,15 @@
-from typing import Dict, Any, List, Optional, Iterator, Tuple
+from typing import Dict, Any, cast
 
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.shotgrid_structures import (
+    ShotgridTask,
+    ShotgridAsset,
+    ShotgridShot,
+    ShotgridShotEpisode,
+    ShotgridShotSequence,
+    ShotgridShotParams,
+)
+from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
@@ -7,148 +17,95 @@ _LOG = get_logger(__name__.split(".")[-1])
 Map = Dict[str, Any]
 
 
-def shotgrid_to_avalon(hierarchy_rows: List[Map]) -> Dict[str, Map]:
-    """
-    Utilitary function to map hierarchy shotgrid data to MongoDB avalon format.
-
-    Note:
-        hierarchy_rows should be ordered from top to bottom
-        according to the shotgrid hierarchy.
-
-    Args:
-        hierarchy_rows list(dict(str, any)):
-        list of rows to format to avalon format.
-
-    Returns dict(str, dict(str, any)): Map of formatted rows with unique
-                                       name as key and mongodb row as value.
-
-    """
-    if not hierarchy_rows:
-        return {}
-
-    project_rows = [x for x in hierarchy_rows if x["type"] == "Project"]
-    if len(project_rows) > 1:
-        msg = (
-            "Could not parse shotgrid data to avalon,"
-            + "multiple project entities found !"
-        )
-        _LOG.error(msg)
-        raise ValueError(msg)
-
-    if len(project_rows) < 1:
-        msg = "Could not parse shotgrid data to avalon, no project entity found !"
-        _LOG.error(msg)
-        raise ValueError(msg)
-
-    project = _create_avalon_project_row(project_rows[0])
-
-    avalon_rows_dict = dict(
-        list(_create_avalon_entity_rows(hierarchy_rows, project))
-    )
-    avalon_rows_dict = {
-        project_rows[0]["_id"]: project,
-        **avalon_rows_dict,
-    }
-
-    task_rows = [x for x in hierarchy_rows if x["type"] == "Task"]
-    for task_row in task_rows:
-
-        parent = _get_parent(task_row)
-        if parent:
-            # Add task to the parent entity data
-            avalon_rows_dict[parent]["data"]["tasks"][task_row["_id"]] = {
-                "type": task_row["task_type"]
-            }
-            # Add task type to the project config if it doesn't exist
-            if task_row["task_type"] not in project["config"]["tasks"]:
-                project["config"]["tasks"][task_row["task_type"]] = {}
-
-    return avalon_rows_dict
-
-
-def _get_parent(row: Map) -> Optional[str]:
-    if "parent" in row and row["parent"]:
-        return row["parent"].split(",")[-2]
-    return None
-
-
-def _create_avalon_entity_rows(
-    hierarchy_rows: List[Map], project: Map
-) -> Iterator[Tuple[str, Map]]:
-
-    entity_types = ["Group", "Asset", "Shot", "Episode", "Sequence"]
-    entity_rows = [x for x in hierarchy_rows if x["type"] in entity_types]
-
-    for hierarchy_row in entity_rows:
-        parent = _get_parent(hierarchy_row)
-
-        visual_parent = None
-        if parent != project["name"]:
-            visual_parent = parent
-
-        yield (
-            hierarchy_row["_id"],
-            _create_avalon_asset_row(
-                hierarchy_row, project["name"], visual_parent
-            ),
-        )
-
-
-def _default_avalon_data() -> Map:
+def to_top_shot_row(project: ShotgridProject) -> Map:
     return {
-        "clipIn": 1,
-        "clipOut": 1,
-        "fps": 25.0,
-        "frameEnd": 0,
-        "frameStart": 0,
-        "handleEnd": 0,
-        "handleStart": 0,
-        "pixelAspect": 0,
-        "resolutionHeight": 0,
-        "resolutionWidth": 0,
-        "tools_env": [],
+        "_id": ShotgridType.SHOT.value,
+        "type": ShotgridType.GROUP.value,
+        "parent": f",{project.name},",
     }
 
 
-def _default_avalon_project_data() -> Map:
-    data = _default_avalon_data()
-    data["code"] = ""
-    data["library_project"] = False
-    return data
-
-
-def _default_avalon_asset_data() -> Map:
-    data = _default_avalon_data()
-    data["parent"] = []
-    data["visualParent"] = None
-    data["tasks"] = {}
-    return data
-
-
-def _create_avalon_project_row(hierarchy_row: Map) -> Map:
+def to_top_asset_row(project: ShotgridProject) -> Map:
     return {
-        "_id": hierarchy_row.get("object_id"),
-        "type": "project",
-        "name": hierarchy_row["_id"],
-        "data": _default_avalon_project_data(),
-        "schema": "openpype:project-3.0",
-        "config": {
-            "tasks": {},
+        "_id": ShotgridType.ASSET.value,
+        "type": ShotgridType.GROUP.value,
+        "parent": f",{project.name},",
+    }
+
+
+def to_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
+    return {
+        "_id": f"{task.content}_{task.id}",
+        "src_id": task.id,
+        "type": ShotgridType.TASK.value,
+        "parent": parent_task_path,
+        "task_type": task.step_name(),
+    }
+
+
+def to_asset_row(asset: ShotgridAsset, parent_path: str) -> Map:
+    return {
+        "_id": asset.code,
+        "src_id": asset.id,
+        "type": ShotgridType.ASSET.value,
+        "parent": parent_path,
+    }
+
+
+def to_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
+    result = {
+        "_id": shot.code,
+        "src_id": shot.id,
+        "type": ShotgridType.SHOT.value,
+        "parent": parent_path,
+    }
+    if not shot.has_params():
+        return result
+    params: ShotgridShotParams = cast(ShotgridShotParams, shot.params)
+    return {
+        **result,
+        "params": {
+            "clip_in": params.cut_in,
+            "clip_out": params.cut_out,
         },
     }
 
 
-def _create_avalon_asset_row(
-    hierarchy_row: Map, parent: str, visual_parent: Optional[str]
-) -> Map:
-    data = _default_avalon_asset_data()
-    data["visualParent"] = visual_parent
-    data["parents"] = hierarchy_row['parent'].split(',')[2:-1]
+def to_asset_group_row(asset_type: str, project: ShotgridProject) -> Map:
     return {
-        "_id": hierarchy_row.get("object_id"),
-        "type": "asset",
-        "name": hierarchy_row["_id"],
-        "data": data,
-        "schema": "openpype:project-3.0",
-        "parent": parent,
+        "_id": asset_type,
+        "type": ShotgridType.GROUP.value,
+        "parent": f",{project.name},{ShotgridType.ASSET.value},",
+    }
+
+
+def to_episode_shot_group_row(
+    episode: ShotgridShotEpisode,
+    project: ShotgridProject,
+) -> Map:
+    return {
+        "_id": episode.name,
+        "type": ShotgridType.EPISODE.value,
+        "src_id": episode.id,
+        "parent": f",{project.name},{ShotgridType.SHOT.value},",
+    }
+
+
+def to_sequence_shot_group_row(
+    sequence: ShotgridShotSequence, parent_path: str
+) -> Map:
+    return {
+        "_id": sequence.name,
+        "type": ShotgridType.SEQUENCE.value,
+        "src_id": sequence.id,
+        "parent": parent_path,
+    }
+
+
+def to_project_row(project: ShotgridProject) -> Map:
+    return {
+        "_id": project.name,
+        "src_id": project.id,
+        "type": ShotgridType.PROJECT.value,
+        "parent": None,
     }
