@@ -4,9 +4,11 @@ import uvicorn as uvicorn
 from fastapi import FastAPI
 
 import shotgrid_leecher.controller.batch_controller as batch
+import shotgrid_leecher.controller.version_controller as version
 
 app = FastAPI()
 app.include_router(batch.router)
+app.include_router(version.router)
 
 
 def start():
