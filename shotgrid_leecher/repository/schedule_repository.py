@@ -1,4 +1,0 @@
-
-
-def fetch() -> None:
-    pass

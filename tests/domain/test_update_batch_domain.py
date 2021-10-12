@@ -20,7 +20,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotFieldsMapping,
     TaskFieldsMapping,
 )
-from shotgrid_leecher.repository import hierarchy_repo
+from shotgrid_leecher.repository import intermediate_hierarchy_repo
 from shotgrid_leecher.writers import db_writer
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -126,7 +126,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
@@ -167,7 +167,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
@@ -211,7 +211,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", insert_intermediate)
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
@@ -273,7 +273,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        hierarchy_repo, "fetch_intermediates", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)

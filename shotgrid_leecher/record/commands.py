@@ -1,6 +1,7 @@
 from typing import Dict, Any
 
 import attr
+import cattr
 
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
@@ -14,6 +15,11 @@ class ShotgridToAvalonBatchCommand:
     overwrite: bool
     credentials: ShotgridCredentials
     fields_mapping: FieldsMapping
+
+    @staticmethod
+    def from_dict(source: Dict[str, Any]) -> "ShotgridToAvalonBatchCommand":
+        params = {**source, "overwrite": False}
+        return cattr.structure(params, ShotgridToAvalonBatchCommand)
 
 
 @attr.s(auto_attribs=True, frozen=True)

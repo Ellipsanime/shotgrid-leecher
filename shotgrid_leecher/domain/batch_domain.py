@@ -16,7 +16,10 @@ from shotgrid_leecher.record.queries import (
 )
 from shotgrid_leecher.record.results import BatchCheckResult
 from shotgrid_leecher.record.shotgrid_subtypes import ProjectFieldsMapping
-from shotgrid_leecher.repository import avalon_repo, hierarchy_repo
+from shotgrid_leecher.repository import (
+    avalon_repo,
+    intermediate_hierarchy_repo,
+)
 from shotgrid_leecher.utils import generator
 from shotgrid_leecher.writers import db_writer
 
@@ -129,7 +132,7 @@ def _fetch_intermediate_hierarchy(
     project_name: str, shotgrid_hierarchy: List[Map]
 ) -> List[Map]:
     intermediate_hierarchy = list(
-        hierarchy_repo.fetch_intermediates(project_name)
+        intermediate_hierarchy_repo.fetch_by_project(project_name)
     )
     if intermediate_hierarchy:
         return intermediate_hierarchy
@@ -192,4 +195,3 @@ def _propagate_deletion(
         if (x.get("parent"), x["_id"]) in deleted_ones and x.get("object_id")
     }
     return altered_hierarchy, deleted_object_ids
-

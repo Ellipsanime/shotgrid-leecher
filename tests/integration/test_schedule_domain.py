@@ -48,9 +48,9 @@ async def test_schedule_batch(monkeypatch: MonkeyPatch):
 
     # Assert
     assert_that(_all_db(client)).extracting("_id").is_equal_to([project_name])
-    assert_that(_all_db(client)).extracting("project_id").is_equal_to(
-        [config.shotgrid_project_id]
-    )
-    assert_that(_all_db(client)).extracting("credentials").extracting(
-        "shotgrid_url"
-    ).is_equal_to([config.shotgrid_url])
+    assert_that(_all_db(client)).extracting("command").extracting(
+        "project_id"
+    ).is_equal_to([config.shotgrid_project_id])
+    assert_that(_all_db(client)).extracting("command").extracting(
+        "credentials"
+    ).extracting("shotgrid_url").is_equal_to([config.shotgrid_url])
