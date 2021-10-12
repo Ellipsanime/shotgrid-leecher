@@ -1,10 +1,8 @@
 from starlette.concurrency import run_in_threadpool
 
 import shotgrid_leecher.repository.schedule_repo as schedule_repo
-from shotgrid_leecher.domain import batch_domain
 from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
-    ShotgridToAvalonBatchCommand,
 )
 from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.utils.logger import get_logger
@@ -28,9 +26,11 @@ async def unroll_batches() -> None:
             _LOG.error(ex)
 
 
-def _create_and_log(command: ShotgridToAvalonBatchCommand) -> None:
-    batch_domain.create_shotgrid_in_avalon(command)
+def _create_and_log(command: ScheduleShotgridBatchCommand) -> None:
+    # batch_domain.create_shotgrid_in_avalon(command)
+    pass
 
 
-def _update_and_log(command: ShotgridToAvalonBatchCommand) -> None:
-    batch_domain.update_shotgrid_in_avalon(command)
+def _update_and_log(command: ScheduleShotgridBatchCommand) -> None:
+    # batch_domain.update_shotgrid_in_avalon(command)
+    pass

@@ -29,6 +29,10 @@ class ScheduleShotgridBatchCommand:
     credentials: ShotgridCredentials
     fields_mapping: FieldsMapping
 
+    @staticmethod
+    def from_dict(source: Dict[str, Any]) -> "ScheduleShotgridBatchCommand":
+        return cattr.structure(source, ScheduleShotgridBatchCommand)
+
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self, value_serializer=attr_value_to_dict)
 
