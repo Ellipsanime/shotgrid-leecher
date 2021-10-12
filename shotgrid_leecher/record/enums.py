@@ -56,7 +56,7 @@ class ShotgridField(Enum):
     NAME = "name"
     SEQUENCE = "sequence"
     EPISODE = "episode"
-    SEQUENCE_EPISODE = "sequence.episode"
+    SEQUENCE_EPISODE = "sequence_episode"
     CUT_DURATION = "cut_duration"
     FRAME_RATE = "frame_rate"
     CUT_IN = "cut_in"
