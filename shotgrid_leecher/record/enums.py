@@ -5,6 +5,12 @@ from enum import Enum, unique
 class DbName(Enum):
     AVALON = "avalon"
     INTERMEDIATE = "shotgrid_openpype"
+    SCHEDULE = "shotgrid_schedule"
+
+
+@unique
+class DbCollection(Enum):
+    SCHEDULE_PROJECTS = "projects"
 
 
 @unique
