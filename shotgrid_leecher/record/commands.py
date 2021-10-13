@@ -17,8 +17,11 @@ class ShotgridToAvalonBatchCommand:
     fields_mapping: FieldsMapping
 
     @staticmethod
-    def from_dict(source: Dict[str, Any]) -> "ShotgridToAvalonBatchCommand":
-        params = {**source, "overwrite": False}
+    def from_dict(
+        source: Dict[str, Any],
+        overwrite: bool = False,
+    ) -> "ShotgridToAvalonBatchCommand":
+        params = {**source, "overwrite": overwrite}
         return cattr.structure(params, ShotgridToAvalonBatchCommand)
 
 

@@ -14,7 +14,7 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridHierarchyByProjectQuery,
 )
-from shotgrid_leecher.record.results import BatchCheckResult
+from shotgrid_leecher.record.results import BatchCheckResult, BatchResult
 from shotgrid_leecher.record.shotgrid_subtypes import ProjectFieldsMapping
 from shotgrid_leecher.repository import (
     avalon_repo,
@@ -39,10 +39,12 @@ def check_shotgrid_before_batch(
     return BatchCheckResult(status)
 
 
-def update_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
+def update_shotgrid_in_avalon(
+    command: ShotgridToAvalonBatchCommand,
+) -> BatchResult:
     shotgrid_hierarchy, dropped_ids = _fetch_and_augment_hierarchy(command)
     if not shotgrid_hierarchy:
-        return
+        return BatchResult.NO_SHOTGRID_HIERARCHY
     # TODO get rid of mutability and avalon_tree
     avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
     avalon_rows = list(avalon_tree.values())
@@ -58,6 +60,7 @@ def update_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
         avalon_tree[row["name"]]["_id"] = object_id
     db_writer.delete_avalon_rows(command.project_name, dropped_ids)
     db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
+    return BatchResult.OK
 
 
 def create_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Any
 
 import attr
@@ -12,3 +13,9 @@ class InsertionResult:
 @attr.s(auto_attribs=True, frozen=True)
 class BatchCheckResult:
     status: str
+
+
+class BatchResult(Enum):
+    FAILURE = -5
+    NO_SHOTGRID_HIERARCHY = -1
+    OK = 0
