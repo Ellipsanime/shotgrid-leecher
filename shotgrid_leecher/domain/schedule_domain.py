@@ -5,9 +5,11 @@ from shotgrid_leecher.domain import batch_domain
 from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
     ShotgridToAvalonBatchCommand,
+    LogBatchUpdateCommand,
 )
+from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils.logger import get_logger
-from shotgrid_leecher.writers import schedule_writer as writer
+from shotgrid_leecher.writers import schedule_writer as writer, schedule_writer
 
 _LOG = get_logger(__name__.split(".")[-1])
 
@@ -22,10 +24,24 @@ async def unroll_batches() -> None:
 
 
 def _batch_and_log(schedule_command: ScheduleShotgridBatchCommand) -> None:
+    command = ShotgridToAvalonBatchCommand.from_dict(
+        schedule_command.to_dict()
+    )
     try:
-        command = ShotgridToAvalonBatchCommand.from_dict(
-            schedule_command.to_dict()
+        result = batch_domain.update_shotgrid_in_avalon(command)
+        log_command = LogBatchUpdateCommand(
+            result,
+            command.project_name,
+            command.project_id,
+            None,
         )
-        batch_domain.update_shotgrid_in_avalon(command)
+        schedule_writer.log_batch_result(log_command)
     except Exception as ex:
+        log_command = LogBatchUpdateCommand(
+            BatchResult.FAILURE,
+            command.project_name,
+            command.project_id,
+            {"exception": ex.args[0]},
+        )
         _LOG.error(ex)
+        schedule_writer.log_batch_result(log_command)

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, unique
 from typing import List, Any
 
 import attr
@@ -15,6 +15,7 @@ class BatchCheckResult:
     status: str
 
 
+@unique
 class BatchResult(Enum):
     FAILURE = -5
     NO_SHOTGRID_HIERARCHY = -1
