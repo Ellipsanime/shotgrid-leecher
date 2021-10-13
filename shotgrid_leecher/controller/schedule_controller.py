@@ -1,6 +1,9 @@
-from shotgrid_leecher.controller.batch_controller import router
+from fastapi import APIRouter
+
 from shotgrid_leecher.domain import schedule_domain
 from shotgrid_leecher.record.http_models import BatchConfig
+
+router = APIRouter(tags=["schedule"], prefix="/schedule")
 
 
 @router.post("/{project_name}")

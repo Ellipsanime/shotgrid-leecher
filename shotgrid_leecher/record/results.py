@@ -17,6 +17,6 @@ class BatchCheckResult:
 
 @unique
 class BatchResult(Enum):
-    FAILURE = -5
-    NO_SHOTGRID_HIERARCHY = -1
-    OK = 0
+    FAILURE = "Failure"
+    NO_SHOTGRID_HIERARCHY = "No_Shotgrid_Hierarchy"
+    OK = "Ok"

@@ -11,7 +11,7 @@ from shotgrid_leecher.record.enums import DbName, DbCollection
 
 def fetch_batch_commands() -> List[ScheduleShotgridBatchCommand]:
     return [
-        ScheduleShotgridBatchCommand.from_dict(x)
+        ScheduleShotgridBatchCommand.from_dict(x["command"])
         for x in _collection().find({})
     ]
 

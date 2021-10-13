@@ -9,6 +9,7 @@ from shotgrid_leecher.record.commands import (
 )
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils.logger import get_logger
+from shotgrid_leecher.utils.timer import timed
 from shotgrid_leecher.writers import schedule_writer as writer, schedule_writer
 
 _LOG = get_logger(__name__.split(".")[-1])
@@ -23,6 +24,7 @@ async def unroll_batches() -> None:
         await run_in_threadpool(_batch_and_log, command)
 
 
+@timed
 def _batch_and_log(schedule_command: ScheduleShotgridBatchCommand) -> None:
     command = ShotgridToAvalonBatchCommand.from_dict(
         schedule_command.to_dict()
