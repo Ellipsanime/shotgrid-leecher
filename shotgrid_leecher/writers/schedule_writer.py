@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Dict, Any, List
+
 from pymongo.collection import Collection
 
 import shotgrid_leecher.utils.connectivity as conn
@@ -19,17 +22,31 @@ def _collection(collection: DbCollection) -> Collection:
     )
 
 
-def request_scheduling(command: ScheduleShotgridBatchCommand) -> None:
+def queue_requests(
+    commands: List[ScheduleShotgridBatchCommand],
+) -> Dict[str, Any]:
+    now = datetime.utcnow().timestamp()
+    queue_table = _collection(DbCollection.SCHEDULE_QUEUE)
+    documents = [
+        {"command": x.to_dict(), "created_at": now + i}
+        for x, i in zip(commands, range(len(commands)))
+    ]
+    return queue_table.insert_many(documents)
+
+
+def request_scheduling(
+    command: ScheduleShotgridBatchCommand,
+) -> Dict[str, Any]:
     projects_table = _collection(DbCollection.SCHEDULE_PROJECTS)
     query = {"$set": {"command": command.to_dict()}}
-    projects_table.update_one(
+    return projects_table.update_one(
         {"_id": command.project_name},
         query,
         upsert=True,
     )
 
 
-def log_batch_result(command: LogBatchUpdateCommand) -> None:
+def log_batch_result(command: LogBatchUpdateCommand) -> Dict[str, Any]:
     logs_table = _collection(DbCollection.SCHEDULE_LOGS)
     _LOG.debug(f"log batch result: {command}")
-    logs_table.insert_one(command.to_dict())
+    return logs_table.insert_one(command.to_dict())

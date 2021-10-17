@@ -11,6 +11,7 @@ class DbName(Enum):
 @unique
 class DbCollection(Enum):
     SCHEDULE_PROJECTS = "projects"
+    SCHEDULE_QUEUE = "queue"
     SCHEDULE_LOGS = "logs"
 
 
