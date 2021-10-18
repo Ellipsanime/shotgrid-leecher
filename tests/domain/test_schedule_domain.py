@@ -45,7 +45,7 @@ async def test_unroll_batches_when_success(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(schedule_repo, "fetch_batch_commands", fetch)
     monkeypatch.setattr(schedule_writer, "log_batch_result", log)
     # Act
-    await schedule_domain.unroll_batches()
+    await schedule_domain.dequeue_and_process_batches()
     # Assert
     assert_that(batch.call_count).is_equal_to(2)
     assert_that(log.call_count).is_equal_to(2)
@@ -69,7 +69,7 @@ async def test_unroll_batches_when_no_hierarchy(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(schedule_repo, "fetch_batch_commands", fetch)
     monkeypatch.setattr(schedule_writer, "log_batch_result", log)
     # Act
-    await schedule_domain.unroll_batches()
+    await schedule_domain.dequeue_and_process_batches()
     # Assert
     assert_that(batch.call_count).is_equal_to(2)
     assert_that(log.call_count).is_equal_to(2)
@@ -94,7 +94,7 @@ async def test_unroll_batches_when_failure(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(schedule_repo, "fetch_batch_commands", fetch)
     monkeypatch.setattr(schedule_writer, "log_batch_result", log)
     # Act
-    await schedule_domain.unroll_batches()
+    await schedule_domain.dequeue_and_process_batches()
     # Assert
     assert_that(log.call_count).is_equal_to(2)
     assert_that(log.call_args_list[0][0][0].batch_result).is_equal_to(

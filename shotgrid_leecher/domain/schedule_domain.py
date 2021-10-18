@@ -1,3 +1,6 @@
+from multiprocessing import Pool
+from typing import Any
+
 from starlette.concurrency import run_in_threadpool
 
 import shotgrid_leecher.repository.schedule_repo as schedule_repo
@@ -13,25 +16,32 @@ from shotgrid_leecher.writers import schedule_writer as writer, schedule_writer
 
 _LOG = get_logger(__name__.split(".")[-1])
 
+_UNROLL_BATCH_SIZE = 10
+
 
 def schedule_batch(command: ScheduleShotgridBatchCommand) -> None:
     writer.request_scheduling(command)
 
 
-async def rollin_batches() -> None:
+async def queue_scheduled_batches() -> None:
     commands = schedule_repo.fetch_batch_commands()
+    if not commands:
+        return
     await run_in_threadpool(schedule_writer.queue_requests, commands)
 
 
-async def unroll_batches() -> None:
-    for command in schedule_repo.fetch_batch_commands():
-        await run_in_threadpool(_batch_and_log, command)
+async def dequeue_and_process_batches() -> None:
+    with Pool() as pool:
+        pool.map(_batch_and_log, range(_UNROLL_BATCH_SIZE))
+    # for command in range(_UNROLL_BATCH_SIZE):
+    #     await run_in_threadpool(_batch_and_log)
 
 
-def _batch_and_log(schedule_command: ScheduleShotgridBatchCommand) -> None:
-    command = ShotgridToAvalonBatchCommand.from_dict(
-        schedule_command.to_dict()
-    )
+def _batch_and_log(_: Any) -> None:
+    request = schedule_writer.dequeue_request()
+    if not request:
+        return None
+    command = ShotgridToAvalonBatchCommand.from_dict(request.to_dict())
     try:
         result = batch_domain.update_shotgrid_in_avalon(command)
         log_command = LogBatchUpdateCommand(

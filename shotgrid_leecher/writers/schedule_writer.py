@@ -1,5 +1,5 @@
-from datetime import datetime
-from typing import Dict, Any, List
+from datetime import datetime, timedelta
+from typing import Dict, Any, List, Optional
 
 from pymongo.collection import Collection
 
@@ -25,10 +25,13 @@ def _collection(collection: DbCollection) -> Collection:
 def queue_requests(
     commands: List[ScheduleShotgridBatchCommand],
 ) -> Dict[str, Any]:
-    now = datetime.utcnow().timestamp()
+    now = datetime.utcnow()
     queue_table = _collection(DbCollection.SCHEDULE_QUEUE)
     documents = [
-        {"command": x.to_dict(), "created_at": now + i}
+        {
+            "command": x.to_dict(),
+            "created_at": now + timedelta(seconds=i * 0.01),
+        }
         for x, i in zip(commands, range(len(commands)))
     ]
     return queue_table.insert_many(documents)
@@ -46,7 +49,18 @@ def request_scheduling(
     )
 
 
+def dequeue_request() -> Optional[ScheduleShotgridBatchCommand]:
+    queue_table = _collection(DbCollection.SCHEDULE_QUEUE)
+    raw = queue_table.find_one_and_delete({}, sort=[("created_at", 1)])
+    if not raw:
+        return None
+    _LOG.debug(
+        f"Pick project {raw['command']['project_name']}, at {raw['created_at']}"
+    )
+    return ScheduleShotgridBatchCommand.from_dict(raw["command"])
+
+
 def log_batch_result(command: LogBatchUpdateCommand) -> Dict[str, Any]:
     logs_table = _collection(DbCollection.SCHEDULE_LOGS)
-    _LOG.debug(f"log batch result: {command}")
+    # _LOG.debug(f"log batch result: {command}")
     return logs_table.insert_one(command.to_dict())
