@@ -1,7 +1,6 @@
-from multiprocessing import Pool
 from typing import Any
 
-from starlette.concurrency import run_in_threadpool
+from asyncio_pool import AioPool
 
 import shotgrid_leecher.repository.schedule_repo as schedule_repo
 from shotgrid_leecher.domain import batch_domain
@@ -24,21 +23,26 @@ def schedule_batch(command: ScheduleShotgridBatchCommand) -> None:
 
 
 async def queue_scheduled_batches() -> None:
-    commands = schedule_repo.fetch_batch_commands()
+    groups = await schedule_repo.group_batch_commands()
+    already_queued = list({x.name for x in groups})
+    commands = await schedule_repo.fetch_batch_commands(already_queued)
     if not commands:
         return
-    await run_in_threadpool(schedule_writer.queue_requests, commands)
+
+    await schedule_writer.queue_requests(commands)
 
 
 async def dequeue_and_process_batches() -> None:
-    with Pool() as pool:
-        pool.map(_batch_and_log, range(_UNROLL_BATCH_SIZE))
-    # for command in range(_UNROLL_BATCH_SIZE):
-    #     await run_in_threadpool(_batch_and_log)
+    raw_count = await schedule_repo.count_projects()
+    size = int(raw_count + raw_count * 0.15 + 1)
+    pool = AioPool()
+    # for _ in range(size):
+    #     await _batch_and_log(1)
+    await pool.map(_batch_and_log, range(size))
 
 
-def _batch_and_log(_: Any) -> None:
-    request = schedule_writer.dequeue_request()
+async def _batch_and_log(_: Any) -> None:
+    request = await schedule_writer.dequeue_request()
     if not request:
         return None
     command = ShotgridToAvalonBatchCommand.from_dict(request.to_dict())
@@ -50,7 +54,7 @@ def _batch_and_log(_: Any) -> None:
             command.project_id,
             None,
         )
-        schedule_writer.log_batch_result(log_command)
+        await schedule_writer.log_batch_result(log_command)
     except Exception as ex:
         log_command = LogBatchUpdateCommand(
             BatchResult.FAILURE,
@@ -59,4 +63,4 @@ def _batch_and_log(_: Any) -> None:
             {"exception": ex.args[0]},
         )
         _LOG.error(ex)
-        schedule_writer.log_batch_result(log_command)
+        await schedule_writer.log_batch_result(log_command)
