@@ -9,4 +9,4 @@ router = APIRouter(tags=["schedule"], prefix="/schedule")
 @router.post("/{project_name}")
 async def schedule_batch(project_name: str, batch_config: BatchConfig):
     command = batch_config.to_schedule_command(project_name)
-    return schedule_domain.schedule_batch(command)
+    return await schedule_domain.schedule_batch(command)

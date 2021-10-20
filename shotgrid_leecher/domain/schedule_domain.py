@@ -18,8 +18,8 @@ _LOG = get_logger(__name__.split(".")[-1])
 _UNROLL_BATCH_SIZE = 10
 
 
-def schedule_batch(command: ScheduleShotgridBatchCommand) -> None:
-    writer.request_scheduling(command)
+async def schedule_batch(command: ScheduleShotgridBatchCommand) -> None:
+    await writer.request_scheduling(command)
 
 
 async def queue_scheduled_batches() -> Any:

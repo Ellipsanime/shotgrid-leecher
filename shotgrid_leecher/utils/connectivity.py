@@ -3,6 +3,7 @@ import threading
 from typing import List, Any, Dict
 
 import shotgun_api3 as sg
+from deprecation import deprecated
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -35,9 +36,13 @@ class ShotgridClient:
 
 
 @memoize
+@deprecated(
+    deprecated_in="very soon",
+    details="Use the async version get_async_db_client instead",
+)
 def get_db_client(connection_id=threading.get_ident()) -> MongoClient:
     # TODO log properly
-    print(f"Mongo connection initialized for id {connection_id}")
+    print(f"[DEPRECATED] Mongo connection initialized for id {connection_id}")
     return MongoClient(os.getenv("MONGODB_URL"))
 
 
