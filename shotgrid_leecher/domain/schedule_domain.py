@@ -22,22 +22,20 @@ def schedule_batch(command: ScheduleShotgridBatchCommand) -> None:
     writer.request_scheduling(command)
 
 
-async def queue_scheduled_batches() -> None:
+async def queue_scheduled_batches() -> Any:
     groups = await schedule_repo.group_batch_commands()
     already_queued = list({x.name for x in groups})
     commands = await schedule_repo.fetch_batch_commands(already_queued)
     if not commands:
         return
 
-    await schedule_writer.queue_requests(commands)
+    return await schedule_writer.queue_requests(commands)
 
 
 async def dequeue_and_process_batches() -> None:
     raw_count = await schedule_repo.count_projects()
     size = int(raw_count + raw_count * 0.15 + 1)
     pool = AioPool()
-    # for _ in range(size):
-    #     await _batch_and_log(1)
     await pool.map(_batch_and_log, range(size))
 
 
