@@ -1,12 +1,11 @@
 import random
 import uuid
 from typing import Any, Callable
-from unittest.mock import Mock
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
-from mock import AsyncMock
+from mock import Mock
 
 import shotgrid_leecher.repository.schedule_repo as schedule_repo
 from shotgrid_leecher.domain import batch_domain, schedule_domain
@@ -48,7 +47,7 @@ def _get_group_result() -> GroupAndCountResult:
 @pytest.mark.asyncio
 async def test_queue_scheduled_when_no_commands(monkeypatch: MonkeyPatch):
     # Arrange
-    group, fetch, queue = AsyncMock(), AsyncMock(), AsyncMock()
+    group, fetch, queue = Mock(), Mock(), Mock()
     group.return_value = [_get_group_result(), _get_group_result()]
     fetch.return_value = []
     monkeypatch.setattr(schedule_repo, "group_batch_commands", group)
@@ -63,7 +62,7 @@ async def test_queue_scheduled_when_no_commands(monkeypatch: MonkeyPatch):
 @pytest.mark.asyncio
 async def test_queue_scheduled_working(monkeypatch: MonkeyPatch):
     # Arrange
-    group, fetch, queue = AsyncMock(), AsyncMock(), AsyncMock()
+    group, fetch, queue = Mock(), Mock(), Mock()
     group.return_value = [_get_group_result(), _get_group_result()]
     fetch.return_value = [_get_schedule_command()]
     monkeypatch.setattr(schedule_repo, "group_batch_commands", group)
@@ -80,10 +79,10 @@ async def test_queue_scheduled_working(monkeypatch: MonkeyPatch):
 async def test_dequeue_and_process_when_success(monkeypatch: MonkeyPatch):
     # Arrange
     count, batch, dequeue, log = (
-        AsyncMock(return_value=1),
+        Mock(return_value=1),
         Mock(return_value=BatchResult.OK),
-        AsyncMock(return_value=_get_schedule_command()),
-        AsyncMock(),
+        Mock(return_value=_get_schedule_command()),
+        Mock(),
     )
 
     monkeypatch.setattr(schedule_repo, "count_projects", count)
@@ -108,10 +107,10 @@ async def test_dequeue_and_process_when_success(monkeypatch: MonkeyPatch):
 async def test_dequeue_and_process_when_no_hierarchy(monkeypatch: MonkeyPatch):
     # Arrange
     count, batch, dequeue, log = (
-        AsyncMock(return_value=0),
+        Mock(return_value=0),
         Mock(return_value=BatchResult.NO_SHOTGRID_HIERARCHY),
-        AsyncMock(return_value=_get_schedule_command()),
-        AsyncMock(),
+        Mock(return_value=_get_schedule_command()),
+        Mock(),
     )
 
     monkeypatch.setattr(schedule_repo, "count_projects", count)
@@ -132,7 +131,7 @@ async def test_dequeue_and_process_when_no_hierarchy(monkeypatch: MonkeyPatch):
 @pytest.mark.asyncio
 async def test_dequeue_and_process_when_failure(monkeypatch: MonkeyPatch):
     # Arrange
-    count, log, dequeue = AsyncMock(), AsyncMock(), AsyncMock()
+    count, log, dequeue = Mock(), Mock(), Mock()
     count.return_value = 0
     dequeue.return_value = _get_schedule_command()
     ex = "Oh no"

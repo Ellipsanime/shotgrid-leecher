@@ -17,13 +17,13 @@ _LOG = get_logger(__name__.split(".")[-1])
 
 def _collection(collection: DbCollection) -> AsyncIOMotorCollection:
     return (
-        conn.get_async_db_client()
+        conn.get_db_client()
         .get_database(DbName.SCHEDULE.value)
         .get_collection(collection.value)
     )
 
 
-async def queue_requests(
+def queue_requests(
     commands: List[ScheduleShotgridBatchCommand],
 ) -> Dict[str, Any]:
     now = datetime.utcnow()
@@ -35,24 +35,24 @@ async def queue_requests(
         }
         for x, i in zip(commands, range(len(commands)))
     ]
-    return await queue_table.insert_many(documents)
+    return queue_table.insert_many(documents)
 
 
-async def request_scheduling(
+def request_scheduling(
     command: ScheduleShotgridBatchCommand,
 ) -> Dict[str, Any]:
     projects_table = _collection(DbCollection.SCHEDULE_PROJECTS)
     query = {"$set": {"command": command.to_dict()}}
-    return await projects_table.update_one(
+    return projects_table.update_one(
         {"_id": command.project_name},
         query,
         upsert=True,
     )
 
 
-async def dequeue_request() -> Optional[ScheduleShotgridBatchCommand]:
+def dequeue_request() -> Optional[ScheduleShotgridBatchCommand]:
     queue_table = _collection(DbCollection.SCHEDULE_QUEUE)
-    raw = await queue_table.find_one_and_delete({}, sort=[("created_at", 1)])
+    raw = queue_table.find_one_and_delete({}, sort=[("created_at", 1)])
     if not raw:
         return None
     _LOG.debug(
@@ -61,18 +61,18 @@ async def dequeue_request() -> Optional[ScheduleShotgridBatchCommand]:
     return ScheduleShotgridBatchCommand.from_dict(raw["command"])
 
 
-async def log_batch_result(command: LogBatchUpdateCommand) -> Dict[str, Any]:
+def log_batch_result(command: LogBatchUpdateCommand) -> Dict[str, Any]:
     logs_table = _collection(DbCollection.SCHEDULE_LOGS)
     _LOG.debug(f"log batch result: {command}")
-    return await logs_table.insert_one(command.to_dict())
+    return logs_table.insert_one(command.to_dict())
 
 
-async def remove_scheduled_project(
+def remove_scheduled_project(
     command: CancelBatchSchedulingCommand,
 ) -> Dict[str, Any]:
     project_table = _collection(DbCollection.SCHEDULE_PROJECTS)
     _LOG.debug(f"Remove scheduling for: {command.project_name}")
-    result = await project_table.delete_one({"_id": command.project_name})
+    result = project_table.delete_one({"_id": command.project_name})
     return {
         "deleted_count": result.deleted_count,
     }

@@ -15,7 +15,6 @@ from shotgrid_leecher.record.enums import DbName, DbCollection
 from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils import connectivity as conn
-from utils.async_mongoclient import AsyncMongoClient
 
 Map = Dict[str, Any]
 
@@ -76,44 +75,39 @@ def _batch_config() -> BatchConfig:
 @pytest.mark.asyncio
 async def test_schedule_batch(monkeypatch: MonkeyPatch):
     # Arrange
-    client = AsyncMongoClient(MongoClient())
+    client = MongoClient()
     project_name = f"project_{str(uuid.uuid4())[:5]}"
-    monkeypatch.setattr(conn, "get_db_client", _fun(client.mongo_client))
-    monkeypatch.setattr(conn, "get_async_db_client", _fun(client))
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     config = _batch_config()
     # Act
     await schedule_controller.schedule_batch(project_name, config)
 
     # Assert
-    assert_that(_all_projects(client.mongo_client)).extracting(
-        "_id"
-    ).is_equal_to([project_name])
-    assert_that(_all_projects(client.mongo_client)).extracting(
-        "command"
-    ).extracting("project_id").is_equal_to([config.shotgrid_project_id])
-    assert_that(_all_projects(client.mongo_client)).extracting(
-        "command"
-    ).extracting("credentials").extracting("shotgrid_url").is_equal_to(
-        [config.shotgrid_url]
+    assert_that(_all_projects(client)).extracting("_id").is_equal_to(
+        [project_name]
     )
+    assert_that(_all_projects(client)).extracting("command").extracting(
+        "project_id"
+    ).is_equal_to([config.shotgrid_project_id])
+    assert_that(_all_projects(client)).extracting("command").extracting(
+        "credentials"
+    ).extracting("shotgrid_url").is_equal_to([config.shotgrid_url])
 
 
 @pytest.mark.asyncio
 async def test_dequeue_scheduled_batches(monkeypatch: MonkeyPatch):
     # Arrange
     size = 3
-    client = AsyncMongoClient(MongoClient())
+    client = MongoClient()
     batch = Mock(return_value=BatchResult.OK)
-    _rollin_projects(client.mongo_client, size)
+    _rollin_projects(client, size)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", batch)
-    monkeypatch.setattr(conn, "get_async_db_client", _fun(client))
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     # Act
     await schedule_domain.dequeue_and_process_batches()
 
     # Assert
-    assert_that(_all_logs(client.mongo_client)).extracting(
-        "batch_result"
-    ).is_equal_to(
+    assert_that(_all_logs(client)).extracting("batch_result").is_equal_to(
         [BatchResult.OK.value, BatchResult.OK.value, BatchResult.OK.value]
     )
 
@@ -135,17 +129,15 @@ async def test_dequeue_scheduled_batches_part_success(
             return BatchResult.NO_SHOTGRID_HIERARCHY
 
     size = 3
-    client = AsyncMongoClient(MongoClient())
-    _rollin_projects(client.mongo_client, size)
+    client = MongoClient()
+    _rollin_projects(client, size)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", _batch)
-    monkeypatch.setattr(conn, "get_async_db_client", _fun(client))
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
     # Act
     await schedule_domain.dequeue_and_process_batches()
 
     # Assert
-    assert_that(_all_logs(client.mongo_client)).extracting(
-        "batch_result"
-    ).is_equal_to(
+    assert_that(_all_logs(client)).extracting("batch_result").is_equal_to(
         [
             BatchResult.OK.value,
             BatchResult.FAILURE.value,

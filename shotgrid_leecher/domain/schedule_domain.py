@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from asyncio_pool import AioPool
+from starlette.concurrency import run_in_threadpool
 
 import shotgrid_leecher.repository.schedule_repo as schedule_repo
 from shotgrid_leecher.domain import batch_domain
@@ -20,36 +20,34 @@ _UNROLL_BATCH_SIZE = 10
 
 
 async def schedule_batch(command: ScheduleShotgridBatchCommand) -> None:
-    await writer.request_scheduling(command)
+    writer.request_scheduling(command)
 
 
-async def queue_scheduled_batches() -> Any:
-    groups = await schedule_repo.group_batch_commands()
+async def queue_scheduled_batches() -> Dict[str, Any]:
+    groups = schedule_repo.group_batch_commands()
     already_queued = list({x.name for x in groups})
-    commands = await schedule_repo.fetch_batch_commands(already_queued)
+    commands = schedule_repo.fetch_batch_commands(already_queued)
     if not commands:
-        return
+        return dict()
 
-    return await schedule_writer.queue_requests(commands)
+    return schedule_writer.queue_requests(commands)
 
 
 async def dequeue_and_process_batches() -> None:
-    raw_count = await schedule_repo.count_projects()
+    raw_count = schedule_repo.count_projects()
     size = int(raw_count + raw_count * 0.15 + 1)
-    # for x in range(size):
-    #     await _batch_and_log(x)
-    pool = AioPool()
-    await pool.map(_batch_and_log, range(size))
+    for x in range(size):
+        await run_in_threadpool(_batch_and_log, x)
 
 
 async def cancel_batch_scheduling(
     command: CancelBatchSchedulingCommand,
 ) -> Dict[str, Any]:
-    return await schedule_writer.remove_scheduled_project(command)
+    return schedule_writer.remove_scheduled_project(command)
 
 
-async def _batch_and_log(_: Any) -> None:
-    request = await schedule_writer.dequeue_request()
+def _batch_and_log(_: Any) -> None:
+    request = schedule_writer.dequeue_request()
     if not request:
         return None
     command = ShotgridToAvalonBatchCommand.from_dict(request.to_dict())
@@ -61,7 +59,7 @@ async def _batch_and_log(_: Any) -> None:
             command.project_id,
             None,
         )
-        await schedule_writer.log_batch_result(log_command)
+        schedule_writer.log_batch_result(log_command)
     except Exception as ex:
         log_command = LogBatchUpdateCommand(
             BatchResult.FAILURE,
@@ -70,4 +68,4 @@ async def _batch_and_log(_: Any) -> None:
             {"exception": ex.args[0]},
         )
         _LOG.error(ex)
-        await schedule_writer.log_batch_result(log_command)
+        schedule_writer.log_batch_result(log_command)
