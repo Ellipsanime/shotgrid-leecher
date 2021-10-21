@@ -197,6 +197,9 @@ def test_shotgrid_to_avalon_assets_with_tasks():
 
     # Assert
     assert_that(actual).is_length(4)
+    assert_that(set(actual["Fork"]["data"]["tasks"].keys())).is_subset_of(
+        set(TASK_NAMES)
+    )
 
 
 def test_shotgrid_to_avalon_assets_with_tasks_values():

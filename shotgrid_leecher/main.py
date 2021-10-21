@@ -21,14 +21,12 @@ _LOG = get_logger(__name__.split(".")[-1])
 @app.on_event("startup")
 @repeat_every(seconds=55, logger=_LOG)
 async def queue_scheduled_batches() -> None:
-    _LOG.debug("queue_scheduled_batches")
     await schedule_domain.queue_scheduled_batches()
 
 
 @app.on_event("startup")
 @repeat_every(seconds=30, logger=_LOG)
 async def dequeue_and_process_batches() -> None:
-    _LOG.debug("dequeue_and_process_batches")
     await schedule_domain.dequeue_and_process_batches()
 
 

@@ -75,7 +75,14 @@ def shotgrid_to_avalon(hierarchy_rows: List[Map]) -> Dict[str, Map]:
         parent = _get_parent(task_row)
         if parent:
             # Add task to the parent entity data
-            avalon_rows_dict[parent]["data"]["tasks"][task_row["_id"]] = {
+            raw_task_name = task_row["_id"].split("_")[0]
+            task_name = (
+                task_row["_id"]
+                if avalon_rows_dict[parent]["data"]["tasks"].get(raw_task_name)
+                else raw_task_name
+            )
+
+            avalon_rows_dict[parent]["data"]["tasks"][task_name] = {
                 "type": task_row["task_type"]
             }
             # Add task type to the project config if it doesn't exist
