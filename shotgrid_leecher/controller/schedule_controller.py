@@ -1,3 +1,5 @@
+from typing import Any, Dict, List
+
 from fastapi import APIRouter
 
 from shotgrid_leecher.domain import schedule_domain
@@ -5,6 +7,21 @@ from shotgrid_leecher.record.commands import CancelBatchSchedulingCommand
 from shotgrid_leecher.record.http_models import BatchConfig
 
 router = APIRouter(tags=["schedule"], prefix="/schedule")
+
+
+@router.get("/projects")
+async def projects() -> List[Dict[str, Any]]:
+    return []
+
+
+@router.get("/queue")
+async def queue() -> List[Dict[str, Any]]:
+    return []
+
+
+@router.get("/logs")
+async def logs() -> List[Dict[str, Any]]:
+    return []
 
 
 @router.post("/{project_name}")
