@@ -38,7 +38,7 @@ class ShotgridClient:
 def get_db_client(connection_id=threading.get_ident()) -> MongoClient:
     # TODO log properly
     print(f"Mongo connection initialized for id {connection_id}")
-    return MongoClient(os.getenv("MONGODB_URL"))
+    return MongoClient(os.getenv("MONGODB_URL"), connect=False)
 
 
 def get_collection(table: EventTables) -> Collection:
@@ -46,7 +46,10 @@ def get_collection(table: EventTables) -> Collection:
 
 
 @memoize
-def get_async_db_client() -> AsyncIOMotorClient:
+def get_async_db_client(
+    connection_id=threading.get_ident(),
+) -> AsyncIOMotorClient:
+    print(f"Mongo motor connection initialized for id {connection_id}")
     return AsyncIOMotorClient(os.getenv("MONGODB_URL"))
 
 

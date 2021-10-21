@@ -14,13 +14,75 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridHierarchyByProjectQuery,
 )
-from shotgrid_leecher.record.results import BatchCheckResult
+from shotgrid_leecher.record.results import BatchCheckResult, BatchResult
 from shotgrid_leecher.record.shotgrid_subtypes import ProjectFieldsMapping
-from shotgrid_leecher.repository import avalon_repo, hierarchy_repo
+from shotgrid_leecher.repository import (
+    avalon_repo,
+    intermediate_hierarchy_repo,
+)
 from shotgrid_leecher.utils import generator
 from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
+
+
+def check_shotgrid_before_batch(
+    command: ShotgridCheckCommand,
+) -> BatchCheckResult:
+    query = ShotgridFindProjectByIdQuery(
+        command.project_id,
+        command.credentials,
+        ProjectFieldsMapping.from_dict({}),  # TODO make it differently
+    )
+    project = entity_repo.find_project_by_id(query)
+    status = "OK" if project else "KO"
+    return BatchCheckResult(status)
+
+
+def update_shotgrid_in_avalon(
+    command: ShotgridToAvalonBatchCommand,
+) -> BatchResult:
+    shotgrid_hierarchy, dropped_ids = _fetch_and_augment_hierarchy(command)
+    if not shotgrid_hierarchy:
+        return BatchResult.NO_SHOTGRID_HIERARCHY
+    # TODO get rid of mutability and avalon_tree
+    avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
+    avalon_rows = list(avalon_tree.values())
+
+    if command.overwrite:
+        db_writer.drop_avalon_project(command.project_name)
+
+    for row in avalon_rows:
+        object_id = db_writer.upsert_avalon_row(
+            command.project_name,
+            _rearrange_parents(avalon_tree, row),
+        )
+        avalon_tree[row["name"]]["_id"] = object_id
+    db_writer.delete_avalon_rows(command.project_name, dropped_ids)
+    db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
+    return BatchResult.OK
+
+
+def create_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
+    query = ShotgridHierarchyByProjectQuery(
+        command.project_id,
+        command.credentials,
+        command.fields_mapping,
+    )
+    shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
+    # TODO get rid of mutability and avalon_tree
+    avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
+
+    if not avalon_tree:
+        return
+
+    avalon_rows = list(avalon_tree.values())
+
+    for row in avalon_rows:
+        object_id = db_writer.insert_avalon_row(
+            command.project_name, _rearrange_parents(avalon_tree, row)
+        )
+        avalon_tree[row["name"]]["_id"] = object_id
 
 
 @curry
@@ -68,25 +130,12 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
     }
 
 
-def check_shotgrid_before_batch(
-    command: ShotgridCheckCommand,
-) -> BatchCheckResult:
-    query = ShotgridFindProjectByIdQuery(
-        command.project_id,
-        command.credentials,
-        ProjectFieldsMapping.from_dict({}),  # TODO make it differently
-    )
-    project = entity_repo.find_project_by_id(query)
-    status = "OK" if project else "KO"
-    return BatchCheckResult(status)
-
-
 @curry
 def _fetch_intermediate_hierarchy(
     project_name: str, shotgrid_hierarchy: List[Map]
 ) -> List[Map]:
     intermediate_hierarchy = list(
-        hierarchy_repo.fetch_intermediates(project_name)
+        intermediate_hierarchy_repo.fetch_by_project(project_name)
     )
     if intermediate_hierarchy:
         return intermediate_hierarchy
@@ -149,46 +198,3 @@ def _propagate_deletion(
         if (x.get("parent"), x["_id"]) in deleted_ones and x.get("object_id")
     }
     return altered_hierarchy, deleted_object_ids
-
-
-def update_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
-    shotgrid_hierarchy, dropped_ids = _fetch_and_augment_hierarchy(command)
-    if not shotgrid_hierarchy:
-        return
-    # TODO get rid of mutability and avalon_tree
-    avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
-    avalon_rows = list(avalon_tree.values())
-
-    if command.overwrite:
-        db_writer.drop_avalon_project(command.project_name)
-
-    for row in avalon_rows:
-        object_id = db_writer.upsert_avalon_row(
-            command.project_name,
-            _rearrange_parents(avalon_tree, row),
-        )
-        avalon_tree[row["name"]]["_id"] = object_id
-    db_writer.delete_avalon_rows(command.project_name, dropped_ids)
-    db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
-
-
-def create_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
-    query = ShotgridHierarchyByProjectQuery(
-        command.project_id,
-        command.credentials,
-        command.fields_mapping,
-    )
-    shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
-    # TODO get rid of mutability and avalon_tree
-    avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
-
-    if not avalon_tree:
-        return
-
-    avalon_rows = list(avalon_tree.values())
-
-    for row in avalon_rows:
-        object_id = db_writer.insert_avalon_row(
-            command.project_name, _rearrange_parents(avalon_tree, row)
-        )
-        avalon_tree[row["name"]]["_id"] = object_id

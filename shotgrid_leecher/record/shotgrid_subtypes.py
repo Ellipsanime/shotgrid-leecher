@@ -1,5 +1,4 @@
 import json
-from dataclasses import field
 from typing import Dict, Any, List, cast
 
 import attr
@@ -19,7 +18,7 @@ class GenericFieldsMapping:
 
 @attr.s(auto_attribs=True, frozen=True)
 class TaskFieldsMapping(GenericFieldsMapping):
-    type: ShotgridType = field(init=False, default=ShotgridType.TASK)
+    type: ShotgridType = ShotgridType.TASK
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "TaskFieldsMapping":
@@ -36,7 +35,7 @@ class TaskFieldsMapping(GenericFieldsMapping):
 
 @attr.s(auto_attribs=True, frozen=True)
 class ShotFieldsMapping(GenericFieldsMapping):
-    type: ShotgridType = field(init=False, default=ShotgridType.SHOT)
+    type: ShotgridType = ShotgridType.SHOT
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "ShotFieldsMapping":
@@ -64,7 +63,7 @@ class ShotFieldsMapping(GenericFieldsMapping):
 
 @attr.s(auto_attribs=True, frozen=True)
 class ProjectFieldsMapping(GenericFieldsMapping):
-    type: ShotgridType = field(init=False, default=ShotgridType.PROJECT)
+    type: ShotgridType = ShotgridType.PROJECT
 
     @staticmethod
     def from_dict(dic: Dict[str, Any]) -> "ProjectFieldsMapping":
@@ -80,7 +79,7 @@ class ProjectFieldsMapping(GenericFieldsMapping):
 
 @attr.s(auto_attribs=True, frozen=True)
 class AssetFieldsMapping(GenericFieldsMapping):
-    type: ShotgridType = field(init=False, default=ShotgridType.ASSET)
+    type: ShotgridType = ShotgridType.ASSET
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "AssetFieldsMapping":

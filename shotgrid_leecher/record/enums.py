@@ -5,6 +5,14 @@ from enum import Enum, unique
 class DbName(Enum):
     AVALON = "avalon"
     INTERMEDIATE = "shotgrid_openpype"
+    SCHEDULE = "shotgrid_schedule"
+
+
+@unique
+class DbCollection(Enum):
+    SCHEDULE_PROJECTS = "projects"
+    SCHEDULE_QUEUE = "queue"
+    SCHEDULE_LOGS = "logs"
 
 
 @unique
@@ -50,7 +58,7 @@ class ShotgridField(Enum):
     NAME = "name"
     SEQUENCE = "sequence"
     EPISODE = "episode"
-    SEQUENCE_EPISODE = "sequence.episode"
+    SEQUENCE_EPISODE = "sequence_episode"
     CUT_DURATION = "cut_duration"
     FRAME_RATE = "frame_rate"
     CUT_IN = "cut_in"

@@ -5,7 +5,10 @@ from pydantic import BaseModel, Field, validator
 from pydantic.fields import ModelField
 from pydantic.main import ModelMetaclass
 
-from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
+from shotgrid_leecher.record.commands import (
+    ShotgridToAvalonBatchCommand,
+    ScheduleShotgridBatchCommand,
+)
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
 
@@ -16,7 +19,7 @@ class BatchConfig(BaseModel):
     script_name: str = Field(None, title="Shotgrid script name")
     script_key: str = Field(None, title="Shotgrid script key")
     overwrite: bool = Field(
-        None,
+        default=False,
         title="Flag that specifies whether batch "
         "should overwrite existing data or not",
     )
@@ -40,19 +43,30 @@ class BatchConfig(BaseModel):
             raise ValueError(f'Model field "{field.name}" can be null')
         return value
 
-    def to_batch_command(
-        self,
-        project_name: str,
-    ) -> ShotgridToAvalonBatchCommand:
-        credentials = ShotgridCredentials(
+    def _get_credentials(self) -> ShotgridCredentials:
+        return ShotgridCredentials(
             self.shotgrid_url,
             self.script_name,
             self.script_key,
         )
+
+    def to_schedule_command(
+        self, project_name: str
+    ) -> ScheduleShotgridBatchCommand:
+        return ScheduleShotgridBatchCommand(
+            self.shotgrid_project_id,
+            project_name,
+            self._get_credentials(),
+            FieldsMapping.from_dict(self.fields_mapping),
+        )
+
+    def to_batch_command(
+        self, project_name: str
+    ) -> ShotgridToAvalonBatchCommand:
         return ShotgridToAvalonBatchCommand(
             self.shotgrid_project_id,
             project_name,
             self.overwrite,
-            credentials,
+            self._get_credentials(),
             FieldsMapping.from_dict(self.fields_mapping),
         )
