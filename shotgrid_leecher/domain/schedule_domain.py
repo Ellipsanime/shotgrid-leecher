@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 
 from asyncio_pool import AioPool
 
@@ -8,6 +8,7 @@ from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
     ShotgridToAvalonBatchCommand,
     LogBatchUpdateCommand,
+    CancelBatchSchedulingCommand,
 )
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils.logger import get_logger
@@ -35,8 +36,16 @@ async def queue_scheduled_batches() -> Any:
 async def dequeue_and_process_batches() -> None:
     raw_count = await schedule_repo.count_projects()
     size = int(raw_count + raw_count * 0.15 + 1)
+    # for x in range(size):
+    #     await _batch_and_log(x)
     pool = AioPool()
     await pool.map(_batch_and_log, range(size))
+
+
+async def cancel_batch_scheduling(
+    command: CancelBatchSchedulingCommand,
+) -> Dict[str, Any]:
+    return await schedule_writer.remove_scheduled_project(command)
 
 
 async def _batch_and_log(_: Any) -> None:

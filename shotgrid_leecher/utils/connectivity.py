@@ -43,7 +43,7 @@ class ShotgridClient:
 def get_db_client(connection_id=threading.get_ident()) -> MongoClient:
     # TODO log properly
     print(f"[DEPRECATED] Mongo connection initialized for id {connection_id}")
-    return MongoClient(os.getenv("MONGODB_URL"))
+    return MongoClient(os.getenv("MONGODB_URL"), connect=False)
 
 
 def get_collection(table: EventTables) -> Collection:

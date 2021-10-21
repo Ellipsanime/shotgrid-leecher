@@ -11,6 +11,11 @@ from shotgrid_leecher.utils.strings import attr_value_to_dict
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class CancelBatchSchedulingCommand:
+    project_name: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridToAvalonBatchCommand:
     project_id: int
     project_name: str

@@ -7,6 +7,7 @@ import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
     LogBatchUpdateCommand,
+    CancelBatchSchedulingCommand,
 )
 from shotgrid_leecher.record.enums import DbName, DbCollection
 from shotgrid_leecher.utils.logger import get_logger
@@ -64,3 +65,14 @@ async def log_batch_result(command: LogBatchUpdateCommand) -> Dict[str, Any]:
     logs_table = _collection(DbCollection.SCHEDULE_LOGS)
     _LOG.debug(f"log batch result: {command}")
     return await logs_table.insert_one(command.to_dict())
+
+
+async def remove_scheduled_project(
+    command: CancelBatchSchedulingCommand,
+) -> Dict[str, Any]:
+    project_table = _collection(DbCollection.SCHEDULE_PROJECTS)
+    _LOG.debug(f"Remove scheduling for: {command.project_name}")
+    result = await project_table.delete_one({"_id": command.project_name})
+    return {
+        "deleted_count": result.deleted_count,
+    }
