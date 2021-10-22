@@ -123,7 +123,7 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
 
     # Assert
     assert_that(_all_avalon(client, "asset")).extracting(
-        "data", filter=lambda x: x["data"].get("clipIn") > 10
+        "data", filter=lambda x: (x["data"].get("clipIn") or 0) > 10
     ).extracting("clipIn").is_equal_to(
         [
             x["sg_cut_in"]
@@ -132,7 +132,7 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
         ],
     )
     assert_that(_all_avalon(client, "asset")).extracting(
-        "data", filter=lambda x: x["data"].get("clipOut") > 10
+        "data", filter=lambda x: (x["data"].get("clipOut") or 0) > 10
     ).extracting("clipOut").is_equal_to(
         [
             x["sg_cut_out"]

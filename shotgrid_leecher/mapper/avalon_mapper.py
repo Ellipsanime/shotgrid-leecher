@@ -122,25 +122,27 @@ def _create_avalon_entity_rows(
 
 def _default_avalon_data() -> Map:
     return {
-        "clipIn": 1,
-        "clipOut": 1,
-        "fps": 25.0,
-        "frameEnd": 0,
-        "frameStart": 0,
-        "handleEnd": 0,
-        "handleStart": 0,
-        "pixelAspect": 0,
-        "resolutionHeight": 0,
-        "resolutionWidth": 0,
+        # "clipIn": 1,
+        # "clipOut": 1,
+        # "fps": 25.0,
+        # "frameEnd": 0,
+        # "frameStart": 0,
+        # "handleEnd": 0,
+        # "handleStart": 0,
+        # "pixelAspect": 0,
+        # "resolutionHeight": 0,
+        # "resolutionWidth": 0,
         "tools_env": [],
+        "library_project": False,
     }
 
 
 def _default_avalon_project_data() -> Map:
-    data = _default_avalon_data()
-    data["code"] = ""
-    data["library_project"] = False
-    return data
+    # data = _default_avalon_data()
+    # data["code"] = ""
+    # data["library_project"] = False
+    # return data
+    return _default_avalon_data()
 
 
 def _default_avalon_asset_data() -> Map:
