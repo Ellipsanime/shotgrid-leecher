@@ -466,3 +466,29 @@ async def test_update_shotgrid_when_some_assets_deleted(
     assert_that(_all_avalon(client)).is_length(
         len(delete_asset_data.AVALON_DATA) - 2
     )
+
+
+@pytest.mark.asyncio
+async def test_update_shotgrid_to_avalon_rename_collection(
+    monkeypatch: MonkeyPatch,
+):
+    # Arrange
+    client = MongoClient()
+    project = _get_project()
+    data = [project]
+
+    openpype_project_name = str(uuid.uuid4())[0:8]
+    # client.get_database(DbName.AVALON.value).get_collection(openpype_project_name)
+    # client.get_database(DbName.INTERMEDIATE.value).get_collection(openpype_project_name)
+
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+
+    # Act
+    await batch_controller.batch(openpype_project_name, _batch_config())
+
+    # Assert
+    assert_that(_avalon_collections(client)).is_equal_to([project["_id"]])
+    assert_that(_intermediate_collections(client)).is_equal_to(
+        [project["_id"]]
+    )

@@ -18,6 +18,14 @@ def _avalon_collection(project_name: str) -> Collection:
     )
 
 
+def _hierarchy_collection(project_name: str) -> Collection:
+    return (
+        conn.get_db_client()
+        .get_database(DbName.INTERMEDIATE.value)
+        .get_collection(project_name)
+    )
+
+
 def overwrite_hierarchy(project_name: str, hierarchy_rows: List[Map]):
     db = conn.get_db_client().get_database(DbName.INTERMEDIATE.value)
     db.drop_collection(project_name)
@@ -50,3 +58,12 @@ def drop_avalon_project(project_name: str):
     db = conn.get_db_client().get_database(DbName.AVALON.value)
     db.drop_collection(project_name)
     db.create_collection(project_name)
+
+
+def rename_project_collections(
+    project_name: str, new_project_name: str, overwrite: bool = False
+):
+    _avalon_collection(project_name).rename(new_project_name,
+                                            dropTarget=overwrite)
+    _hierarchy_collection(project_name).rename(new_project_name,
+                                               dropTarget=overwrite)

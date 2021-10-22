@@ -118,7 +118,7 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
 
 def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Arrange
-    client = MongoClient()
+    client = Mock()
     data = [_get_project()]
     last_batch_data = [{**x, "object_id": ObjectId()} for x in data]
 
@@ -293,4 +293,44 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     assert_that(call_list).is_length(4)
     assert_that(call_list[0]["_id"]).is_equal_to(
         last_batch_data[0]["object_id"]
+    )
+
+
+def test_shotgrid_to_avalon_batch_update_collection_rename(
+    monkeypatch: MonkeyPatch
+):
+    # Arrange
+    client = MongoClient()
+    data = [_get_project()]
+
+    rename_mock = Mock()
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
+    monkeypatch.setattr(db_writer, "rename_project_collections", rename_mock)
+
+    openpype_project_name = str(uuid.uuid4())[0:8]
+    overwrite = bool(random.getrandbits(1))
+
+    command = ShotgridToAvalonBatchCommand(
+        123,
+        openpype_project_name,
+        overwrite,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
+    )
+
+    # Act
+    sut.update_shotgrid_in_avalon(command)
+
+    # Assert
+    assert_that(rename_mock.call_count).is_equal_to(1)
+    assert_that(rename_mock.call_args_list[0][0]).is_length(3)
+    assert_that(rename_mock.call_args_list[0][0][0]).is_equal_to(
+        openpype_project_name
+    )
+    assert_that(rename_mock.call_args_list[0][0][1]).is_equal_to(
+        data[0]['_id']
+    )
+    assert_that(rename_mock.call_args_list[0][0][2]).is_equal_to(
+        overwrite
     )

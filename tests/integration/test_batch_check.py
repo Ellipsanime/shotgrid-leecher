@@ -44,7 +44,6 @@ async def test_batch_check(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     # Act
     actual = await batch_controller.batch_check(
-        project_id,
         "http://google.com",
         123,
         "1",

@@ -2,6 +2,7 @@ from typing import Dict, Any, List, Iterator, Set, Tuple, Optional
 
 from bson.objectid import ObjectId
 from toolz import get_in, curry, pipe
+from pymongo.errors import OperationFailure
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
@@ -48,6 +49,7 @@ def update_shotgrid_in_avalon(
     # TODO get rid of mutability and avalon_tree
     avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
     avalon_rows = list(avalon_tree.values())
+    shotgrid_project_name = avalon_rows[0]['name']
 
     if command.overwrite:
         db_writer.drop_avalon_project(command.project_name)
@@ -60,6 +62,14 @@ def update_shotgrid_in_avalon(
         avalon_tree[row["name"]]["_id"] = object_id
     db_writer.delete_avalon_rows(command.project_name, dropped_ids)
     db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
+
+    if command.project_name != shotgrid_project_name:
+        try:
+            db_writer.rename_project_collections(command.project_name,
+                                                 shotgrid_project_name,
+                                                 command.overwrite)
+        except OperationFailure as e:
+            pass
     return BatchResult.OK
 
 
