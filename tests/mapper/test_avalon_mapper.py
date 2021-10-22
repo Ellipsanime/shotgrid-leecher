@@ -1,5 +1,6 @@
 import random
 import uuid
+from functools import partial
 
 from assertpy import assert_that
 
@@ -188,6 +189,7 @@ def test_shotgrid_to_avalon_assets_hierarchy():
 
 def test_shotgrid_to_avalon_assets_with_tasks():
     # Arrange
+    match = partial(filter, lambda x: "_" not in x)
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset_with_tasks(asset_grp, 3)]
@@ -197,7 +199,7 @@ def test_shotgrid_to_avalon_assets_with_tasks():
 
     # Assert
     assert_that(actual).is_length(4)
-    assert_that(set(actual["Fork"]["data"]["tasks"].keys())).is_subset_of(
+    assert_that(match(actual["Fork"]["data"]["tasks"].keys())).is_subset_of(
         set(TASK_NAMES)
     )
 
