@@ -55,7 +55,7 @@ def _rollin_projects(client: MongoClient, n=2):
         [
             {
                 "command": x.to_dict(),
-                "created_at": datetime.utcnow(),
+                "datetime": datetime.utcnow(),
             }
             for x in batches
         ]

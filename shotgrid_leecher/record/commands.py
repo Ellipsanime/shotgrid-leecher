@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime as dt
 from typing import Dict, Any
 
 import attr
@@ -59,7 +59,7 @@ class LogBatchUpdateCommand:
     project_name: str
     project_id: int
     data: Any
-    created_at: datetime = attr.ib(default=datetime.now())
+    datetime: dt = attr.ib(default=dt.now())
 
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self, value_serializer=attr_value_to_dict)

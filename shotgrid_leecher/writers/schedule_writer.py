@@ -26,12 +26,12 @@ def _collection(collection: DbCollection) -> AsyncIOMotorCollection:
 def queue_requests(
     commands: List[ScheduleShotgridBatchCommand],
 ) -> Dict[str, Any]:
-    now = datetime.utcnow()
+    now = datetime.now()
     queue_table = _collection(DbCollection.SCHEDULE_QUEUE)
     documents = [
         {
             "command": x.to_dict(),
-            "created_at": now + timedelta(seconds=i * 0.01),
+            "datetime": now + timedelta(seconds=i * 0.01),
         }
         for x, i in zip(commands, range(len(commands)))
     ]
@@ -41,8 +41,9 @@ def queue_requests(
 def request_scheduling(
     command: ScheduleShotgridBatchCommand,
 ) -> Dict[str, Any]:
+    now = datetime.now()
     projects_table = _collection(DbCollection.SCHEDULE_PROJECTS)
-    query = {"$set": {"command": command.to_dict()}}
+    query = {"$set": {"command": command.to_dict(), "datetime": now}}
     return projects_table.update_one(
         {"_id": command.project_name},
         query,
@@ -52,11 +53,11 @@ def request_scheduling(
 
 def dequeue_request() -> Optional[ScheduleShotgridBatchCommand]:
     queue_table = _collection(DbCollection.SCHEDULE_QUEUE)
-    raw = queue_table.find_one_and_delete({}, sort=[("created_at", 1)])
+    raw = queue_table.find_one_and_delete({}, sort=[("datetime", 1)])
     if not raw:
         return None
     _LOG.debug(
-        f"Pick project {raw['command']['project_name']}, at {raw['created_at']}"
+        f"Pick project {raw['command']['project_name']}, at {raw['datetime']}"
     )
     return ScheduleShotgridBatchCommand.from_dict(raw["command"])
 
