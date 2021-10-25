@@ -11,6 +11,7 @@ from mongomock.object_id import ObjectId
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
+from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
@@ -133,7 +134,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
 
     command = ShotgridToAvalonBatchCommand(
         123,
-        "test",
+        data[0]['_id'],
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
@@ -296,17 +297,15 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     )
 
 
-def test_shotgrid_to_avalon_batch_update_collection_rename(
+def test_shotgrid_to_avalon_batch_update_wrong_project_name(
     monkeypatch: MonkeyPatch
 ):
     # Arrange
     client = MongoClient()
     data = [_get_project()]
 
-    rename_mock = Mock()
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(db_writer, "rename_project_collections", rename_mock)
 
     openpype_project_name = str(uuid.uuid4())[0:8]
     overwrite = bool(random.getrandbits(1))
@@ -320,17 +319,7 @@ def test_shotgrid_to_avalon_batch_update_collection_rename(
     )
 
     # Act
-    sut.update_shotgrid_in_avalon(command)
+    res = sut.update_shotgrid_in_avalon(command)
 
     # Assert
-    assert_that(rename_mock.call_count).is_equal_to(1)
-    assert_that(rename_mock.call_args_list[0][0]).is_length(3)
-    assert_that(rename_mock.call_args_list[0][0][0]).is_equal_to(
-        openpype_project_name
-    )
-    assert_that(rename_mock.call_args_list[0][0][1]).is_equal_to(
-        data[0]['_id']
-    )
-    assert_that(rename_mock.call_args_list[0][0][2]).is_equal_to(
-        overwrite
-    )
+    assert_that(res).is_equal_to(BatchResult.WRONG_PROJECT_NAME)

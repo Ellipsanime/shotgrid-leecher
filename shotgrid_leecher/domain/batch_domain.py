@@ -51,6 +51,9 @@ def update_shotgrid_in_avalon(
     avalon_rows = list(avalon_tree.values())
     shotgrid_project_name = avalon_rows[0]['name']
 
+    if command.project_name != shotgrid_project_name:
+        return BatchResult.WRONG_PROJECT_NAME
+
     if command.overwrite:
         db_writer.drop_avalon_project(command.project_name)
 
@@ -63,13 +66,6 @@ def update_shotgrid_in_avalon(
     db_writer.delete_avalon_rows(command.project_name, dropped_ids)
     db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
 
-    if command.project_name != shotgrid_project_name:
-        try:
-            db_writer.rename_project_collections(command.project_name,
-                                                 shotgrid_project_name,
-                                                 command.overwrite)
-        except OperationFailure as e:
-            pass
     return BatchResult.OK
 
 
@@ -93,7 +89,6 @@ def create_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
             command.project_name, _rearrange_parents(avalon_tree, row)
         )
         avalon_tree[row["name"]]["_id"] = object_id
-
 
 @curry
 def _assign_object_ids(

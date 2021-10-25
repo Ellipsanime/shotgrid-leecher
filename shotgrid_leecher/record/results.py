@@ -29,4 +29,5 @@ class GroupAndCountResult:
 class BatchResult(Enum):
     FAILURE = "Failure"
     NO_SHOTGRID_HIERARCHY = "No_Shotgrid_Hierarchy"
+    WRONG_PROJECT_NAME = "Openpype_project_name_is_different_from_shotgrid_project_name"
     OK = "Ok"

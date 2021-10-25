@@ -20,6 +20,7 @@ from asset import (
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import DbName
 from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils import generator
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -469,7 +470,7 @@ async def test_update_shotgrid_when_some_assets_deleted(
 
 
 @pytest.mark.asyncio
-async def test_update_shotgrid_to_avalon_rename_collection(
+async def test_update_shotgrid_to_avalon_wrong_project_name(
     monkeypatch: MonkeyPatch,
 ):
     # Arrange
@@ -485,10 +486,7 @@ async def test_update_shotgrid_to_avalon_rename_collection(
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
 
     # Act
-    await batch_controller.batch(openpype_project_name, _batch_config())
+    res = await batch_controller.batch(openpype_project_name, _batch_config())
 
     # Assert
-    assert_that(_avalon_collections(client)).is_equal_to([project["_id"]])
-    assert_that(_intermediate_collections(client)).is_equal_to(
-        [project["_id"]]
-    )
+    assert_that(res).is_equal_to(BatchResult.WRONG_PROJECT_NAME)
