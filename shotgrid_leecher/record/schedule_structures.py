@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Optional, Any, Dict
 
 import attr
-import cattr
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -15,10 +14,19 @@ class ScheduleLog:
     data: Optional[Dict[str, Any]]
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "ScheduleLog":
-        raw_dic = {"id" if k == "_id" else k: v for k, v in dic.items()}
-        return cattr.structure(
-            {**raw_dic, "id": str(raw_dic["id"])}, ScheduleLog
+    def from_dict(raw_dic: Dict[str, Any]) -> "ScheduleLog":
+        dic: Dict[str, Any] = {
+            **{k: v for k, v in raw_dic.items() if k != "_id"},
+            "id": str(raw_dic["_id"]),
+        }
+
+        return ScheduleLog(
+            id=dic["id"],
+            project_id=dic["project_id"],
+            project_name=dic["project_name"],
+            datetime=dic["datetime"],
+            batch_result=dic["batch_result"],
+            data=dic["data"],
         )
 
 
@@ -29,14 +37,18 @@ class ScheduleProject:
     datetime: datetime
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "ScheduleProject":
+    def from_dict(raw_dic: Dict[str, Any]) -> "ScheduleProject":
         keys = set(attr.fields_dict(ScheduleProject).keys())
-        commands = dic.get("command", dict()).items()
-        raw_dic = {
+        commands = raw_dic.get("command", dict()).items()
+        dic: Dict[str, Any] = {
             **{k: v for k, v in commands if k in keys},
-            **{k: v for k, v in dic.items() if k in keys},
+            **{k: v for k, v in raw_dic.items() if k in keys},
         }
-        return cattr.structure(raw_dic, ScheduleProject)
+        return ScheduleProject(
+            project_id=dic["project_id"],
+            project_name=dic["project_name"],
+            datetime=dic["datetime"],
+        )
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -47,14 +59,18 @@ class ScheduleQueueItem:
     datetime: datetime
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "ScheduleQueueItem":
+    def from_dict(raw_dic: Dict[str, Any]) -> "ScheduleQueueItem":
         keys = set(attr.fields_dict(ScheduleQueueItem).keys())
-        upper = {"id" if k == "_id" else k: v for k, v in dic.items()}
-        commands = dic.get("command", dict()).items()
-        raw_dic = {
+        upper = {"id" if k == "_id" else k: v for k, v in raw_dic.items()}
+        commands = raw_dic.get("command", dict()).items()
+        dic: Dict[str, Any] = {
             **{k: v for k, v in commands if k in keys},
             **{k: v for k, v in upper.items() if k in keys},
+            "id": str(upper["id"]),
         }
-        return cattr.structure(
-            {**raw_dic, "id": str(raw_dic["id"])}, ScheduleQueueItem
+        return ScheduleQueueItem(
+            id=dic["id"],
+            project_name=dic["project_name"],
+            project_id=dic["project_id"],
+            datetime=dic["datetime"],
         )

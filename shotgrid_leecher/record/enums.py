@@ -1,5 +1,23 @@
 from enum import Enum, unique
 
+from shotgrid_leecher.utils.functional import try_or
+
+
+@unique
+class QueryStringType(Enum):
+    STR = str
+    INT = int
+    FLOAT = float
+
+    @staticmethod
+    def from_param(type_name: str) -> "QueryStringType":
+        if not type_name:
+            return QueryStringType.STR
+        return try_or(
+            lambda: QueryStringType[type_name.strip().upper()],
+            QueryStringType.STR,
+        )
+
 
 @unique
 class DbName(Enum):
