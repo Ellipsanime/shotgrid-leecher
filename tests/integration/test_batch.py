@@ -4,8 +4,9 @@ from typing import Any, Dict, Callable, List
 from unittest.mock import Mock
 
 import pytest
+from fastapi import HTTPException
 from _pytest.monkeypatch import MonkeyPatch
-from assertpy import assert_that
+from assertpy import assert_that, fail
 from mongomock import MongoClient, ObjectId
 from mongomock.collection import Collection
 
@@ -244,9 +245,14 @@ async def test_update_shotgrid_to_avalon_update_project_with_different_source_na
     ).insert_one(project_avalon_init_data)
     
     # Act
-    await batch_controller.batch(
-        "fictitious_project_name", _batch_config(False)
-    )
+    try:
+        await batch_controller.batch(
+            "fictitious_project_name", _batch_config(False)
+        )
+        fail("Test Should have raise HTTPException 500")
+    except HTTPException as e:
+         assert_that(e.status_code).is_equal_to(500)
+
 
     # Assert
     assert_that(_all_avalon(client)).is_length(1)
@@ -467,26 +473,3 @@ async def test_update_shotgrid_when_some_assets_deleted(
     assert_that(_all_avalon(client)).is_length(
         len(delete_asset_data.AVALON_DATA) - 2
     )
-
-
-@pytest.mark.asyncio
-async def test_update_shotgrid_to_avalon_wrong_project_name(
-    monkeypatch: MonkeyPatch,
-):
-    # Arrange
-    client = MongoClient()
-    project = _get_project()
-    data = [project]
-
-    openpype_project_name = str(uuid.uuid4())[0:8]
-    # client.get_database(DbName.AVALON.value).get_collection(openpype_project_name)
-    # client.get_database(DbName.INTERMEDIATE.value).get_collection(openpype_project_name)
-
-    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
-    monkeypatch.setattr(conn, "get_db_client", _fun(client))
-
-    # Act
-    res = await batch_controller.batch(openpype_project_name, _batch_config())
-
-    # Assert
-    assert_that(res).is_equal_to(BatchResult.WRONG_PROJECT_NAME)

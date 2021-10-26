@@ -2,7 +2,6 @@ from typing import Dict, Any, List, Iterator, Set, Tuple, Optional
 
 from bson.objectid import ObjectId
 from toolz import get_in, curry, pipe
-from pymongo.errors import OperationFailure
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
@@ -36,7 +35,7 @@ def check_shotgrid_before_batch(
         ProjectFieldsMapping.from_dict({}),  # TODO make it differently
     )
     project = entity_repo.find_project_by_id(query)
-    status = "OK" if project else "KO"
+    status = project.name if project else "KO"
     return BatchCheckResult(status)
 
 
@@ -65,7 +64,6 @@ def update_shotgrid_in_avalon(
         avalon_tree[row["name"]]["_id"] = object_id
     db_writer.delete_avalon_rows(command.project_name, dropped_ids)
     db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
-
     return BatchResult.OK
 
 
@@ -89,6 +87,7 @@ def create_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
             command.project_name, _rearrange_parents(avalon_tree, row)
         )
         avalon_tree[row["name"]]["_id"] = object_id
+
 
 @curry
 def _assign_object_ids(

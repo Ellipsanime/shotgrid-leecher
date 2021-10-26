@@ -1,13 +1,14 @@
 from typing import Dict, Any
 
 from attr import asdict
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from shotgrid_leecher.domain import batch_domain
 from shotgrid_leecher.record.commands import (
     ShotgridCheckCommand,
 )
 from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 
 router = APIRouter(tags=["batch"], prefix="/batch")
@@ -16,7 +17,12 @@ router = APIRouter(tags=["batch"], prefix="/batch")
 @router.post("/{project_name}")
 async def batch(project_name: str, batch_config: BatchConfig):
     command = batch_config.to_batch_command(project_name)
-    return batch_domain.update_shotgrid_in_avalon(command)
+    res = batch_domain.update_shotgrid_in_avalon(command)
+
+    if res == BatchResult.WRONG_PROJECT_NAME:
+        raise HTTPException(status_code=500, detail="Openpype and Shotgrid project name does not correspond")
+
+    return res
 
 
 @router.get("/check")
