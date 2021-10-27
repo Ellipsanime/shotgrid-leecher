@@ -35,7 +35,7 @@ def check_shotgrid_before_batch(
         ProjectFieldsMapping.from_dict({}),  # TODO make it differently
     )
     project = entity_repo.find_project_by_id(query)
-    status = "OK" if project else "KO"
+    status = project.name if project else "KO"
     return BatchCheckResult(status)
 
 
@@ -48,6 +48,10 @@ def update_shotgrid_in_avalon(
     # TODO get rid of mutability and avalon_tree
     avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
     avalon_rows = list(avalon_tree.values())
+    shotgrid_project_name = avalon_rows[0]['name']
+
+    if command.project_name != shotgrid_project_name:
+        return BatchResult.WRONG_PROJECT_NAME
 
     if command.overwrite:
         db_writer.drop_avalon_project(command.project_name)

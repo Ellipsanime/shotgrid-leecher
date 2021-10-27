@@ -11,6 +11,7 @@ from mongomock.object_id import ObjectId
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
+from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
@@ -118,7 +119,7 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
 
 def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Arrange
-    client = MongoClient()
+    client = Mock()
     data = [_get_project()]
     last_batch_data = [{**x, "object_id": ObjectId()} for x in data]
 
@@ -133,7 +134,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
 
     command = ShotgridToAvalonBatchCommand(
         123,
-        "test",
+        data[0]['_id'],
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
@@ -294,3 +295,31 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     assert_that(call_list[0]["_id"]).is_equal_to(
         last_batch_data[0]["object_id"]
     )
+
+
+def test_shotgrid_to_avalon_batch_update_wrong_project_name(
+    monkeypatch: MonkeyPatch
+):
+    # Arrange
+    client = MongoClient()
+    data = [_get_project()]
+
+    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
+
+    openpype_project_name = str(uuid.uuid4())[0:8]
+    overwrite = bool(random.getrandbits(1))
+
+    command = ShotgridToAvalonBatchCommand(
+        123,
+        openpype_project_name,
+        overwrite,
+        ShotgridCredentials("", "", ""),
+        _default_fields_mapping(),
+    )
+
+    # Act
+    res = sut.update_shotgrid_in_avalon(command)
+
+    # Assert
+    assert_that(res).is_equal_to(BatchResult.WRONG_PROJECT_NAME)

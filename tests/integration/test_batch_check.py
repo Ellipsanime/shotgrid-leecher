@@ -1,3 +1,4 @@
+import uuid
 from typing import Dict, Any, Callable, List, Union
 from unittest.mock import Mock
 
@@ -42,9 +43,9 @@ async def test_batch_check(monkeypatch: MonkeyPatch):
     project_id = fields_mapping_data.PROJECT_ID
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
+
     # Act
     actual = await batch_controller.batch_check(
-        project_id,
         "http://google.com",
         123,
         "1",
@@ -52,4 +53,6 @@ async def test_batch_check(monkeypatch: MonkeyPatch):
     )
 
     # Assert
-    assert_that(BatchCheckResult(**actual)).is_equal_to(BatchCheckResult("OK"))
+    assert_that(BatchCheckResult(**actual)).is_equal_to(
+        BatchCheckResult(project["name"])
+    )

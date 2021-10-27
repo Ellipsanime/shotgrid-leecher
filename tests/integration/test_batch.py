@@ -4,8 +4,9 @@ from typing import Any, Dict, Callable, List
 from unittest.mock import Mock
 
 import pytest
+from fastapi import HTTPException
 from _pytest.monkeypatch import MonkeyPatch
-from assertpy import assert_that
+from assertpy import assert_that, fail
 from mongomock import MongoClient, ObjectId
 from mongomock.collection import Collection
 
@@ -20,6 +21,7 @@ from asset import (
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import DbName
 from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils import generator
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -243,9 +245,14 @@ async def test_update_shotgrid_to_avalon_update_project_with_different_source_na
     ).insert_one(project_avalon_init_data)
     
     # Act
-    await batch_controller.batch(
-        "fictitious_project_name", _batch_config(False)
-    )
+    try:
+        await batch_controller.batch(
+            "fictitious_project_name", _batch_config(False)
+        )
+        fail("Test Should have raise HTTPException 500")
+    except HTTPException as e:
+         assert_that(e.status_code).is_equal_to(500)
+
 
     # Assert
     assert_that(_all_avalon(client)).is_length(1)

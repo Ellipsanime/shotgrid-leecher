@@ -49,7 +49,6 @@ class ScheduleShotgridBatchCommand:
 
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridCheckCommand:
-    project_name: str
     project_id: int
     credentials: ShotgridCredentials
 
