@@ -1,5 +1,9 @@
 ## Shotgrid Leecher change Log
 
+### [0.0.4] New Batch API
+#### Oct 27 - 2021
+ - Check Batch API now return the Shotgrid project name when valid
+ - The Batch API now return an error 500 if the Openpype project name and the Shotgrid project name differres
 
 ### [0.0.3] Batches scheduling
 #### Oct 21 - 2021
