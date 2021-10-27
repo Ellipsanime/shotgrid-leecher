@@ -58,6 +58,7 @@ class LogBatchUpdateCommand:
     batch_result: BatchResult
     project_name: str
     project_id: int
+    duration: float
     data: Any
     datetime: dt = attr.ib(default=dt.now())
 

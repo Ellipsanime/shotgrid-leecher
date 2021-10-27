@@ -5,14 +5,15 @@ from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 
 import shotgrid_leecher.controller.batch_controller as batch
+import shotgrid_leecher.controller.metadata_controller as meta
 import shotgrid_leecher.controller.schedule_controller as schedule
-import shotgrid_leecher.controller.version_controller as version
+from shotgrid_leecher.const import PROJECT_META
 from shotgrid_leecher.domain import schedule_domain
 from shotgrid_leecher.utils.logger import get_logger
 
-app = FastAPI()
+app = FastAPI(**PROJECT_META)
 app.include_router(batch.router)
-app.include_router(version.router)
+app.include_router(meta.router)
 app.include_router(schedule.router)
 
 _LOG = get_logger(__name__.split(".")[-1])
