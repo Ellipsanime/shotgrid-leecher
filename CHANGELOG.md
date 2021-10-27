@@ -7,6 +7,7 @@
 #### Nov 08 - 2021
  - Propagate project data (fps, tool env, aspect ratio, etc) to all its descendants throughout the hierarchy
  - Wire up shotgrid project code with its avalon alternative
+ 
 ### [0.0.4] New Batch API
 #### Oct 27 - 2021
  - Check Batch API now return the Shotgrid project name when valid
