@@ -1,3 +1,4 @@
+import time
 from typing import Any, Dict
 
 from starlette.concurrency import run_in_threadpool
@@ -11,6 +12,7 @@ from shotgrid_leecher.record.commands import (
     CancelBatchSchedulingCommand,
 )
 from shotgrid_leecher.record.results import BatchResult
+from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.utils.logger import get_logger
 from shotgrid_leecher.writers import schedule_writer as writer, schedule_writer
 
@@ -51,12 +53,14 @@ def _batch_and_log(_: Any) -> None:
     if not request:
         return None
     command = ShotgridToAvalonBatchCommand.from_dict(request.to_dict())
+    start = time.time()
     try:
         result = batch_domain.update_shotgrid_in_avalon(command)
         log_command = LogBatchUpdateCommand(
             result,
             command.project_name,
             command.project_id,
+            time.time() - start,
             None,
         )
         schedule_writer.log_batch_result(log_command)
@@ -65,7 +69,8 @@ def _batch_and_log(_: Any) -> None:
             BatchResult.FAILURE,
             command.project_name,
             command.project_id,
-            {"exception": ex.args[0]},
+            time.time() - start,
+            {"exception": try_or(lambda x: x[0], ex.args, ex.args)},
         )
         _LOG.error(ex)
         schedule_writer.log_batch_result(log_command)

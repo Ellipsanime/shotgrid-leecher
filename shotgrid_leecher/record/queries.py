@@ -1,3 +1,5 @@
+from typing import Any, Dict, Optional, List, Tuple
+
 import attr
 from toolz import curry
 
@@ -10,6 +12,25 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotFieldsMapping,
     TaskFieldsMapping,
 )
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class FindEntityQuery:
+    _MAX_LIMIT = 25
+
+    filter: Dict[str, Any] = dict()
+    sort: List[Tuple[str, Any]] = []
+    skip: Optional[int] = None
+    limit: Optional[int] = None
+
+    def skip_or_default(self) -> int:
+        return self.skip or 0
+
+    def limit_or_default(self) -> int:
+        return min(
+            FindEntityQuery._MAX_LIMIT,
+            self.limit or FindEntityQuery._MAX_LIMIT,
+        )
 
 
 @attr.s(auto_attribs=True, frozen=True)

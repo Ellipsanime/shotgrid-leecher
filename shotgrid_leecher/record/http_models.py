@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, validator
@@ -9,8 +9,43 @@ from shotgrid_leecher.record.commands import (
     ShotgridToAvalonBatchCommand,
     ScheduleShotgridBatchCommand,
 )
+from shotgrid_leecher.record.enums import QueryStringType
+from shotgrid_leecher.record.queries import FindEntityQuery
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
+
+
+class ScheduleQueryParams(BaseModel):
+    filter_field: Optional[str] = Field(None, title="Filter field name")
+    filter_value: Optional[str] = Field(None, title="Filter value")
+    filter_value_type: Optional[str] = Field(None, title="Filter value")
+    sort_field: Optional[str] = Field(None, title="Sort-by field value")
+    sort_order: Optional[int] = Field(None, title="Sort-by order (1/-1)")
+    skip: Optional[int] = Field(None, title="Count of rows to be skipped")
+    limit: Optional[int] = Field(
+        None, title="Amount of rows to return(max: 25)"
+    )
+
+    def to_find_entity_query(self) -> FindEntityQuery:
+        to_type: Callable = QueryStringType.from_param(
+            self.filter_value_type or ""
+        ).value
+        filters = (
+            {str(self.filter_field): to_type(self.filter_value)}
+            if (bool(self.filter_value) and bool(self.filter_field))
+            else dict()
+        )
+        sorts = (
+            [(self.sort_field, int(self.sort_order or 1))]
+            if self.sort_field
+            else []
+        )
+        return FindEntityQuery(
+            filter=filters,
+            sort=sorts,
+            skip=self.skip,
+            limit=self.limit,
+        )
 
 
 class BatchConfig(BaseModel):

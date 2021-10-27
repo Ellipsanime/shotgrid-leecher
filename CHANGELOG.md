@@ -3,7 +3,11 @@
 ### [0.0.4] New Batch API
 #### Oct 27 - 2021
  - Check Batch API now return the Shotgrid project name when valid
- - The Batch API now return an error 500 if the Openpype project name and the Shotgrid project name differres
+ - The Batch API now returns an error 500 if the Openpype project name and the Shotgrid project name differs
+ - Improve batches logs and related APIs
+ - Add projects/queue/logs GET endpoints with simple sort/limit/filter abilities
+ - Make REST APIs more UI friendlies
+ - Few minor fixes
 
 ### [0.0.3] Batches scheduling
 #### Oct 21 - 2021
