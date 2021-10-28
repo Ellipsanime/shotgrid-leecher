@@ -1,5 +1,4 @@
-import uuid
-from typing import Dict, Any, Callable, List, Union
+from typing import Dict, Any, List, Union
 from unittest.mock import Mock
 
 import pytest
@@ -13,12 +12,11 @@ from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.results import BatchCheckResult
 from shotgrid_leecher.utils import connectivity as conn
+from utils.funcs import (
+    fun,
+)
 
 Map = Dict[str, Any]
-
-
-def _fun(param: Any) -> Callable[[Any], Any]:
-    return lambda *_: param
 
 
 @curry
@@ -40,9 +38,8 @@ async def test_batch_check(monkeypatch: MonkeyPatch):
     sg_client = Mock()
     project = {**fields_mapping_data.SHOTGRID_DATA_PROJECT[0], "id": 123}
     sg_client.find_one = _sg_query([project])
-    project_id = fields_mapping_data.PROJECT_ID
-    monkeypatch.setattr(conn, "get_shotgrid_client", _fun(sg_client))
-    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
 
     # Act
     actual = await batch_controller.batch_check(

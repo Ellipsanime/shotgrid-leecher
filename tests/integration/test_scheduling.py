@@ -1,7 +1,6 @@
-import random
 import uuid
 from datetime import datetime
-from typing import Dict, Any, Callable, List
+from typing import Dict, Any, List
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -12,15 +11,14 @@ from mongomock.mongo_client import MongoClient
 from shotgrid_leecher.controller import schedule_controller
 from shotgrid_leecher.domain import batch_domain, schedule_domain
 from shotgrid_leecher.record.enums import DbName, DbCollection
-from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils import connectivity as conn
+from utils.funcs import (
+    batch_config,
+    fun,
+)
 
 Map = Dict[str, Any]
-
-
-def _fun(param: Any) -> Callable[[Any], Any]:
-    return lambda *_: param
 
 
 def _all_projects(client: MongoClient) -> List[Map]:
@@ -41,7 +39,7 @@ def _all_logs(client: MongoClient) -> List[Map]:
 
 def _rollin_projects(client: MongoClient, n=2):
     batches = [
-        _batch_config().to_schedule_command(f"project_{str(uuid.uuid4())[:5]}")
+        batch_config().to_schedule_command(f"project_{str(uuid.uuid4())[:5]}")
         for _ in range(n)
     ]
     client.get_database(DbName.SCHEDULE.value).get_collection(
@@ -62,23 +60,13 @@ def _rollin_projects(client: MongoClient, n=2):
     )
 
 
-def _batch_config() -> BatchConfig:
-    return BatchConfig(
-        shotgrid_project_id=random.randint(10 ** 2, 10 ** 5),
-        shotgrid_url=f"http://{uuid.uuid4()}.com",
-        script_name=str(uuid.uuid4()),
-        script_key=str(uuid.uuid4()),
-        fields_mapping={},
-    )
-
-
 @pytest.mark.asyncio
 async def test_schedule_batch(monkeypatch: MonkeyPatch):
     # Arrange
     client = MongoClient()
     project_name = f"project_{str(uuid.uuid4())[:5]}"
-    monkeypatch.setattr(conn, "get_db_client", _fun(client))
-    config = _batch_config()
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
+    config = batch_config()
     # Act
     await schedule_controller.schedule_batch(project_name, config)
 
@@ -102,7 +90,7 @@ async def test_dequeue_scheduled_batches(monkeypatch: MonkeyPatch):
     batch = Mock(return_value=BatchResult.OK)
     _rollin_projects(client, size)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", batch)
-    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
     await schedule_domain.dequeue_and_process_batches()
 
@@ -132,7 +120,7 @@ async def test_dequeue_scheduled_batches_part_success(
     client = MongoClient()
     _rollin_projects(client, size)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", _batch)
-    monkeypatch.setattr(conn, "get_db_client", _fun(client))
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
     await schedule_domain.dequeue_and_process_batches()
 
