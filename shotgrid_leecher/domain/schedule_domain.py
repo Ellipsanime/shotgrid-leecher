@@ -7,7 +7,7 @@ import shotgrid_leecher.repository.schedule_repo as schedule_repo
 from shotgrid_leecher.domain import batch_domain
 from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
-    ShotgridToAvalonBatchCommand,
+    UpdateShotgridInAvalonCommand,
     LogBatchUpdateCommand,
     CancelBatchSchedulingCommand,
 )
@@ -52,7 +52,7 @@ def _batch_and_log(_: Any) -> None:
     request = schedule_writer.dequeue_request()
     if not request:
         return None
-    command = ShotgridToAvalonBatchCommand.from_dict(request.to_dict())
+    command = UpdateShotgridInAvalonCommand.from_dict(request.to_dict())
     start = time.time()
     try:
         result = batch_domain.update_shotgrid_in_avalon(command)

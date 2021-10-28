@@ -45,7 +45,9 @@ async def test_batch_with_fields_mapping(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
-    await batch_controller.batch(project_id, _batch_config(fields_mapping))
+    await batch_controller.batch_update(
+        project_id, _batch_config(fields_mapping)
+    )
 
     # Assert
     assert_that(avalon_collections(client)).is_length(1)

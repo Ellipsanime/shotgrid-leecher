@@ -6,7 +6,7 @@ from pydantic.fields import ModelField
 from pydantic.main import ModelMetaclass
 
 from shotgrid_leecher.record.commands import (
-    ShotgridToAvalonBatchCommand,
+    UpdateShotgridInAvalonCommand,
     ScheduleShotgridBatchCommand,
 )
 from shotgrid_leecher.record.enums import QueryStringType
@@ -97,8 +97,8 @@ class BatchConfig(BaseModel):
 
     def to_batch_command(
         self, project_name: str
-    ) -> ShotgridToAvalonBatchCommand:
-        return ShotgridToAvalonBatchCommand(
+    ) -> UpdateShotgridInAvalonCommand:
+        return UpdateShotgridInAvalonCommand(
             self.shotgrid_project_id,
             project_name,
             self.overwrite,

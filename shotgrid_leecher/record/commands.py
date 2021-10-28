@@ -16,7 +16,7 @@ class CancelBatchSchedulingCommand:
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class ShotgridToAvalonBatchCommand:
+class UpdateShotgridInAvalonCommand:
     project_id: int
     project_name: str
     overwrite: bool
@@ -27,9 +27,23 @@ class ShotgridToAvalonBatchCommand:
     def from_dict(
         source: Dict[str, Any],
         overwrite: bool = False,
-    ) -> "ShotgridToAvalonBatchCommand":
+    ) -> "UpdateShotgridInAvalonCommand":
         params = {**source, "overwrite": overwrite}
-        return cattr.structure(params, ShotgridToAvalonBatchCommand)
+        return cattr.structure(params, UpdateShotgridInAvalonCommand)
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class CreateShotgridInAvalonCommand:
+    project_id: int
+    project_name: str
+    credentials: ShotgridCredentials
+    fields_mapping: FieldsMapping
+
+    @staticmethod
+    def from_dict(
+        source: Dict[str, Any],
+    ) -> "CreateShotgridInAvalonCommand":
+        return cattr.structure(source, CreateShotgridInAvalonCommand)
 
 
 @attr.s(auto_attribs=True, frozen=True)

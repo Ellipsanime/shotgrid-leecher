@@ -7,7 +7,7 @@ import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from shotgrid_leecher.mapper import avalon_mapper
 from shotgrid_leecher.record.commands import (
-    ShotgridToAvalonBatchCommand,
+    UpdateShotgridInAvalonCommand,
     ShotgridCheckCommand,
 )
 from shotgrid_leecher.record.queries import (
@@ -40,7 +40,7 @@ def check_shotgrid_before_batch(
 
 
 def update_shotgrid_in_avalon(
-    command: ShotgridToAvalonBatchCommand,
+    command: UpdateShotgridInAvalonCommand,
 ) -> BatchResult:
     shotgrid_hierarchy, dropped_ids = _fetch_and_augment_hierarchy(command)
     if not shotgrid_hierarchy:
@@ -48,9 +48,8 @@ def update_shotgrid_in_avalon(
     # TODO get rid of mutability and avalon_tree
     avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
     avalon_rows = list(avalon_tree.values())
-    shotgrid_project_name = avalon_rows[0]['name']
 
-    if command.project_name != shotgrid_project_name:
+    if command.project_name != avalon_rows[0]["name"]:
         return BatchResult.WRONG_PROJECT_NAME
 
     if command.overwrite:
@@ -62,12 +61,14 @@ def update_shotgrid_in_avalon(
             _rearrange_parents(avalon_tree, row),
         )
         avalon_tree[row["name"]]["_id"] = object_id
+
     db_writer.delete_avalon_rows(command.project_name, dropped_ids)
     db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
+
     return BatchResult.OK
 
 
-def create_shotgrid_in_avalon(command: ShotgridToAvalonBatchCommand):
+def create_shotgrid_in_avalon(command: UpdateShotgridInAvalonCommand):
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,
@@ -162,7 +163,7 @@ def _detect_deletion(
 
 
 def _fetch_and_augment_hierarchy(
-    command: ShotgridToAvalonBatchCommand,
+    command: UpdateShotgridInAvalonCommand,
 ) -> Tuple[List[Map], Set[ObjectId]]:
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,

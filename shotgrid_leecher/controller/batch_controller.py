@@ -14,15 +14,32 @@ from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 router = APIRouter(tags=["batch"], prefix="/batch")
 
 
-@router.post("/{project_name}")
-async def batch(project_name: str, batch_config: BatchConfig):
+@router.put("/{project_name}")
+async def batch_create(project_name: str, batch_config: BatchConfig):
     command = batch_config.to_batch_command(project_name)
-    res = batch_domain.update_shotgrid_in_avalon(command)
+    result = batch_domain.create_shotgrid_in_avalon(command)
 
-    if res == BatchResult.WRONG_PROJECT_NAME:
-        raise HTTPException(status_code=500, detail="Openpype and Shotgrid project name does not correspond")
+    if result == BatchResult.WRONG_PROJECT_NAME:
+        raise HTTPException(
+            status_code=500,
+            detail="Openpype and Shotgrid project name does not correspond",
+        )
 
-    return res
+    return result
+
+
+@router.post("/{project_name}")
+async def batch_update(project_name: str, batch_config: BatchConfig):
+    command = batch_config.to_batch_command(project_name)
+    result = batch_domain.update_shotgrid_in_avalon(command)
+
+    if result == BatchResult.WRONG_PROJECT_NAME:
+        raise HTTPException(
+            status_code=500,
+            detail="Openpype and Shotgrid project name does not correspond",
+        )
+
+    return result
 
 
 @router.get("/check")

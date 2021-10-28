@@ -11,8 +11,8 @@ from mongomock.object_id import ObjectId
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
+from shotgrid_leecher.record.commands import UpdateShotgridInAvalonCommand
 from shotgrid_leecher.record.results import BatchResult
-from shotgrid_leecher.record.commands import ShotgridToAvalonBatchCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     FieldsMapping,
@@ -102,7 +102,7 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
     # Arrange
     client = MongoClient()
     _patch_adjacent(monkeypatch, client, [])
-    command = ShotgridToAvalonBatchCommand(
+    command = UpdateShotgridInAvalonCommand(
         123,
         "",
         True,
@@ -132,9 +132,9 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
-    command = ShotgridToAvalonBatchCommand(
+    command = UpdateShotgridInAvalonCommand(
         123,
-        data[0]['_id'],
+        data[0]["_id"],
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
@@ -173,7 +173,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
-    command = ShotgridToAvalonBatchCommand(
+    command = UpdateShotgridInAvalonCommand(
         123,
         project["_id"],
         True,
@@ -217,7 +217,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", insert_intermediate)
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
-    command = ShotgridToAvalonBatchCommand(
+    command = UpdateShotgridInAvalonCommand(
         123,
         project["_id"],
         True,
@@ -279,7 +279,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
-    command = ShotgridToAvalonBatchCommand(
+    command = UpdateShotgridInAvalonCommand(
         123,
         project["_id"],
         True,
@@ -298,7 +298,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
 
 
 def test_shotgrid_to_avalon_batch_update_wrong_project_name(
-    monkeypatch: MonkeyPatch
+    monkeypatch: MonkeyPatch,
 ):
     # Arrange
     client = MongoClient()
@@ -310,7 +310,7 @@ def test_shotgrid_to_avalon_batch_update_wrong_project_name(
     openpype_project_name = str(uuid.uuid4())[0:8]
     overwrite = bool(random.getrandbits(1))
 
-    command = ShotgridToAvalonBatchCommand(
+    command = UpdateShotgridInAvalonCommand(
         123,
         openpype_project_name,
         overwrite,

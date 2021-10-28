@@ -59,7 +59,7 @@ async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
-    await batch_controller.batch(project_id, batch_config())
+    await batch_controller.batch_update(project_id, batch_config())
 
     # Assert
     assert_that(
@@ -103,7 +103,7 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
-    await batch_controller.batch(project_id, batch_config())
+    await batch_controller.batch_update(project_id, batch_config())
 
     # Assert
     assert_that(_all_avalon_by_type(client, "asset")).extracting(
