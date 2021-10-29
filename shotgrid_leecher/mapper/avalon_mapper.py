@@ -1,5 +1,6 @@
 from typing import Dict, Any, List, Optional, Iterator, Tuple
 
+from shotgrid_leecher.record.avalon_structures import AvalonProject
 from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
@@ -7,20 +8,22 @@ _LOG = get_logger(__name__.split(".")[-1])
 Map = Dict[str, Any]
 
 
-def entity_to_project(source_entity: Map, hierarchy_rows: List[Map]) -> Map:
+def entity_to_project(
+    project: AvalonProject, hierarchy_rows: List[Map]
+) -> Map:
     shotgrid_project = [
         item for item in hierarchy_rows if item["type"] == "Project"
     ][-1]
 
-    if source_entity and shotgrid_project:
-        return {
-            "_id": shotgrid_project["_id"],
-            "src_id": shotgrid_project["src_id"],
-            "object_id": source_entity["_id"],
-            "type": "Project",
-            "parent": None,
-        }
-    return {}
+    if not project or not shotgrid_project:
+        return {}
+    return {
+        "_id": shotgrid_project["_id"],
+        "src_id": shotgrid_project["src_id"],
+        "object_id": project.object_id(),
+        "type": "Project",
+        "parent": None,
+    }
 
 
 def shotgrid_to_avalon(hierarchy_rows: List[Map]) -> Dict[str, Map]:

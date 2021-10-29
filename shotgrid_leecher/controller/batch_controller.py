@@ -28,13 +28,11 @@ async def batch_create(project_name: str, batch_config: BatchConfig):
             status_code=500,
             detail="Openpype and Shotgrid project name does not correspond",
         )
-
     return result
 
 
-@router.post("/{avalon_id}/{project_name}")
+@router.post("/{project_name}")
 async def batch_update(
-    # avalon_id: str,
     project_name: str,
     batch_config: BatchConfig,
 ):
@@ -48,7 +46,6 @@ async def batch_update(
             status_code=500,
             detail="Openpype and Shotgrid project name does not correspond",
         )
-
     return result
 
 
