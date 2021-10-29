@@ -9,6 +9,7 @@ from shotgrid_leecher.mapper import avalon_mapper
 from shotgrid_leecher.record.commands import (
     UpdateShotgridInAvalonCommand,
     ShotgridCheckCommand,
+    CreateShotgridInAvalonCommand,
 )
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
@@ -68,7 +69,7 @@ def update_shotgrid_in_avalon(
     return BatchResult.OK
 
 
-def create_shotgrid_in_avalon(command: UpdateShotgridInAvalonCommand):
+def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,

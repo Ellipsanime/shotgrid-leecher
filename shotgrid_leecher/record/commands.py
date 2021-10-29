@@ -4,6 +4,7 @@ from typing import Dict, Any
 import attr
 import cattr
 
+from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
@@ -13,6 +14,35 @@ from shotgrid_leecher.utils.strings import attr_value_to_dict
 @attr.s(auto_attribs=True, frozen=True)
 class CancelBatchSchedulingCommand:
     project_name: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class CreateShotgridInAvalonCommand:
+    project_id: int
+    project_name: str
+    credentials: ShotgridCredentials
+    fields_mapping: FieldsMapping
+
+    @staticmethod
+    def from_dict(
+        source: Dict[str, Any],
+        overwrite: bool = False,
+    ) -> "CreateShotgridInAvalonCommand":
+        params = {**source, "overwrite": overwrite}
+        return cattr.structure(params, CreateShotgridInAvalonCommand)
+
+    @staticmethod
+    def from_http_model(
+        project_name: str,
+        model: BatchConfig,
+    ) -> "CreateShotgridInAvalonCommand":
+        credentials = ShotgridCredentials.from_dict(model.dict())
+        return CreateShotgridInAvalonCommand(
+            model.shotgrid_project_id,
+            project_name,
+            credentials,
+            FieldsMapping.from_dict(model.fields_mapping),
+        )
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -31,19 +61,19 @@ class UpdateShotgridInAvalonCommand:
         params = {**source, "overwrite": overwrite}
         return cattr.structure(params, UpdateShotgridInAvalonCommand)
 
-
-@attr.s(auto_attribs=True, frozen=True)
-class CreateShotgridInAvalonCommand:
-    project_id: int
-    project_name: str
-    credentials: ShotgridCredentials
-    fields_mapping: FieldsMapping
-
     @staticmethod
-    def from_dict(
-        source: Dict[str, Any],
-    ) -> "CreateShotgridInAvalonCommand":
-        return cattr.structure(source, CreateShotgridInAvalonCommand)
+    def from_http_model(
+        project_name: str,
+        model: BatchConfig,
+    ) -> "UpdateShotgridInAvalonCommand":
+        credentials = ShotgridCredentials.from_dict(model.dict())
+        return UpdateShotgridInAvalonCommand(
+            model.shotgrid_project_id,
+            project_name,
+            model.overwrite,
+            credentials,
+            FieldsMapping.from_dict(model.fields_mapping),
+        )
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -52,6 +82,19 @@ class ScheduleShotgridBatchCommand:
     project_name: str
     credentials: ShotgridCredentials
     fields_mapping: FieldsMapping
+
+    @staticmethod
+    def from_http_model(
+        project_name: str,
+        model: BatchConfig,
+    ) -> "ScheduleShotgridBatchCommand":
+        credentials = ShotgridCredentials.from_dict(model.dict())
+        return ScheduleShotgridBatchCommand(
+            model.shotgrid_project_id,
+            project_name,
+            credentials,
+            FieldsMapping.from_dict(model.fields_mapping),
+        )
 
     @staticmethod
     def from_dict(source: Dict[str, Any]) -> "ScheduleShotgridBatchCommand":

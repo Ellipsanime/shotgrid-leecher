@@ -10,6 +10,7 @@ from mongomock.mongo_client import MongoClient
 
 from shotgrid_leecher.controller import schedule_controller
 from shotgrid_leecher.domain import batch_domain, schedule_domain
+from shotgrid_leecher.record.commands import ScheduleShotgridBatchCommand
 from shotgrid_leecher.record.enums import DbName, DbCollection
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.utils import connectivity as conn
@@ -39,7 +40,9 @@ def _all_logs(client: MongoClient) -> List[Map]:
 
 def _rollin_projects(client: MongoClient, n=2):
     batches = [
-        batch_config().to_schedule_command(f"project_{str(uuid.uuid4())[:5]}")
+        ScheduleShotgridBatchCommand.from_http_model(
+            f"project_{str(uuid.uuid4())[:5]}", batch_config()
+        )
         for _ in range(n)
     ]
     client.get_database(DbName.SCHEDULE.value).get_collection(

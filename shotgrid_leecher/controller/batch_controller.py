@@ -6,6 +6,8 @@ from fastapi import APIRouter, HTTPException
 from shotgrid_leecher.domain import batch_domain
 from shotgrid_leecher.record.commands import (
     ShotgridCheckCommand,
+    UpdateShotgridInAvalonCommand,
+    CreateShotgridInAvalonCommand,
 )
 from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.results import BatchResult
@@ -16,7 +18,9 @@ router = APIRouter(tags=["batch"], prefix="/batch")
 
 @router.put("/{project_name}")
 async def batch_create(project_name: str, batch_config: BatchConfig):
-    command = batch_config.to_batch_command(project_name)
+    command = CreateShotgridInAvalonCommand.from_http_model(
+        project_name, batch_config
+    )
     result = batch_domain.create_shotgrid_in_avalon(command)
 
     if result == BatchResult.WRONG_PROJECT_NAME:
@@ -28,9 +32,15 @@ async def batch_create(project_name: str, batch_config: BatchConfig):
     return result
 
 
-@router.post("/{project_name}")
-async def batch_update(project_name: str, batch_config: BatchConfig):
-    command = batch_config.to_batch_command(project_name)
+@router.post("/{avalon_id}/{project_name}")
+async def batch_update(
+    # avalon_id: str,
+    project_name: str,
+    batch_config: BatchConfig,
+):
+    command = UpdateShotgridInAvalonCommand.from_http_model(
+        project_name, batch_config
+    )
     result = batch_domain.update_shotgrid_in_avalon(command)
 
     if result == BatchResult.WRONG_PROJECT_NAME:

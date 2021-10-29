@@ -1,8 +1,10 @@
-from typing import Any, Dict, Optional, List, Tuple
+from typing import Any, Dict, Optional, List, Tuple, Callable
 
 import attr
 from toolz import curry
 
+from shotgrid_leecher.record.enums import QueryStringType
+from shotgrid_leecher.record.http_models import ScheduleQueryParams
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -30,6 +32,28 @@ class FindEntityQuery:
         return min(
             FindEntityQuery._MAX_LIMIT,
             self.limit or FindEntityQuery._MAX_LIMIT,
+        )
+
+    @staticmethod
+    def from_http_model(model: ScheduleQueryParams) -> "FindEntityQuery":
+        to_type: Callable = QueryStringType.from_param(
+            model.filter_value_type or ""
+        ).value
+        filters = (
+            {str(model.filter_field): to_type(model.filter_value)}
+            if (bool(model.filter_value) and bool(model.filter_field))
+            else dict()
+        )
+        sorts = (
+            [(model.sort_field, int(model.sort_order or 1))]
+            if model.sort_field
+            else []
+        )
+        return FindEntityQuery(
+            filter=filters,
+            sort=sorts,
+            skip=model.skip,
+            limit=model.limit,
         )
 
 

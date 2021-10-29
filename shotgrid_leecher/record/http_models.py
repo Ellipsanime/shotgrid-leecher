@@ -1,18 +1,9 @@
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, validator
 from pydantic.fields import ModelField
 from pydantic.main import ModelMetaclass
-
-from shotgrid_leecher.record.commands import (
-    UpdateShotgridInAvalonCommand,
-    ScheduleShotgridBatchCommand,
-)
-from shotgrid_leecher.record.enums import QueryStringType
-from shotgrid_leecher.record.queries import FindEntityQuery
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
-from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
 
 
 class ScheduleQueryParams(BaseModel):
@@ -25,27 +16,6 @@ class ScheduleQueryParams(BaseModel):
     limit: Optional[int] = Field(
         None, title="Amount of rows to return(max: 25)"
     )
-
-    def to_find_entity_query(self) -> FindEntityQuery:
-        to_type: Callable = QueryStringType.from_param(
-            self.filter_value_type or ""
-        ).value
-        filters = (
-            {str(self.filter_field): to_type(self.filter_value)}
-            if (bool(self.filter_value) and bool(self.filter_field))
-            else dict()
-        )
-        sorts = (
-            [(self.sort_field, int(self.sort_order or 1))]
-            if self.sort_field
-            else []
-        )
-        return FindEntityQuery(
-            filter=filters,
-            sort=sorts,
-            skip=self.skip,
-            limit=self.limit,
-        )
 
 
 class BatchConfig(BaseModel):
@@ -77,31 +47,3 @@ class BatchConfig(BaseModel):
         if value is None:
             raise ValueError(f'Model field "{field.name}" can be null')
         return value
-
-    def _get_credentials(self) -> ShotgridCredentials:
-        return ShotgridCredentials(
-            self.shotgrid_url,
-            self.script_name,
-            self.script_key,
-        )
-
-    def to_schedule_command(
-        self, project_name: str
-    ) -> ScheduleShotgridBatchCommand:
-        return ScheduleShotgridBatchCommand(
-            self.shotgrid_project_id,
-            project_name,
-            self._get_credentials(),
-            FieldsMapping.from_dict(self.fields_mapping),
-        )
-
-    def to_batch_command(
-        self, project_name: str
-    ) -> UpdateShotgridInAvalonCommand:
-        return UpdateShotgridInAvalonCommand(
-            self.shotgrid_project_id,
-            project_name,
-            self.overwrite,
-            self._get_credentials(),
-            FieldsMapping.from_dict(self.fields_mapping),
-        )
