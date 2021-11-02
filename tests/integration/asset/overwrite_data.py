@@ -1,8 +1,10 @@
+from bson import ObjectId
+
 OVERWRITE_PROJECT_ID = "Project_bebc4f75"
 
 OVERWRITE_AVALON_DATA = [
     {
-        "_id": "614ae8dfef6bfb71c7a5475a",
+        "_id": ObjectId(),
         "type": "project",
         "name": OVERWRITE_PROJECT_ID,
         "data": {

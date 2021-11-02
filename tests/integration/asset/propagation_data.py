@@ -1,6 +1,7 @@
 import random
 import uuid
 
+from bson import ObjectId
 from toolz import compose
 
 from shotgrid_leecher.record.enums import ShotgridField
@@ -16,7 +17,7 @@ _I32 = compose(
 PROJECT_ID = f"Project_{str(uuid.uuid4())[:5]}"
 AVALON_DATA = [
     {
-        "_id": "614b3e4214dbac102817bb1b",
+        "_id": ObjectId(),
         "type": "project",
         "name": PROJECT_ID,
         "data": {
