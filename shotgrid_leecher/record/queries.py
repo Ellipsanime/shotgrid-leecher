@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, List, Tuple, Callable
 import attr
 from toolz import curry
 
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import QueryStringType
 from shotgrid_leecher.record.http_models import ScheduleQueryParams
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
@@ -68,6 +69,7 @@ class ShotgridHierarchyByProjectQuery:
     project_id: int
     credentials: ShotgridCredentials
     fields_mapping: FieldsMapping
+    project_data: AvalonProjectData
 
 
 @attr.s(auto_attribs=True, frozen=True)

@@ -6,6 +6,7 @@ from toolz import get_in, curry, pipe
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from shotgrid_leecher.mapper import avalon_mapper
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.commands import (
     UpdateShotgridInAvalonCommand,
     ShotgridCheckCommand,
@@ -70,10 +71,12 @@ def update_shotgrid_in_avalon(
 
 
 def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
+    default_project_data = AvalonProjectData()
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,
         command.fields_mapping,
+        default_project_data,
     )
     shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
     # TODO get rid of mutability and avalon_tree
@@ -170,6 +173,7 @@ def _fetch_and_augment_hierarchy(
         command.project_id,
         command.credentials,
         command.fields_mapping,
+        command.project_data,
     )
     shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
     if not shotgrid_hierarchy:
