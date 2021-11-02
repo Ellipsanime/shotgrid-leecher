@@ -11,7 +11,7 @@ from toolz import curry
 import shotgrid_leecher.mapper.avalon_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from shotgrid_leecher.domain import batch_domain as sut
-from shotgrid_leecher.record.commands import UpdateShotgridInAvalonCommand
+from shotgrid_leecher.record.commands import CreateShotgridInAvalonCommand
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     FieldsMapping,
@@ -142,10 +142,9 @@ def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     _patch_adjacent(monkeypatch, {}, [])
     insert_avalon = Mock(return_value=1)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
-    command = UpdateShotgridInAvalonCommand(
+    command = CreateShotgridInAvalonCommand(
         123,
         "",
-        True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
     )
@@ -164,10 +163,9 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
         {project["name"]: project},
         [{"_id": project["name"]}],
     )
-    command = UpdateShotgridInAvalonCommand(
+    command = CreateShotgridInAvalonCommand(
         123,
         project_name,
-        True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
     )
@@ -196,10 +194,9 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     _patch_adjacent(monkeypatch, data, [{"_id": project_name}])
     insert_avalon = Mock(side_effect=ids)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
-    command = UpdateShotgridInAvalonCommand(
+    command = CreateShotgridInAvalonCommand(
         123,
         project_name,
-        True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
     )

@@ -9,10 +9,15 @@ from mock import Mock
 
 import shotgrid_leecher.repository.schedule_repo as schedule_repo
 from shotgrid_leecher.domain import batch_domain, schedule_domain
+from shotgrid_leecher.record.avalon_structures import (
+    AvalonProject,
+    AvalonProjectData,
+)
 from shotgrid_leecher.record.commands import ScheduleShotgridBatchCommand
 from shotgrid_leecher.record.results import BatchResult, GroupAndCountResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
+from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.writers import schedule_writer
 
 
@@ -78,13 +83,15 @@ async def test_queue_scheduled_working(monkeypatch: MonkeyPatch):
 @pytest.mark.asyncio
 async def test_dequeue_and_process_when_success(monkeypatch: MonkeyPatch):
     # Arrange
-    count, batch, dequeue, log = (
+    project = AvalonProject("", "", AvalonProjectData(), dict())
+    count, batch, dequeue, proj, log = (
         Mock(return_value=1),
         Mock(return_value=BatchResult.OK),
         Mock(return_value=_get_schedule_command()),
+        Mock(return_value=project),
         Mock(),
     )
-
+    monkeypatch.setattr(avalon_repo, "fetch_project", proj)
     monkeypatch.setattr(schedule_repo, "count_projects", count)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", batch)
     monkeypatch.setattr(schedule_writer, "dequeue_request", dequeue)
@@ -106,13 +113,16 @@ async def test_dequeue_and_process_when_success(monkeypatch: MonkeyPatch):
 @pytest.mark.asyncio
 async def test_dequeue_and_process_when_no_hierarchy(monkeypatch: MonkeyPatch):
     # Arrange
-    count, batch, dequeue, log = (
+    project = AvalonProject("", "", AvalonProjectData(), dict())
+    count, batch, dequeue, proj, log = (
         Mock(return_value=0),
         Mock(return_value=BatchResult.NO_SHOTGRID_HIERARCHY),
         Mock(return_value=_get_schedule_command()),
+        Mock(return_value=project),
         Mock(),
     )
 
+    monkeypatch.setattr(avalon_repo, "fetch_project", proj)
     monkeypatch.setattr(schedule_repo, "count_projects", count)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", batch)
     monkeypatch.setattr(schedule_writer, "dequeue_request", dequeue)
@@ -131,6 +141,8 @@ async def test_dequeue_and_process_when_no_hierarchy(monkeypatch: MonkeyPatch):
 @pytest.mark.asyncio
 async def test_dequeue_and_process_when_failure(monkeypatch: MonkeyPatch):
     # Arrange
+    project = AvalonProject("", "", AvalonProjectData(), dict())
+    proj = Mock(return_value=project)
     count, log, dequeue = Mock(), Mock(), Mock()
     count.return_value = 0
     dequeue.return_value = _get_schedule_command()
@@ -139,6 +151,7 @@ async def test_dequeue_and_process_when_failure(monkeypatch: MonkeyPatch):
     def batch(_):
         raise Exception(ex)
 
+    monkeypatch.setattr(avalon_repo, "fetch_project", proj)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", batch)
     monkeypatch.setattr(schedule_repo, "count_projects", count)
     monkeypatch.setattr(schedule_writer, "dequeue_request", dequeue)

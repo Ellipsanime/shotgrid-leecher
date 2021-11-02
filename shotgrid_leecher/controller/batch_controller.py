@@ -12,6 +12,7 @@ from shotgrid_leecher.record.commands import (
 from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.repository import avalon_repo
 
 router = APIRouter(tags=["batch"], prefix="/batch")
 
@@ -36,8 +37,11 @@ async def batch_update(
     project_name: str,
     batch_config: BatchConfig,
 ):
+    project = avalon_repo.fetch_project(project_name)
     command = UpdateShotgridInAvalonCommand.from_http_model(
-        project_name, batch_config
+        project_name,
+        batch_config,
+        project.data,
     )
     result = batch_domain.update_shotgrid_in_avalon(command)
 

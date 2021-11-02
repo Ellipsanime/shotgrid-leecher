@@ -1,9 +1,15 @@
+import uuid
 from typing import Any, List, Union, Dict, Callable
 
+from mongomock.object_id import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from toolz import curry
 
+from shotgrid_leecher.record.avalon_structures import (
+    AvalonProject,
+    AvalonProjectData,
+)
 from shotgrid_leecher.record.enums import ShotgridType, DbName
 from shotgrid_leecher.record.http_models import BatchConfig
 
@@ -74,3 +80,12 @@ def populate_db(db: Collection, data: List[Map]) -> None:
 
 def fun(param: Any) -> Callable[[Any], Any]:
     return lambda *_: param
+
+
+def get_project(name: str) -> AvalonProject:
+    return AvalonProject(
+        id=str(ObjectId()),
+        name=name,
+        data=AvalonProjectData(tools_env=[str(uuid.uuid4())]),
+        config=dict(),
+    )

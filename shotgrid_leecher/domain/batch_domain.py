@@ -146,7 +146,7 @@ def _fetch_intermediate_hierarchy(
     if intermediate_hierarchy:
         return intermediate_hierarchy
     avalon_project = avalon_mapper.entity_to_project(
-        avalon_repo.get_project_entity(project_name),
+        avalon_repo.fetch_project(project_name),
         shotgrid_hierarchy,
     )
     return [avalon_project] if avalon_project else []

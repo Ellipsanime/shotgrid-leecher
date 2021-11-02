@@ -4,6 +4,7 @@ from typing import Dict, Any
 import attr
 import cattr
 
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
@@ -52,6 +53,7 @@ class UpdateShotgridInAvalonCommand:
     overwrite: bool
     credentials: ShotgridCredentials
     fields_mapping: FieldsMapping
+    project_data: AvalonProjectData
 
     @staticmethod
     def from_dict(
@@ -65,6 +67,7 @@ class UpdateShotgridInAvalonCommand:
     def from_http_model(
         project_name: str,
         model: BatchConfig,
+        project_data: AvalonProjectData,
     ) -> "UpdateShotgridInAvalonCommand":
         credentials = ShotgridCredentials.from_dict(model.dict())
         return UpdateShotgridInAvalonCommand(
@@ -73,6 +76,7 @@ class UpdateShotgridInAvalonCommand:
             model.overwrite,
             credentials,
             FieldsMapping.from_dict(model.fields_mapping),
+            project_data,
         )
 
 

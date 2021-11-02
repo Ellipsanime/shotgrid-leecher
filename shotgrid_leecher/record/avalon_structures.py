@@ -4,6 +4,8 @@ import attr
 import cattr
 from bson import ObjectId
 
+from shotgrid_leecher.record.enums import AvalonType
+
 
 @attr.s(auto_attribs=True, frozen=True)
 class AvalonProjectData:
@@ -31,10 +33,10 @@ class AvalonProjectData:
 @attr.s(auto_attribs=True, frozen=True)
 class AvalonProject:
     id: str
-    type: str
     name: str
     data: AvalonProjectData
     config: Dict[str, Any]
+    type: str = AvalonType.PROJECT.value
     schema: str = "openpype:project-3.0"
 
     def object_id(self) -> ObjectId:

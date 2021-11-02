@@ -11,6 +11,7 @@ from mongomock.object_id import ObjectId
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.commands import UpdateShotgridInAvalonCommand
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
@@ -108,6 +109,7 @@ def test_shotgrid_to_avalon_batch_update_empty(monkeypatch: MonkeyPatch):
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
+        AvalonProjectData(),
     )
 
     # Act
@@ -138,6 +140,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
+        AvalonProjectData(),
     )
 
     # Act
@@ -179,6 +182,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
+        AvalonProjectData(),
     )
 
     # Act
@@ -223,6 +227,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
+        AvalonProjectData(),
     )
 
     # Act
@@ -285,6 +290,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
+        AvalonProjectData(),
     )
 
     # Act
@@ -316,6 +322,7 @@ def test_shotgrid_to_avalon_batch_update_wrong_project_name(
         overwrite,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
+        AvalonProjectData(),
     )
 
     # Act

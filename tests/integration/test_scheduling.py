@@ -13,9 +13,11 @@ from shotgrid_leecher.domain import batch_domain, schedule_domain
 from shotgrid_leecher.record.commands import ScheduleShotgridBatchCommand
 from shotgrid_leecher.record.enums import DbName, DbCollection
 from shotgrid_leecher.record.results import BatchResult
+from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     batch_config,
+    get_project,
     fun,
 )
 
@@ -88,10 +90,11 @@ async def test_schedule_batch(monkeypatch: MonkeyPatch):
 @pytest.mark.asyncio
 async def test_dequeue_scheduled_batches(monkeypatch: MonkeyPatch):
     # Arrange
-    size = 3
     client = MongoClient()
     batch = Mock(return_value=BatchResult.OK)
-    _rollin_projects(client, size)
+    _rollin_projects(client, 3)
+    project = get_project(f"project_{str(uuid.uuid4())[:5]}")
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", batch)
     monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
@@ -108,6 +111,7 @@ async def test_dequeue_scheduled_batches_part_success(
     monkeypatch: MonkeyPatch,
 ):
     # Arrange
+    project = get_project(f"project_{str(uuid.uuid4())[:5]}")
     steps = []
 
     def _batch(_: Any):
@@ -119,10 +123,10 @@ async def test_dequeue_scheduled_batches_part_success(
         if len(steps) == 3:
             return BatchResult.NO_SHOTGRID_HIERARCHY
 
-    size = 3
     client = MongoClient()
-    _rollin_projects(client, size)
+    _rollin_projects(client, 3)
     monkeypatch.setattr(batch_domain, "update_shotgrid_in_avalon", _batch)
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
     await schedule_domain.dequeue_and_process_batches()

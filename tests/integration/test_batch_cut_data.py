@@ -4,11 +4,17 @@ from unittest.mock import Mock
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
+from bson import ObjectId
 from mongomock.mongo_client import MongoClient
 
 from asset import params_data
 from shotgrid_leecher.controller import batch_controller
+from shotgrid_leecher.record.avalon_structures import (
+    AvalonProject,
+    AvalonProjectData,
+)
 from shotgrid_leecher.record.enums import DbName, ShotgridType
+from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     sg_query,
@@ -56,6 +62,13 @@ async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
     sg_client = Mock()
     sg_client.find = sg_query(params_data)
     sg_client.find_one = sg_query(params_data)
+    project = AvalonProject(
+        str(ObjectId()),
+        project_id,
+        AvalonProjectData(),
+        dict(),
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act
@@ -100,6 +113,13 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
     sg_client = Mock()
     sg_client.find = sg_query(params_data)
     sg_client.find_one = sg_query(params_data)
+    project = AvalonProject(
+        str(ObjectId()),
+        project_id,
+        AvalonProjectData(),
+        dict(),
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
     # Act

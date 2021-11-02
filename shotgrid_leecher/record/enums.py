@@ -34,6 +34,12 @@ class DbCollection(Enum):
 
 
 @unique
+class AvalonType(Enum):
+    PROJECT = "project"
+    ASSET = "asset"
+
+
+@unique
 class ShotgridType(Enum):
     PROJECT = "Project"
     ASSET = "Asset"

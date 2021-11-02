@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Optional, Iterator, Tuple
 
 from shotgrid_leecher.record.avalon_structures import AvalonProject
+from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
@@ -12,7 +13,9 @@ def entity_to_project(
     project: AvalonProject, hierarchy_rows: List[Map]
 ) -> Map:
     shotgrid_project = [
-        item for item in hierarchy_rows if item["type"] == "Project"
+        item
+        for item in hierarchy_rows
+        if item["type"] == ShotgridType.PROJECT.value
     ][-1]
 
     if not project or not shotgrid_project:

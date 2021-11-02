@@ -18,7 +18,12 @@ from asset import (
     delete_asset_data,
 )
 from shotgrid_leecher.controller import batch_controller
+from shotgrid_leecher.record.avalon_structures import (
+    AvalonProject,
+    AvalonProjectData,
+)
 from shotgrid_leecher.record.enums import DbName
+from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.utils import generator
 from utils.funcs import (
     batch_config,
@@ -40,20 +45,18 @@ def _generate_shotgrid_id() -> int:
     return uuid.uuid4().int & (1 << 16) - 1
 
 
-def _get_project():
-
-    project_id = str(uuid.uuid4())[0:8]
+def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
     return {
-        "_id": f"Project_{project_id}",
+        "_id": project_id,
         "src_id": 111,
         "type": "Project",
         "parent": None,
     }
 
 
-def _get_asset_group(project):
+def _get_asset_group(project_id: str):
 
-    return {"_id": "Asset", "type": "Group", "parent": f",{project['_id']},"}
+    return {"_id": "Asset", "type": "Group", "parent": f",{project_id},"}
 
 
 def _get_shot_group(project):
@@ -113,7 +116,8 @@ async def test_update_shotgrid_to_avalon_empty(monkeypatch: MonkeyPatch):
     # Arrange
     client = MongoClient()
     data: List[Any] = []
-
+    project = AvalonProject("", "", AvalonProjectData(), dict())
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
@@ -130,21 +134,26 @@ async def test_update_shotgrid_to_avalon_init_project(
 ):
     # Arrange
     client = MongoClient()
-    project = _get_project()
-    data = [project]
-
+    data = [_get_project()]
+    project = AvalonProject(
+        str(ObjectId()),
+        data[0]["_id"],
+        AvalonProjectData(),
+        dict(),
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
     # Act
-    await batch_controller.batch_update(project["_id"], batch_config())
+    await batch_controller.batch_update(data[0]["_id"], batch_config())
 
     # Assert
     assert_that(client.list_database_names()).is_equal_to(
         [DbName.INTERMEDIATE.value, DbName.AVALON.value]
     )
-    assert_that(avalon_collections(client)).is_equal_to([project["_id"]])
-    assert_that(intermediate_collections(client)).is_equal_to([project["_id"]])
+    assert_that(avalon_collections(client)).is_equal_to([data[0]["_id"]])
+    assert_that(intermediate_collections(client)).is_equal_to([data[0]["_id"]])
 
 
 @pytest.mark.asyncio
@@ -189,15 +198,20 @@ async def test_update_batch_when_projects_with_different_source_name(
 ):
     # Arrange
     client = MongoClient()
-    project = _get_project()
-    data = [project]
-
+    data = [_get_project()]
+    project = AvalonProject(
+        str(ObjectId()),
+        data[0]["_id"],
+        AvalonProjectData(),
+        dict(),
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
-    project_avalon_init_data = _create_avalon_project_row(project["_id"])
+    project_avalon_init_data = _create_avalon_project_row(data[0]["_id"])
     client.get_database(DbName.AVALON.value).get_collection(
-        project["_id"]
+        data[0]["_id"]
     ).insert_one(project_avalon_init_data)
 
     with pytest.raises(HTTPException) as ex:
@@ -219,7 +233,7 @@ async def test_update_shotgrid_to_avalon_update_project_tasks(
     task_num = 3
     client = MongoClient()
     project = _get_project()
-    asset_grp = _get_asset_group(project)
+    asset_grp = _get_asset_group(project["_id"])
     asset_and_type = _get_prp_asset_with_tasks(asset_grp, task_num)
     data = [project, asset_grp, *asset_and_type]
 
@@ -248,16 +262,22 @@ async def test_update_shotgrid_to_avalon_update_project_tasks(
 async def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     # Arrange
     client = MongoClient()
-    project = _get_project()
-    asset_grp = _get_asset_group(project)
+    project_id = str(uuid.uuid4())[0:8]
+    asset_grp = _get_asset_group(project_id)
     asset_and_type = _get_prp_asset(asset_grp)
-    data = [project, asset_grp, *asset_and_type]
-
+    data = [_get_project(project_id), asset_grp, *asset_and_type]
+    project = AvalonProject(
+        str(ObjectId()),
+        project_id,
+        AvalonProjectData(),
+        dict(),
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
     # Act
-    await batch_controller.batch_update(project["_id"], batch_config())
+    await batch_controller.batch_update(project_id, batch_config())
 
     # Assert
     assert_that(all_avalon(client)).extracting("type").is_equal_to(
