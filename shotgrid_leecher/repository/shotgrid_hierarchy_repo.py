@@ -10,11 +10,11 @@ from toolz.curried import groupby
 
 import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
+from shotgrid_leecher.mapper import query_mapper
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
-    ShotgridFindProjectByIdQuery,
     ShotgridFindAssetsByProjectQuery,
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
@@ -175,15 +175,15 @@ def get_hierarchy_by_project(
     query: ShotgridHierarchyByProjectQuery,
 ) -> List[Map]:
     project = entity_repo.find_project_by_id(
-        ShotgridFindProjectByIdQuery.from_query(query)
+        query_mapper.hierarchy_to_project_query(query)
     )
     assets = pipe(
-        ShotgridFindAssetsByProjectQuery.from_query(project, query),
+        query_mapper.hierarchy_to_assets_query(project, query),
         _fetch_project_assets,
         list,
     )
     shots = pipe(
-        ShotgridFindShotsByProjectQuery.from_query(project, query),
+        query_mapper.hierarchy_to_shots_query(project, query),
         _fetch_project_shots,
         list,
     )
@@ -191,7 +191,7 @@ def get_hierarchy_by_project(
         int(x.src_id): x for x in assets + shots if x.has_field("src_id")
     }
     tasks = pipe(
-        ShotgridFindTasksByProjectQuery.from_query(project, query),
+        query_mapper.hierarchy_to_tasks_query(project, query),
         _fetch_project_tasks(rows_dict),
         list,
     )

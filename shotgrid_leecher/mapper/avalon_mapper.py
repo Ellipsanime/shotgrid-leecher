@@ -31,7 +31,7 @@ def entity_to_project(
 
 def shotgrid_to_avalon(hierarchy_rows: List[Map]) -> Dict[str, Map]:
     """
-    Utilitary function to map hierarchy shotgrid data to MongoDB avalon format.
+    Utility function to map hierarchy shotgrid data to MongoDB avalon format.
 
     Note:
         hierarchy_rows should be ordered from top to bottom

@@ -34,6 +34,7 @@ def check_shotgrid_before_batch(
     query = ShotgridFindProjectByIdQuery(
         command.project_id,
         command.credentials,
+        AvalonProjectData(),
         ProjectFieldsMapping.from_dict({}),  # TODO make it differently
     )
     project = entity_repo.find_project_by_id(query)
