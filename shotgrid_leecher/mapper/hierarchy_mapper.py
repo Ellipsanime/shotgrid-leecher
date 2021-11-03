@@ -1,6 +1,20 @@
 from typing import Dict, Any, cast
 
+import attr
+
 from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
+    IntermediateTopShot,
+    IntermediateTopAsset,
+    IntermediateTask,
+    IntermediateAsset,
+    IntermediateShot,
+    IntermediateShotParams,
+    IntermediateAssetGroup,
+    IntermediateEpisode,
+    IntermediateSequence,
+    IntermediateProject,
+)
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridAsset,
@@ -17,95 +31,81 @@ _LOG = get_logger(__name__.split(".")[-1])
 Map = Dict[str, Any]
 
 
-def to_top_shot_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": ShotgridType.SHOT.value,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},",
-    }
+def to_top_shot_row(project: ShotgridProject) -> IntermediateTopShot:
+    return IntermediateTopShot(ShotgridType.SHOT.value, f",{project.name},")
 
 
-def to_top_asset_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": ShotgridType.ASSET.value,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},",
-    }
+def to_top_asset_row(project: ShotgridProject) -> IntermediateTopAsset:
+    return IntermediateTopAsset(ShotgridType.ASSET.value, f",{project.name},")
 
 
-def to_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
-    return {
-        "_id": f"{task.content}_{task.id}",
-        "src_id": task.id,
-        "type": ShotgridType.TASK.value,
-        "parent": parent_task_path,
-        "task_type": task.step_name(),
-    }
+def to_task_row(task: ShotgridTask, parent_task_path: str) -> IntermediateTask:
+    return IntermediateTask(
+        id=f"{task.content}_{task.id}",
+        parent=parent_task_path,
+        task_type=task.step_name(),
+        src_id=task.id,
+    )
 
 
-def to_asset_row(asset: ShotgridAsset, parent_path: str) -> Map:
-    return {
-        "_id": asset.code,
-        "src_id": asset.id,
-        "type": ShotgridType.ASSET.value,
-        "parent": parent_path,
-    }
+def to_asset_row(asset: ShotgridAsset, parent_path: str) -> IntermediateAsset:
+    return IntermediateAsset(
+        id=asset.code,
+        src_id=asset.id,
+        parent=parent_path,
+    )
 
 
-def to_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
-    result = {
-        "_id": shot.code,
-        "src_id": shot.id,
-        "type": ShotgridType.SHOT.value,
-        "parent": parent_path,
-    }
+def to_shot_row(shot: ShotgridShot, parent_path: str) -> IntermediateShot:
+    result = IntermediateShot(
+        id=shot.code,
+        src_id=shot.id,
+        parent=parent_path,
+        params=None,
+    )
     if not shot.has_params():
         return result
-    params: ShotgridShotParams = cast(ShotgridShotParams, shot.params)
-    return {
-        **result,
-        "params": {
-            "clip_in": params.cut_in,
-            "clip_out": params.cut_out,
-        },
-    }
+    raw_params: ShotgridShotParams = cast(ShotgridShotParams, shot.params)
+    params = IntermediateShotParams(
+        clip_in=raw_params.cut_in,
+        clip_out=raw_params.cut_out,
+    )
+    return attr.evolve(result, params=params)
 
 
-def to_asset_group_row(asset_type: str, project: ShotgridProject) -> Map:
-    return {
-        "_id": asset_type,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},{ShotgridType.ASSET.value},",
-    }
+def to_asset_group_row(
+    asset_type: str,
+    project: ShotgridProject,
+) -> IntermediateAssetGroup:
+    return IntermediateAssetGroup(
+        id=asset_type,
+        parent=f",{project.name},{ShotgridType.ASSET.value},",
+    )
 
 
 def to_episode_shot_group_row(
     episode: ShotgridShotEpisode,
     project: ShotgridProject,
-) -> Map:
-    return {
-        "_id": episode.name,
-        "type": ShotgridType.EPISODE.value,
-        "src_id": episode.id,
-        "parent": f",{project.name},{ShotgridType.SHOT.value},",
-    }
+) -> IntermediateEpisode:
+    return IntermediateEpisode(
+        id=episode.name,
+        src_id=episode.id,
+        parent=f",{project.name},{ShotgridType.SHOT.value},",
+    )
 
 
 def to_sequence_shot_group_row(
     sequence: ShotgridShotSequence, parent_path: str
-) -> Map:
-    return {
-        "_id": sequence.name,
-        "type": ShotgridType.SEQUENCE.value,
-        "src_id": sequence.id,
-        "parent": parent_path,
-    }
+) -> IntermediateSequence:
+    return IntermediateSequence(
+        id=sequence.name,
+        src_id=sequence.id,
+        parent=parent_path,
+    )
 
 
-def to_project_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": project.name,
-        "src_id": project.id,
-        "type": ShotgridType.PROJECT.value,
-        "parent": None,
-    }
+def to_project_row(project: ShotgridProject) -> IntermediateProject:
+    return IntermediateProject(
+        id=project.name,
+        src_id=project.id,
+    )

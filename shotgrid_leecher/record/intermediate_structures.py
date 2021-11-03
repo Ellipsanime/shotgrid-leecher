@@ -13,6 +13,9 @@ class IntermediateRow:
     parent: str
     type: ShotgridType = attr.attrib(init=False)
 
+    def has_field(self, field: str):
+        return field in attr.asdict(self, recurse=False).keys()
+
     def to_dict(self) -> Map:
         base_dict = {k: v for k, v in attr.asdict(self).items() if k != "id"}
         return {
@@ -39,14 +42,14 @@ class IntermediateAssetGroup(IntermediateRow):
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateAsset(IntermediateRow):
-    src_id: str
+    src_id: int
     type = ShotgridType.ASSET
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateTask(IntermediateRow):
     task_type: str
-    src_id: str
+    src_id: int
     type = ShotgridType.TASK
 
 
@@ -70,29 +73,25 @@ class IntermediateParams:
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateShot(IntermediateRow):
-    params: IntermediateShotParams
-    src_id: str
+    params: Optional[IntermediateShotParams]
+    src_id: int
     type = ShotgridType.SHOT
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateEpisode(IntermediateRow):
-    src_id: str
+    src_id: int
     type = ShotgridType.EPISODE
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateSequence(IntermediateRow):
-    src_id: str
+    src_id: int
     type = ShotgridType.SEQUENCE
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateProject(IntermediateRow):
-    src_id: str
+    src_id: int
     parent: str = attr.attrib(init=False, default=None)
     type = ShotgridType.PROJECT
-
-
-print(IntermediateProject("1", "2").to_dict())
-print(IntermediateSequence("1", "Parent", "2").to_dict())

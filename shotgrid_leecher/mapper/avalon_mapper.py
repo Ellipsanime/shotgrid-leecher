@@ -176,13 +176,13 @@ def _create_avalon_asset_row(
     hierarchy_row: Map, parent: str, visual_parent: Optional[str]
 ) -> Map:
     def_ = _default_avalon_asset_data()
-    params = hierarchy_row.get("params", dict())
+    params = hierarchy_row.get("params") or dict()
     data = {
         **def_,
         "parents": hierarchy_row["parent"].split(",")[2:-1],
         "visualParent": visual_parent,
-        "clipIn": params.get("clip_in") or def_.get("clipIn"),
-        "clipOut": params.get("clip_out") or def_.get("clipOut"),
+        "clipIn": params.get("clip_in") or def_.get("clipIn", 1),
+        "clipOut": params.get("clip_out") or def_.get("clipOut", 1),
         "frameStart": params.get("frame_start") or def_.get("frameStart"),
         "frameEnd": params.get("frame_end") or def_.get("frameEnd"),
     }

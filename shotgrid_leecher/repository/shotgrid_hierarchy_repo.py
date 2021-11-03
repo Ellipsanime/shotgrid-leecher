@@ -11,6 +11,7 @@ from toolz.curried import groupby
 import shotgrid_leecher.mapper.hierarchy_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
     ShotgridFindProjectByIdQuery,
@@ -34,9 +35,9 @@ Map = Dict[str, Any]
 
 @curry
 def _fetch_project_tasks(
-    rows: Dict[int, Any],
+    rows: Dict[int, IntermediateRow],
     query: ShotgridFindTasksByProjectQuery,
-) -> Iterator[Map]:
+) -> Iterator[IntermediateRow]:
     # TODO: Fields should be configurable
     raw_tasks = entity_repo.find_tasks_for_project(query)
     asset_tasks = [task for task in raw_tasks if task.step]
@@ -45,7 +46,7 @@ def _fetch_project_tasks(
         entity_row = rows.get(key)
         if not entity_row:
             continue
-        parent_path = f"{entity_row['parent']}{entity_row['_id']},"
+        parent_path = f"{entity_row.parent}{entity_row.id},"
         yield mapper.to_task_row(task, parent_path)
 
 
@@ -59,7 +60,7 @@ def _patch_up_shot(shot: ShotgridShot) -> ShotgridShot:
 
 def _fetch_project_shots(
     query: ShotgridFindShotsByProjectQuery,
-) -> Iterator[Map]:
+) -> Iterator[IntermediateRow]:
     # TODO: Fields should be configurable
     project = query.project
     raw_shots = entity_repo.find_shots_for_project(query)
@@ -81,7 +82,7 @@ def _fetch_project_shots(
 def _tackle_full_shots(
     project: ShotgridProject,
     shots: List[ShotgridShot],
-) -> Iterator[Map]:
+) -> Iterator[IntermediateRow]:
     shot_type = ShotgridType.SHOT.value
     full_shots = pipe(
         shots,
@@ -98,7 +99,7 @@ def _tackle_full_shots(
 def _tackle_shot_sequences(
     project: ShotgridProject,
     shots: List[ShotgridShot],
-) -> Iterator[Map]:
+) -> Iterator[IntermediateRow]:
     shot_type = ShotgridType.SHOT.value
     sequence_group = pipe(
         shots,
@@ -116,7 +117,7 @@ def _tackle_shot_sequences(
 def _tackle_shot_episodes(
     project: ShotgridProject,
     shots: List[ShotgridShot],
-) -> Iterator[Map]:
+) -> Iterator[IntermediateRow]:
     episode_groups = pipe(
         shots,
         where(lambda x: x.episode_name()),
@@ -129,7 +130,7 @@ def _tackle_shot_episodes(
 def _tackle_partial_shots(
     project: ShotgridProject,
     shots: List[ShotgridShot],
-) -> Iterator[Map]:
+) -> Iterator[IntermediateRow]:
     shot_type = ShotgridType.SHOT.value
     partial_shots = pipe(
         shots,
@@ -152,7 +153,7 @@ def _tackle_partial_shots(
 
 def _fetch_project_assets(
     query: ShotgridFindAssetsByProjectQuery,
-) -> Iterator[Map]:
+) -> Iterator[IntermediateRow]:
     # TODO: Fields should be configurable
     project = query.project
     assets = entity_repo.find_assets_for_project(query)
@@ -186,7 +187,9 @@ def get_hierarchy_by_project(
         _fetch_project_shots,
         list,
     )
-    rows_dict = {int(x["src_id"]): x for x in assets + shots if "src_id" in x}
+    rows_dict = {
+        int(x.src_id): x for x in assets + shots if x.has_field("src_id")
+    }
     tasks = pipe(
         ShotgridFindTasksByProjectQuery.from_query(project, query),
         _fetch_project_tasks(rows_dict),
@@ -194,8 +197,11 @@ def get_hierarchy_by_project(
     )
 
     return [
-        mapper.to_project_row(project),
-        *assets,
-        *shots,
-        *tasks,
+        x.to_dict()
+        for x in [
+            mapper.to_project_row(project),
+            *assets,
+            *shots,
+            *tasks,
+        ]
     ]
