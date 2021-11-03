@@ -31,15 +31,15 @@ _LOG = get_logger(__name__.split(".")[-1])
 Map = Dict[str, Any]
 
 
-def to_top_shot_row(project: ShotgridProject) -> IntermediateTopShot:
+def to_top_shot(project: ShotgridProject) -> IntermediateTopShot:
     return IntermediateTopShot(ShotgridType.SHOT.value, f",{project.name},")
 
 
-def to_top_asset_row(project: ShotgridProject) -> IntermediateTopAsset:
+def to_top_asset(project: ShotgridProject) -> IntermediateTopAsset:
     return IntermediateTopAsset(ShotgridType.ASSET.value, f",{project.name},")
 
 
-def to_task_row(task: ShotgridTask, parent_task_path: str) -> IntermediateTask:
+def to_task(task: ShotgridTask, parent_task_path: str) -> IntermediateTask:
     return IntermediateTask(
         id=f"{task.content}_{task.id}",
         parent=parent_task_path,
@@ -48,7 +48,7 @@ def to_task_row(task: ShotgridTask, parent_task_path: str) -> IntermediateTask:
     )
 
 
-def to_asset_row(asset: ShotgridAsset, parent_path: str) -> IntermediateAsset:
+def to_asset(asset: ShotgridAsset, parent_path: str) -> IntermediateAsset:
     return IntermediateAsset(
         id=asset.code,
         src_id=asset.id,
@@ -56,7 +56,7 @@ def to_asset_row(asset: ShotgridAsset, parent_path: str) -> IntermediateAsset:
     )
 
 
-def to_shot_row(shot: ShotgridShot, parent_path: str) -> IntermediateShot:
+def to_shot(shot: ShotgridShot, parent_path: str) -> IntermediateShot:
     result = IntermediateShot(
         id=shot.code,
         src_id=shot.id,
@@ -73,7 +73,7 @@ def to_shot_row(shot: ShotgridShot, parent_path: str) -> IntermediateShot:
     return attr.evolve(result, params=params)
 
 
-def to_asset_group_row(
+def to_asset_group(
     asset_type: str,
     project: ShotgridProject,
 ) -> IntermediateAssetGroup:
@@ -83,7 +83,7 @@ def to_asset_group_row(
     )
 
 
-def to_episode_shot_group_row(
+def to_episode_shot_group(
     episode: ShotgridShotEpisode,
     project: ShotgridProject,
 ) -> IntermediateEpisode:
@@ -94,7 +94,7 @@ def to_episode_shot_group_row(
     )
 
 
-def to_sequence_shot_group_row(
+def to_sequence_shot_group(
     sequence: ShotgridShotSequence, parent_path: str
 ) -> IntermediateSequence:
     return IntermediateSequence(
@@ -104,7 +104,7 @@ def to_sequence_shot_group_row(
     )
 
 
-def to_project_row(project: ShotgridProject) -> IntermediateProject:
+def to_project(project: ShotgridProject) -> IntermediateProject:
     return IntermediateProject(
         id=project.name,
         src_id=project.id,

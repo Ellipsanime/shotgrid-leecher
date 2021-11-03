@@ -47,7 +47,7 @@ def _fetch_project_tasks(
         if not entity_row:
             continue
         parent_path = f"{entity_row.parent}{entity_row.id},"
-        yield mapper.to_task_row(task, parent_path)
+        yield mapper.to_task(task, parent_path)
 
 
 def _patch_up_shot(shot: ShotgridShot) -> ShotgridShot:
@@ -66,7 +66,7 @@ def _fetch_project_shots(
     raw_shots = entity_repo.find_shots_for_project(query)
 
     if raw_shots:
-        yield mapper.to_top_shot_row(project)
+        yield mapper.to_top_shot(project)
 
     shots = pipe(
         raw_shots,
@@ -93,7 +93,7 @@ def _tackle_full_shots(
         episode = shot.episode_name()
         sequence_ = shot.sequence_name()
         parent_path = f",{project.name},{shot_type},{episode},{sequence_},"
-        yield mapper.to_shot_row(shot, parent_path)
+        yield mapper.to_shot(shot, parent_path)
 
 
 def _tackle_shot_sequences(
@@ -111,7 +111,7 @@ def _tackle_shot_sequences(
             episode = shot.episode_name()
             base_path = f",{project.name},{shot_type},"
             parent_path = f"{base_path}{episode}," if episode else base_path
-            yield mapper.to_sequence_shot_group_row(shot.sequence, parent_path)
+            yield mapper.to_sequence_shot_group(shot.sequence, parent_path)
 
 
 def _tackle_shot_episodes(
@@ -124,7 +124,7 @@ def _tackle_shot_episodes(
         groupby(lambda x: x.episode_name()),
     )
     for ep, ep_shots in episode_groups.items():
-        yield mapper.to_episode_shot_group_row(ep_shots[-1].episode, project)
+        yield mapper.to_episode_shot_group(ep_shots[-1].episode, project)
 
 
 def _tackle_partial_shots(
@@ -140,15 +140,15 @@ def _tackle_partial_shots(
     for shot in partial_shots:
         if not shot.episode and not shot.sequence:
             parent_path = f",{project.name},{shot_type},"
-            yield mapper.to_shot_row(shot, parent_path)
+            yield mapper.to_shot(shot, parent_path)
         if not shot.episode and shot.sequence:
             sequence_ = shot.sequence.name
             parent_path = f",{project.name},{shot_type},{sequence_},"
-            yield mapper.to_shot_row(shot, parent_path)
+            yield mapper.to_shot(shot, parent_path)
         if shot.episode and not shot.sequence:
             episode = shot.episode.name
             parent_path = f",{project.name},{shot_type},{episode},"
-            yield mapper.to_shot_row(shot, parent_path)
+            yield mapper.to_shot(shot, parent_path)
 
 
 def _fetch_project_assets(
@@ -160,14 +160,14 @@ def _fetch_project_assets(
     archetype = ShotgridType.ASSET.value
 
     if assets:
-        yield mapper.to_top_asset_row(project)
+        yield mapper.to_top_asset(project)
 
     for g, g_assets in groupby(lambda x: x.asset_type, assets).items():
-        yield mapper.to_asset_group_row(g_assets[0].asset_type, project)
+        yield mapper.to_asset_group(g_assets[0].asset_type, project)
         for asset in g_assets:
             asset_type = asset.asset_type
             parent_path = f",{project.name},{archetype},{asset_type},"
-            yield mapper.to_asset_row(asset, parent_path)
+            yield mapper.to_asset(asset, parent_path)
 
 
 @timed
@@ -199,7 +199,7 @@ def get_hierarchy_by_project(
     return [
         x.to_dict()
         for x in [
-            mapper.to_project_row(project),
+            mapper.to_project(project),
             *assets,
             *shots,
             *tasks,
