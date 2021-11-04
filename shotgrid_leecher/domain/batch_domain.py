@@ -12,6 +12,7 @@ from shotgrid_leecher.record.commands import (
     ShotgridCheckCommand,
     CreateShotgridInAvalonCommand,
 )
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridHierarchyByProjectQuery,
@@ -142,7 +143,7 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
 
 @curry
 def _fetch_intermediate_hierarchy(
-    project_name: str, shotgrid_hierarchy: List[Map]
+    project_name: str, shotgrid_hierarchy: List[IntermediateRow]
 ) -> List[Map]:
     intermediate_hierarchy = list(
         intermediate_hierarchy_repo.fetch_by_project(project_name)

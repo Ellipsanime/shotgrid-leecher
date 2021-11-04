@@ -5,7 +5,7 @@ import attr
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.intermediate_structures import (
-    IntermediateTopShot,
+    IntermediateShotGroup,
     IntermediateTopAsset,
     IntermediateTask,
     IntermediateAsset,
@@ -50,8 +50,8 @@ def _to_params(project_data: AvalonProjectData) -> IntermediateParams:
 
 def to_top_shot(
     project: ShotgridProject, project_data: AvalonProjectData
-) -> IntermediateTopShot:
-    return IntermediateTopShot(
+) -> IntermediateShotGroup:
+    return IntermediateShotGroup(
         ShotgridType.SHOT.value, f",{project.name},", _to_params(project_data)
     )
 

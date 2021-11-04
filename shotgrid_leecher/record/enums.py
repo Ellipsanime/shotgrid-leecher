@@ -1,4 +1,5 @@
 from enum import Enum, unique
+from typing import List
 
 from shotgrid_leecher.utils.functional import try_or
 
@@ -46,8 +47,22 @@ class ShotgridType(Enum):
     SHOT = "Shot"
     EPISODE = "Episode"
     SEQUENCE = "Sequence"
-    TASK = "Task"
     GROUP = "Group"
+    TASK = "Task"
+
+    @staticmethod
+    def middle_types() -> List["ShotgridType"]:
+        return [
+            ShotgridType.GROUP,
+            ShotgridType.ASSET,
+            ShotgridType.SHOT,
+            ShotgridType.EPISODE,
+            ShotgridType.SEQUENCE,
+        ]
+
+    @staticmethod
+    def middle_names() -> List[str]:
+        return [x.value for x in ShotgridType.middle_types()]
 
 
 @unique
