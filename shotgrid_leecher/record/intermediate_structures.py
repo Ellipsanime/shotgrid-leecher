@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 
 import attr
 
@@ -8,9 +8,28 @@ Map = Dict[str, Any]
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class IntermediateParams:
+    clip_in: int
+    clip_out: int
+    fps: float
+    frame_end: int
+    frame_start: int
+    handle_end: int
+    handle_start: int
+    pixel_aspect: float
+    resolution_height: int
+    resolution_width: int
+    tools_env: List[Any]
+
+    def to_dict(self) -> Map:
+        return attr.asdict(self)
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IntermediateRow:
     id: str
     parent: str
+    params: IntermediateParams
     type: ShotgridType = attr.attrib(init=False)
 
     def has_field(self, field: str):
@@ -54,26 +73,7 @@ class IntermediateTask(IntermediateRow):
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class IntermediateShotParams:
-    clip_in: Optional[int]
-    clip_out: Optional[int]
-
-    def to_dict(self) -> Map:
-        return attr.asdict(self)
-
-
-@attr.s(auto_attribs=True, frozen=True)
-class IntermediateParams:
-    fps: float
-    tools_env: List[Any]
-
-    def to_dict(self) -> Map:
-        return attr.asdict(self)
-
-
-@attr.s(auto_attribs=True, frozen=True)
 class IntermediateShot(IntermediateRow):
-    params: Optional[IntermediateShotParams]
     src_id: int
     type = ShotgridType.SHOT
 

@@ -55,7 +55,8 @@ def _extract(field: str, data: List[Dict]) -> List[Any]:
 async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
     # Arrange
     def exp_filter(x):
-        return x.get("params")
+        params = x.get("params", dict())
+        return params.get("clip_in") or params.get("clip_out")
 
     project_id = params_data.PROJECT_ID
     client = MongoClient()
@@ -65,7 +66,7 @@ async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
     project = AvalonProject(
         str(ObjectId()),
         project_id,
-        AvalonProjectData(),
+        AvalonProjectData(clip_in=None, clip_out=None),
         dict(),
     )
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))

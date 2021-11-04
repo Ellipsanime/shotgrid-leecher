@@ -5,20 +5,21 @@ import cattr
 from bson import ObjectId
 
 from shotgrid_leecher.record.enums import AvalonType
+from shotgrid_leecher.utils.strings import snakify_camel
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class AvalonProjectData:
-    clipIn: int = 1
-    clipOut: int = 1
+    clip_in: int = 1
+    clip_out: int = 1
     fps: float = 25.0
-    frameEnd: int = 0
-    frameStart: int = 0
-    handleEnd: int = 0
-    handleStart: int = 0
-    pixelAspect: float = 0
-    resolutionHeight: int = 0
-    resolutionWidth: int = 0
+    frame_end: int = 0
+    frame_start: int = 0
+    handle_end: int = 0
+    handle_start: int = 0
+    pixel_aspect: float = 0
+    resolution_height: int = 0
+    resolution_width: int = 0
     tools_env: List[Any] = []
     library_project: bool = False
 
@@ -27,7 +28,10 @@ class AvalonProjectData:
 
     @staticmethod
     def from_dict(raw_dic: Dict[str, Any]) -> "AvalonProjectData":
-        return cattr.structure(raw_dic, AvalonProjectData)
+        return cattr.structure(
+            {snakify_camel(k): v for k, v in raw_dic.items()},
+            AvalonProjectData,
+        )
 
 
 @attr.s(auto_attribs=True, frozen=True)

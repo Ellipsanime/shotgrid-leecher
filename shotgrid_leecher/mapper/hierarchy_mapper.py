@@ -10,11 +10,11 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateTask,
     IntermediateAsset,
     IntermediateShot,
-    IntermediateShotParams,
     IntermediateAssetGroup,
     IntermediateEpisode,
     IntermediateSequence,
     IntermediateProject,
+    IntermediateParams,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -32,18 +32,36 @@ _LOG = get_logger(__name__.split(".")[-1])
 Map = Dict[str, Any]
 
 
+def _to_params(project_data: AvalonProjectData) -> IntermediateParams:
+    return IntermediateParams(
+        clip_in=project_data.clip_in,
+        clip_out=project_data.clip_out,
+        fps=project_data.fps,
+        frame_end=project_data.frame_end,
+        frame_start=project_data.frame_start,
+        handle_end=project_data.handle_end,
+        handle_start=project_data.handle_start,
+        pixel_aspect=project_data.pixel_aspect,
+        resolution_height=project_data.resolution_height,
+        resolution_width=project_data.resolution_width,
+        tools_env=project_data.tools_env,
+    )
+
+
 def to_top_shot(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateTopShot:
-    print(project_data)
-    return IntermediateTopShot(ShotgridType.SHOT.value, f",{project.name},")
+    return IntermediateTopShot(
+        ShotgridType.SHOT.value, f",{project.name},", _to_params(project_data)
+    )
 
 
 def to_top_asset(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateTopAsset:
-    print(project_data)
-    return IntermediateTopAsset(ShotgridType.ASSET.value, f",{project.name},")
+    return IntermediateTopAsset(
+        ShotgridType.ASSET.value, f",{project.name},", _to_params(project_data)
+    )
 
 
 def to_task(
@@ -51,12 +69,12 @@ def to_task(
     parent_task_path: str,
     project_data: AvalonProjectData,
 ) -> IntermediateTask:
-    print(project_data)
     return IntermediateTask(
         id=f"{task.content}_{task.id}",
         parent=parent_task_path,
-        task_type=task.step_name,
+        task_type=str(task.step_name),
         src_id=task.id,
+        params=_to_params(project_data),
     )
 
 
@@ -65,11 +83,11 @@ def to_asset(
     parent_path: str,
     project_data: AvalonProjectData,
 ) -> IntermediateAsset:
-    print(project_data)
     return IntermediateAsset(
         id=asset.code,
         src_id=asset.id,
         parent=parent_path,
+        params=_to_params(project_data),
     )
 
 
@@ -78,19 +96,19 @@ def to_shot(
     parent_path: str,
     project_data: AvalonProjectData,
 ) -> IntermediateShot:
-    print(project_data)
     result = IntermediateShot(
         id=shot.code,
         src_id=shot.id,
         parent=parent_path,
-        params=None,
+        params=_to_params(project_data),
     )
-    if not shot.has_params:
+    if not shot.has_params():
         return result
     raw_params: ShotgridShotParams = cast(ShotgridShotParams, shot.params)
-    params = IntermediateShotParams(
-        clip_in=raw_params.cut_in,
-        clip_out=raw_params.cut_out,
+    params = attr.evolve(
+        result.params,
+        clip_in=raw_params.cut_in or project_data.clip_in,
+        clip_out=raw_params.cut_out or project_data.clip_out,
     )
     return attr.evolve(result, params=params)
 
@@ -100,10 +118,10 @@ def to_asset_group(
     project: ShotgridProject,
     project_data: AvalonProjectData,
 ) -> IntermediateAssetGroup:
-    print(project_data)
     return IntermediateAssetGroup(
         id=asset_type,
         parent=f",{project.name},{ShotgridType.ASSET.value},",
+        params=_to_params(project_data),
     )
 
 
@@ -112,11 +130,11 @@ def to_episode_shot_group(
     project: ShotgridProject,
     project_data: AvalonProjectData,
 ) -> IntermediateEpisode:
-    print(project_data)
     return IntermediateEpisode(
         id=episode.name,
         src_id=episode.id,
         parent=f",{project.name},{ShotgridType.SHOT.value},",
+        params=_to_params(project_data),
     )
 
 
@@ -125,11 +143,11 @@ def to_sequence_shot_group(
     parent_path: str,
     project_data: AvalonProjectData,
 ) -> IntermediateSequence:
-    print(project_data)
     return IntermediateSequence(
         id=sequence.name,
         src_id=sequence.id,
         parent=parent_path,
+        params=_to_params(project_data),
     )
 
 
@@ -137,8 +155,8 @@ def to_project(
     project: ShotgridProject,
     project_data: AvalonProjectData,
 ) -> IntermediateProject:
-    print(project_data)
     return IntermediateProject(
         id=project.name,
         src_id=project.id,
+        params=_to_params(project_data),
     )

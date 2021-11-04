@@ -36,9 +36,14 @@ def test_to_shot_row_with_params():
         _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64()
     )
     shot = ShotgridShot(_S(), _S(), uuid.uuid4().int, params, None, None, None)
+    project_data = AvalonProjectData()
     # Act
-    actual = to_shot(shot, _S(), AvalonProjectData())
+    actual = to_shot(shot, _S(), project_data)
     # Assert
     assert_that(actual).is_type_of(IntermediateShot)
-    assert_that(actual.params.clip_in).is_equal_to(params.cut_in)
-    assert_that(actual.params.clip_out).is_equal_to(params.cut_out)
+    assert_that(actual.params.clip_in).is_equal_to(
+        params.cut_in or project_data.clip_in
+    )
+    assert_that(actual.params.clip_out).is_equal_to(
+        params.cut_out or project_data.clip_out
+    )
