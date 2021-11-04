@@ -212,9 +212,7 @@ def test_shotgrid_to_avalon_assets_hierarchy():
     assert_that(actual[asset_grp.id]["parent"]).is_equal_to(project.id)
     assert_that(actual[data[2].id]["parent"]).is_equal_to(project.id)
     assert_that(actual[data[3].id]["parent"]).is_equal_to(project.id)
-    assert_that(actual[asset_grp.id]["data"]["visualParent"]).is_equal_to(
-        None
-    )
+    assert_that(actual[asset_grp.id]["data"]["visualParent"]).is_equal_to(None)
     assert_that(actual[data[2].id]["data"]["visualParent"]).is_equal_to(
         asset_grp.id
     )
@@ -256,9 +254,7 @@ def test_shotgrid_to_avalon_assets_with_tasks_values():
     actual = shotgrid_to_avalon(data)
 
     # Assert
-    assert_that(actual[project.id]["config"]["tasks"]).is_length(
-        len(steps)
-    )
+    assert_that(actual[project.id]["config"]["tasks"]).is_length(len(steps))
     assert_that(actual[data[3].id]["data"]["tasks"]).is_length(task_num)
 
 
@@ -301,9 +297,7 @@ def test_shotgrid_to_avalon_shots_hierarchy():
     assert_that(
         [actual[k]["parent"] for k in actual.keys() if "parent" in actual[k]]
     ).contains_only(project.id)
-    assert_that(actual[shot_grp.id]["data"]["visualParent"]).is_equal_to(
-        None
-    )
+    assert_that(actual[shot_grp.id]["data"]["visualParent"]).is_equal_to(None)
     assert_that(actual[data[2].id]["data"]["visualParent"]).is_equal_to(
         shot_grp.id
     )
