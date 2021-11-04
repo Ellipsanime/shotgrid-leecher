@@ -184,7 +184,7 @@ def _fetch_project_assets(
 @timed
 def get_hierarchy_by_project(
     query: ShotgridHierarchyByProjectQuery,
-) -> List[Map]:
+) -> List[IntermediateRow]:
     project = entity_repo.find_project_by_id(
         query_mapper.hierarchy_to_project_query(query)
     )
@@ -208,7 +208,7 @@ def get_hierarchy_by_project(
     )
 
     return [
-        x.to_dict()
+        x
         for x in [
             mapper.to_project(project, query.project_data),
             *assets,
