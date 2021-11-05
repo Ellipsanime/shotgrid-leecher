@@ -31,7 +31,7 @@ AVALON_DATA = [
             "pixelAspect": _I32(),
             "resolutionHeight": _I32(),
             "resolutionWidth": _I32(),
-            "tools_env": [],
+            "tools_env": [_I32(), _I32(), _I32()],
             "code": "TODO!!!",  # str(uuid.uuid4())[:5],
             "library_project": False,
             "visualParent": None,
