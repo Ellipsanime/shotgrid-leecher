@@ -135,6 +135,7 @@ def _create_avalon_project_row(project_name: str) -> Map:
             "roots": {"windows": "C:/projects"},
             "templates": {"default": {}},
         },
+        "data": {},
     }
 
 
