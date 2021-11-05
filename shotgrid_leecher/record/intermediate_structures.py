@@ -1,12 +1,15 @@
 from typing import Dict, Any, List, Optional
 
 import attr
+import cattr
 from bson import ObjectId
 
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.utils.strings import avalonify_snake_case
 
 Map = Dict[str, Any]
+
+cattr.register_structure_hook(ObjectId, lambda v, _: ObjectId(str(v)))
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -39,6 +42,7 @@ class IntermediateRow:
     id: str
     parent: str
     params: IntermediateParams
+    src_id: Optional[int] = attr.attrib(None, init=False)
     type: ShotgridType = attr.attrib(init=False)
     object_id: Optional[ObjectId] = attr.attrib(init=False)
 

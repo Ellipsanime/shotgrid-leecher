@@ -18,9 +18,9 @@ Map = Dict[str, Any]
 
 def entity_to_project(
     project: AvalonProject, hierarchy_rows: List[IntermediateRow]
-) -> IntermediateProject:
+) -> Optional[IntermediateProject]:
     if not project:
-        raise ValueError("project cannot be none")
+        return None
 
     shotgrid_project = cast(
         IntermediateProject,

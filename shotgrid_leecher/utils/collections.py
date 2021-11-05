@@ -1,7 +1,19 @@
 from itertools import chain, starmap
-from typing import Dict, Any, Tuple, Iterable
+from typing import Dict, Any, Tuple, Iterable, Set
+
+from toolz import curry
 
 Map = Dict[str, Any]
+
+
+@curry
+def drop_keys(keys: Set[str], dic: Map) -> Map:
+    return {k: v for k, v in dic.items() if k not in keys}
+
+
+@curry
+def keep_keys(keys: Set[str], dic: Map) -> Map:
+    return {k: v for k, v in dic.items() if k in keys}
 
 
 def _unpack_nested(

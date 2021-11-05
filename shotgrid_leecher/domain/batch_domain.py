@@ -1,5 +1,6 @@
-from typing import Dict, Any, List, Iterator, Set, Tuple, Optional
+from typing import Dict, Any, List, Iterator, Set, Tuple, Optional, cast
 
+import attr
 from bson.objectid import ObjectId
 from toolz import get_in, curry, pipe
 
@@ -24,6 +25,7 @@ from shotgrid_leecher.repository import (
     intermediate_hierarchy_repo,
 )
 from shotgrid_leecher.utils import generator
+from shotgrid_leecher.utils.functional import try_or, try_or_call
 from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
@@ -98,30 +100,30 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
 
 @curry
 def _assign_object_ids(
-    shotgrid_hierarchy: List[Map],
-    intermediate_hierarchy: List[Map],
-) -> Iterator[Map]:
+    shotgrid_hierarchy: List[IntermediateRow],
+    intermediate_hierarchy: List[IntermediateRow],
+) -> Iterator[IntermediateRow]:
     source_id_tree = {
-        x["src_id"]: x for x in intermediate_hierarchy if x.get("src_id")
+        x.src_id: x
+        for x in intermediate_hierarchy
+        if x.has_field("src_id") and x.src_id
     }
-    ids_tree = {
-        x["_id"]: x for x in intermediate_hierarchy if not x.get("src_id")
-    }
+    ids_tree = {x.id: x for x in intermediate_hierarchy if not x.src_id}
     for row in shotgrid_hierarchy:
-        if row.get("src_id"):
-            yield {
-                **row,
-                "object_id": source_id_tree.get(row["src_id"], dict()).get(
-                    "object_id"
-                )
-                or generator.object_id(),
-            }
+        if row.has_field("src_id") and row.src_id:
+            src_id = cast(int, row.src_id)
+            object_id = try_or_call(
+                lambda: source_id_tree[src_id].object_id,
+                lambda: generator.object_id(),
+            )
+            yield attr.evolve(row, object_id=object_id)
             continue
-        yield {
-            **row,
-            "object_id": ids_tree.get(row["_id"], dict()).get("object_id")
-            or generator.object_id(),
-        }
+
+        object_id = try_or_call(
+            lambda: ids_tree[row.id].object_id,
+            lambda: generator.object_id(),
+        )
+        yield attr.evolve(row, object_id=object_id)
 
 
 def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
@@ -144,7 +146,7 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
 @curry
 def _fetch_intermediate_hierarchy(
     project_name: str, shotgrid_hierarchy: List[IntermediateRow]
-) -> List[Map]:
+) -> List[IntermediateRow]:
     intermediate_hierarchy = list(
         intermediate_hierarchy_repo.fetch_by_project(project_name)
     )
@@ -157,20 +159,22 @@ def _fetch_intermediate_hierarchy(
     return [avalon_project] if avalon_project else []
 
 
-def _to_paths(hierarchy: List[Map]) -> Set[Tuple[Optional[str], str]]:
-    return {(x.get("parent"), x["_id"]) for x in hierarchy}
+def _to_paths(
+    hierarchy: List[IntermediateRow],
+) -> Set[Tuple[Optional[str], str]]:
+    return {(try_or(lambda: x.parent), x.id) for x in hierarchy}
 
 
 def _detect_deletion(
-    shotgrid_hierarchy: List[Map],
-    intermediate_hierarchy: List[Map],
+    shotgrid_hierarchy: List[IntermediateRow],
+    intermediate_hierarchy: List[IntermediateRow],
 ) -> Set[Tuple[Optional[str], str]]:
     return _to_paths(intermediate_hierarchy) - _to_paths(shotgrid_hierarchy)
 
 
 def _fetch_and_augment_hierarchy(
     command: UpdateShotgridInAvalonCommand,
-) -> Tuple[List[Map], Set[ObjectId]]:
+) -> Tuple[List[IntermediateRow], Set[ObjectId]]:
     query = ShotgridHierarchyByProjectQuery(
         command.project_id,
         command.credentials,
@@ -193,20 +197,20 @@ def _fetch_and_augment_hierarchy(
 
 @curry
 def _propagate_deletion(
-    shotgrid_hierarchy: List[Map],
-    intermediate_hierarchy: List[Map],
-) -> Tuple[List[Map], Set[ObjectId]]:
+    shotgrid_hierarchy: List[IntermediateRow],
+    intermediate_hierarchy: List[IntermediateRow],
+) -> Tuple[List[IntermediateRow], Set[ObjectId]]:
     deleted_ones = _detect_deletion(shotgrid_hierarchy, intermediate_hierarchy)
     if not deleted_ones:
         return intermediate_hierarchy, set()
     altered_hierarchy = [
         x
         for x in intermediate_hierarchy
-        if not (x.get("parent"), x["_id"]) in deleted_ones
+        if not (x.parent, x.id) in deleted_ones
     ]
     deleted_object_ids = {
-        x.get("object_id")
+        x.object_id
         for x in intermediate_hierarchy
-        if (x.get("parent"), x["_id"]) in deleted_ones and x.get("object_id")
+        if (x.parent, x.id) in deleted_ones and x.object_id
     }
     return altered_hierarchy, deleted_object_ids

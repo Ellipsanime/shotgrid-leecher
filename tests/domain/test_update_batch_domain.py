@@ -3,6 +3,7 @@ import uuid
 from typing import Any, Callable, List
 from unittest.mock import Mock
 
+import attr
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from mongomock import MongoClient
@@ -13,6 +14,16 @@ import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.commands import UpdateShotgridInAvalonCommand
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
+    IntermediateProject,
+    IntermediateParams,
+    IntermediateAssetGroup,
+    IntermediateShotGroup,
+    IntermediateRow,
+    IntermediateAsset,
+    IntermediateTask,
+)
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
@@ -33,6 +44,16 @@ def _fun(param: Any) -> Callable[[Any], Any]:
     return lambda *_: param
 
 
+def _params() -> IntermediateParams:
+    common = set(attr.fields_dict(IntermediateParams).keys()).intersection(
+        set(attr.fields_dict(AvalonProjectData).keys())
+    )
+    params = {
+        k: v for k, v in AvalonProjectData().to_dict().items() if k in common
+    }
+    return IntermediateParams(**params)
+
+
 def _patch_adjacent(patcher: MonkeyPatch, client, hierarchy: List) -> None:
     patcher.setattr(conn, "get_db_client", _fun(client))
     patcher.setattr(repository, "get_hierarchy_by_project", _fun(hierarchy))
@@ -47,54 +68,64 @@ def _default_fields_mapping() -> FieldsMapping:
     )
 
 
-def _get_project():
+def _get_project() -> IntermediateProject:
 
     project_id = str(uuid.uuid4())[0:8]
-    return {
-        "_id": f"Project_{project_id}",
-        "src_id": 111,
-        "type": "Project",
-        "parent": None,
-    }
+
+    return IntermediateProject(
+        id=f"Project_{project_id}",
+        src_id=111,
+        params=_params(),
+    )
 
 
-def _get_asset_group(project):
-
-    return {"_id": "Asset", "type": "Group", "parent": f",{project['_id']},"}
-
-
-def _get_shot_group(project):
-
-    return {"_id": "Shot", "type": "Group", "parent": f",{project['_id']},"}
+def _get_asset_group(project: IntermediateProject) -> IntermediateAssetGroup:
+    return IntermediateAssetGroup(
+        id=ShotgridType.ASSET.value,
+        parent=f",{project.id},",
+        params=_params(),
+    )
 
 
-def _get_prp_asset(parent):
+def _get_shot_group(project: IntermediateProject) -> IntermediateShotGroup:
+    return IntermediateShotGroup(
+        id=ShotgridType.GROUP.value,
+        parent=f",{project.id},",
+        params=_params(),
+    )
+
+
+def _get_prp_assets(
+    parent: IntermediateRow,
+) -> List[IntermediateAssetGroup]:
     return [
-        {
-            "_id": "PRP",
-            "type": "Group",
-            "parent": f"{parent['parent']}{parent['_id']},",
-        },
-        {
-            "_id": "Fork",
-            "src_id": uuid.uuid4().int,
-            "type": "Asset",
-            "parent": f"{parent['parent']}{parent['_id']},PRP,",
-        },
+        IntermediateAssetGroup(
+            id="PRP",
+            parent=f"{parent.parent}{parent.id},",
+            params=_params(),
+        ),
+        IntermediateAsset(
+            id="Fork",
+            parent=f"{parent.parent}{parent.id},PRP,",
+            src_id=uuid.uuid4().int,
+            params=_params(),
+        ),
     ]
 
 
-def _get_prp_asset_with_tasks(parent, task_num):
-    asset = _get_prp_asset(parent)
+def _get_prp_asset_with_tasks(
+    parent: IntermediateRow, task_num
+) -> List[IntermediateTask]:
+    asset = _get_prp_assets(parent)
     tasks = [
-        {
-            "_id": f"{random.choice(TASK_NAMES)}_{uuid.uuid4().int}",
-            "src_id": uuid.uuid4().int,
-            "type": "Task",
-            "task_type": random.choice(STEP_NAMES),
-            "parent": f"{asset[1]['parent']}{asset[1]['_id']},",
-        }
-        for i in range(task_num)
+        IntermediateTask(
+            id=f"{random.choice(TASK_NAMES)}_{uuid.uuid4().int}",
+            src_id=uuid.uuid4().int,
+            task_type=random.choice(STEP_NAMES),
+            parent=f"{asset[1].parent}{asset[1].id},",
+            params=_params(),
+        )
+        for _ in range(task_num)
     ]
     return [*asset, *tasks]
 
@@ -123,9 +154,9 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Arrange
     client = Mock()
     data = [_get_project()]
-    last_batch_data = [{**x, "object_id": ObjectId()} for x in data]
+    last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data]
 
-    upsert_mock = Mock(return_value=last_batch_data[0]["object_id"])
+    upsert_mock = Mock(return_value=last_batch_data[0].object_id)
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
@@ -136,7 +167,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
 
     command = UpdateShotgridInAvalonCommand(
         123,
-        data[0]["_id"],
+        data[0].id,
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
@@ -150,7 +181,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     assert_that(upsert_mock.call_args).is_length(2)
     assert_that(upsert_mock.call_args_list).is_length(1)
     assert_that(upsert_mock.call_args_list[0][0][1]["_id"]).is_equal_to(
-        last_batch_data[0]["object_id"]
+        last_batch_data[0].object_id
     )
 
 
@@ -159,9 +190,8 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     client = MongoClient()
     project = _get_project()
     asset_grp = _get_asset_group(project)
-    data = [project, asset_grp, *_get_prp_asset(asset_grp)]
-    last_batch_data = [{**x, "object_id": ObjectId()} for x in data[:2]]
-
+    data = [project, asset_grp, *_get_prp_assets(asset_grp)]
+    last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data[:2]]
     call_list = []
 
     def upsert_mock(project_name, row):
@@ -178,7 +208,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
 
     command = UpdateShotgridInAvalonCommand(
         123,
-        project["_id"],
+        project.id,
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
@@ -190,12 +220,8 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
 
     # Assert
     assert_that(call_list).is_length(4)
-    assert_that(call_list[0]["_id"]).is_equal_to(
-        last_batch_data[0]["object_id"]
-    )
-    assert_that(call_list[1]["_id"]).is_equal_to(
-        last_batch_data[1]["object_id"]
-    )
+    assert_that(call_list[0]["_id"]).is_equal_to(last_batch_data[0].object_id)
+    assert_that(call_list[1]["_id"]).is_equal_to(last_batch_data[1].object_id)
 
 
 def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
@@ -205,8 +231,8 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     client = MongoClient()
     project = _get_project()
     asset_grp = _get_asset_group(project)
-    data = [project, asset_grp, *_get_prp_asset(asset_grp)]
-    last_batch_data = [{**x, "object_id": ObjectId()} for x in data[:2]]
+    data = [project, asset_grp, *_get_prp_assets(asset_grp)]
+    last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data[:2]]
 
     def upsert_mock(project_name, row):
         return row["_id"]
@@ -223,7 +249,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
 
     command = UpdateShotgridInAvalonCommand(
         123,
-        project["_id"],
+        project.id,
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
@@ -237,17 +263,17 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     assert_that(insert_intermediate.call_count).is_equal_to(1)
     assert_that(insert_intermediate.call_args_list[0][0][1]).is_type_of(list)
     assert_that(
-        insert_intermediate.call_args_list[0][0][1][0]["object_id"]
-    ).is_equal_to(last_batch_data[0]["object_id"])
+        insert_intermediate.call_args_list[0][0][1][0].object_id
+    ).is_equal_to(last_batch_data[0].object_id)
     assert_that(
-        insert_intermediate.call_args_list[0][0][1][1]["object_id"]
-    ).is_equal_to(last_batch_data[1]["object_id"])
-    assert_that(insert_intermediate.call_args_list[0][0][1][2]).contains_key(
-        "object_id"
-    )
-    assert_that(insert_intermediate.call_args_list[0][0][1][3]).contains_key(
-        "object_id"
-    )
+        insert_intermediate.call_args_list[0][0][1][1].object_id
+    ).is_equal_to(last_batch_data[1].object_id)
+    assert_that(
+        insert_intermediate.call_args_list[0][0][1][2].object_id
+    ).is_not_none()
+    assert_that(
+        insert_intermediate.call_args_list[0][0][1][3].object_id
+    ).is_not_none()
 
 
 def test_shotgrid_to_avalon_batch_update_workfile_upserted_values(
@@ -267,9 +293,10 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset_with_tasks(asset_grp, 3)]
-    last_batch_data = [{**x, "object_id": ObjectId()} for x in data[:4]]
-    last_batch_data.append({**data[4], "parent_object_id": ObjectId()})
-
+    last_batch_data = [
+        *[attr.evolve(x, object_id=ObjectId()) for x in data[:4]],
+        data[4],
+    ]
     call_list = []
 
     def upsert_mock(project_name, row):
@@ -286,7 +313,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
 
     command = UpdateShotgridInAvalonCommand(
         123,
-        project["_id"],
+        project.id,
         True,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
@@ -298,9 +325,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
 
     # Assert
     assert_that(call_list).is_length(4)
-    assert_that(call_list[0]["_id"]).is_equal_to(
-        last_batch_data[0]["object_id"]
-    )
+    assert_that(call_list[0]["_id"]).is_equal_to(last_batch_data[0].object_id)
 
 
 def test_shotgrid_to_avalon_batch_update_wrong_project_name(

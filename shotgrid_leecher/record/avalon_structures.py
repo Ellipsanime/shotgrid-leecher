@@ -10,18 +10,18 @@ from shotgrid_leecher.utils.strings import snakify_camel
 
 @attr.s(auto_attribs=True, frozen=True)
 class AvalonProjectData:
-    clip_in: int = 1
-    clip_out: int = 1
-    fps: float = 25.0
-    frame_end: int = 0
-    frame_start: int = 0
-    handle_end: int = 0
-    handle_start: int = 0
-    pixel_aspect: float = 0
-    resolution_height: int = 0
-    resolution_width: int = 0
-    tools_env: List[Any] = []
-    library_project: bool = False
+    clip_in: int = attr.ib(default=1)
+    clip_out: int = attr.ib(default=1)
+    fps: float = attr.ib(default=25.0)
+    frame_end: int = attr.ib(default=0)
+    frame_start: int = attr.ib(default=0)
+    handle_end: int = attr.ib(default=0)
+    handle_start: int = attr.ib(default=0)
+    pixel_aspect: float = attr.ib(default=0)
+    resolution_height: int = attr.ib(default=0)
+    resolution_width: int = attr.ib(default=0)
+    tools_env: List[Any] = attr.ib(default=[])
+    library_project: bool = attr.ib(default=False)
 
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self)
@@ -56,6 +56,7 @@ class AvalonProject:
         dic = {
             **{k: v for k, v in raw_dic.items() if k != "_id"},
             "id": str(raw_dic["_id"]),
-            "data": raw_dic.get("data", dict()),
         }
-        return cattr.structure(dic, AvalonProject)
+        middle_state_structure = cattr.structure(dic, AvalonProject)
+        data = AvalonProjectData.from_dict(raw_dic.get("data", dict()))
+        return attr.evolve(middle_state_structure, data=data)

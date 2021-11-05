@@ -1,6 +1,7 @@
 from typing import Dict, Any, cast
 
 import attr
+import cattr
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
@@ -15,6 +16,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateSequence,
     IntermediateProject,
     IntermediateParams,
+    IntermediateRow,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -25,11 +27,22 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotParams,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.utils.collections import keep_keys
 from shotgrid_leecher.utils.logger import get_logger
+
+Map = Dict[str, Any]
 
 _LOG = get_logger(__name__.split(".")[-1])
 
-Map = Dict[str, Any]
+_TYPES_MAP: Dict[ShotgridType, type] = {
+    ShotgridType.SHOT: IntermediateShot,
+    ShotgridType.GROUP: IntermediateTopAsset,
+    ShotgridType.ASSET: IntermediateAsset,
+    ShotgridType.PROJECT: IntermediateProject,
+    ShotgridType.SEQUENCE: IntermediateSequence,
+    ShotgridType.EPISODE: IntermediateEpisode,
+    ShotgridType.TASK: IntermediateTask,
+}
 
 
 def _to_params(project_data: AvalonProjectData) -> IntermediateParams:
@@ -46,6 +59,22 @@ def _to_params(project_data: AvalonProjectData) -> IntermediateParams:
         resolution_width=project_data.resolution_width,
         tools_env=project_data.tools_env,
     )
+
+
+def _dict_to_params(raw_dic: Map) -> IntermediateParams:
+    dic = keep_keys(set(attr.fields_dict(IntermediateParams).keys()), raw_dic)
+    return cattr.structure(dic, IntermediateParams)
+
+
+def to_row(raw_dic: Map) -> IntermediateRow:
+    params = cattr.structure(raw_dic["params"], IntermediateParams)
+    dic = {
+        **{k.lstrip("_"): v for k, v in raw_dic.items() if k != "type" and v},
+        "params": params,
+    }
+    type_ = _TYPES_MAP[ShotgridType(raw_dic["type"])]
+    keep = set(attr.fields_dict(type_).keys()).intersection(set(dic.keys()))
+    return type_(**keep_keys(keep, dic))
 
 
 def to_top_shot(

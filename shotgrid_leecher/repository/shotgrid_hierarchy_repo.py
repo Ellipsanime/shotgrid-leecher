@@ -199,7 +199,9 @@ def get_hierarchy_by_project(
         list,
     )
     rows_dict = {
-        int(x.src_id): x for x in assets + shots if x.has_field("src_id")
+        int(x.src_id): x
+        for x in assets + shots
+        if x.has_field("src_id") and x.src_id
     }
     tasks = pipe(
         query_mapper.hierarchy_to_tasks_query(project, query),

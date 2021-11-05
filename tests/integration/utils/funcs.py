@@ -1,6 +1,7 @@
 import uuid
 from typing import Any, List, Union, Dict, Callable
 
+import attr
 from mongomock.object_id import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -12,6 +13,7 @@ from shotgrid_leecher.record.avalon_structures import (
 )
 from shotgrid_leecher.record.enums import ShotgridType, DbName
 from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.intermediate_structures import IntermediateParams
 
 Map = Dict[str, Any]
 
@@ -76,6 +78,16 @@ def all_intermediate(client: MongoClient) -> List[Map]:
 def populate_db(db: Collection, data: List[Map]) -> None:
     db.delete_many({})
     db.insert_many(data)
+
+
+def params() -> IntermediateParams:
+    common = set(attr.fields_dict(IntermediateParams).keys()).intersection(
+        set(attr.fields_dict(AvalonProjectData).keys())
+    )
+    params = {
+        k: v for k, v in AvalonProjectData().to_dict().items() if k in common
+    }
+    return IntermediateParams(**params)
 
 
 def fun(param: Any) -> Callable[[Any], Any]:
