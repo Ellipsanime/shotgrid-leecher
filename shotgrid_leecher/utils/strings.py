@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Any
 
 import attr
-from mypy.messages import capitalize
 
 
 def format_path(path: str) -> str:
@@ -22,7 +21,7 @@ def avalonify_snake_case(target: str) -> str:
         return target
     raw = [x for x in target.strip("_").split("_") if x]
     return "".join(
-        [x if not l else capitalize(x) for x, l in zip(raw, range(len(raw)))]
+        [x if not l else x.capitalize() for x, l in zip(raw, range(len(raw)))]
     )
 
 
