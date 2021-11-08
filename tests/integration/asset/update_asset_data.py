@@ -114,6 +114,7 @@ SHOTGRID_DATA = [
         "_id": PROJECT_ID,
         "src_id": 111,
         "type": "Project",
+        "code": "Project",
         "parent": None,
         "params": _PROJ_DATA.to_dict(),
     },
@@ -147,6 +148,7 @@ INTERMEDIATE_DB_DATA = [
     {
         "_id": PROJECT_ID,
         "src_id": 111,
+        "code": "Project",
         "type": "Project",
         "parent": None,
         "object_id": "614b46d27f4b49b1ae47eed6",

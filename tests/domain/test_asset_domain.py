@@ -19,7 +19,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
 def _get_command() -> NewEventCommand:
     utc_now = datetime.utcnow()
     user = ShotgridUser(2, str(uuid.uuid4()), str(uuid.uuid4()))
-    project = ShotgridProject(2, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(2, str(uuid.uuid4()), str(uuid.uuid4()), "")
     entity = ShotgridEntity(2, str(uuid.uuid4()), str(uuid.uuid4()))
     event = NewAssetEvent(2, str(uuid.uuid4()), utc_now, user, project, entity)
     return NewEventCommand(str(uuid.uuid4()), EventTypes.INITIALIZED, event)

@@ -44,6 +44,7 @@ SHOTGRID_DATA_PROJECT = [
         FIELD_PROJECT_ID: _RAND(10 ** 2, 10 ** 10),
         "name": PROJECT_ID,
         "type": "Project",
+        "code": PROJECT_ID,
     }
 ]
 SHOTGRID_DATA_ASSETS = [

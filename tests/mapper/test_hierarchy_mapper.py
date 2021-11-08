@@ -26,7 +26,7 @@ def test_to_shot_row_without_params():
     # Assert
     assert_that(actual).is_type_of(IntermediateShot)
     assert_that(set(actual.to_dict().keys())).is_equal_to(
-        {"_id", "src_id", "type", "parent", "params", "object_id"}
+        {"_id", "src_id", "type", "parent", "params", "object_id", "code"}
     )
 
 

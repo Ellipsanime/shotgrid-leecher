@@ -18,6 +18,7 @@ SHOTGRID_DATA_PROJECT = [
     {
         "id": _RAND(10 ** 2, 10 ** 10),
         "name": PROJECT_ID,
+        "code": PROJECT_ID,
         "type": "Project",
     }
 ]

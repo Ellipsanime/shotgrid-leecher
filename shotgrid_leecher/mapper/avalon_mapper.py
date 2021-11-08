@@ -134,7 +134,7 @@ def _asset_rows(
 
 def _project_data(project: IntermediateProject) -> Map:
     return {
-        "code": "TODO!!!",  # TODO
+        "code": project.code,
         "library_project": False,
         "parent": [],
         "visualParent": None,

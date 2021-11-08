@@ -49,6 +49,7 @@ def _get_project(id_: int) -> ShotgridProject:
         id_,
         f"Project_{str(uuid.uuid4())[-2:]}",
         ShotgridType.PROJECT.value,
+        "",
     )
 
 

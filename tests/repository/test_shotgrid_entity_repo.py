@@ -57,7 +57,7 @@ def test_find_project_by_id(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
     p_id = uuid.uuid4().int
-    expected = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    expected = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find_one.return_value = attr.asdict(expected)
     query = ShotgridFindProjectByIdQuery(
@@ -82,7 +82,7 @@ def test_find_assets_for_project(monkeypatch: MonkeyPatch):
     client = PropertyMock()
     mapper = PropertyMock()
     p_id = uuid.uuid4().int
-    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     asset = ShotgridAsset(1, "", "", "", [])
     raw_assets = [{str(uuid.uuid4()): uuid.uuid4().int}]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
@@ -118,7 +118,7 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
     p_id = uuid.uuid4().int
-    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     expected = [
         {
             "id": uuid.uuid4().int,
@@ -152,7 +152,7 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
     p_id = uuid.uuid4().int
-    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     shotgrid_result = [
         {
             "id": uuid.uuid4().int,

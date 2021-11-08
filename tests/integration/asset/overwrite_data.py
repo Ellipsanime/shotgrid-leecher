@@ -118,6 +118,7 @@ OVERWRITE_SHOTGRID_DATA = [
         "_id": OVERWRITE_PROJECT_ID,
         "src_id": 111,
         "type": "Project",
+        "code": "Project",
         "parent": None,
         "params": _PROJ_DATA.to_dict(),
     }
@@ -129,6 +130,7 @@ OVERWRITE_INTERMEDIATE_DB_DATA = [
         "_id": OVERWRITE_PROJECT_ID,
         "src_id": 111,
         "type": "Project",
+        "code": "Project",
         "parent": None,
         "object_id": "614ae8dfef6bfb71c7a5475a",
         "params": _PROJ_DATA.to_dict(),

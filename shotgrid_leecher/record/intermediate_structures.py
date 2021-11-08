@@ -43,6 +43,7 @@ class IntermediateRow:
     parent: str
     params: IntermediateParams
     src_id: Optional[int] = attr.attrib(None, init=False)
+    code: Optional[str] = attr.attrib(None, init=False)
     type: ShotgridType = attr.attrib(init=False)
     object_id: Optional[ObjectId] = attr.attrib(init=False)
 
@@ -59,19 +60,7 @@ class IntermediateRow:
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class IntermediateShotGroup(IntermediateRow):
-    type = ShotgridType.GROUP
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
-
-
-@attr.s(auto_attribs=True, frozen=True)
-class IntermediateTopAsset(IntermediateRow):
-    type = ShotgridType.GROUP
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
-
-
-@attr.s(auto_attribs=True, frozen=True)
-class IntermediateAssetGroup(IntermediateRow):
+class IntermediateGroup(IntermediateRow):
     type = ShotgridType.GROUP
     object_id: Optional[ObjectId] = attr.attrib(default=None)
 
@@ -89,7 +78,6 @@ class IntermediateTask(IntermediateRow):
     src_id: int
     type = ShotgridType.TASK
     object_id: Optional[ObjectId] = attr.attrib(default=None)
-    # params: IntermediateParams = attr.attrib(init=False)
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -116,6 +104,7 @@ class IntermediateSequence(IntermediateRow):
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateProject(IntermediateRow):
     src_id: int
+    code: str
     object_id: Optional[ObjectId] = attr.attrib(default=None)
     parent: str = attr.attrib(init=False, default=None)
     type = ShotgridType.PROJECT

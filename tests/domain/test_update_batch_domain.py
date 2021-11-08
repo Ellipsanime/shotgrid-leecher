@@ -18,11 +18,10 @@ from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProject,
     IntermediateParams,
-    IntermediateAssetGroup,
-    IntermediateShotGroup,
     IntermediateRow,
     IntermediateAsset,
     IntermediateTask,
+    IntermediateGroup,
 )
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
@@ -74,21 +73,22 @@ def _get_project() -> IntermediateProject:
 
     return IntermediateProject(
         id=f"Project_{project_id}",
+        code=f"Project_{project_id}",
         src_id=111,
         params=_params(),
     )
 
 
-def _get_asset_group(project: IntermediateProject) -> IntermediateAssetGroup:
-    return IntermediateAssetGroup(
+def _get_asset_group(project: IntermediateProject) -> IntermediateGroup:
+    return IntermediateGroup(
         id=ShotgridType.ASSET.value,
         parent=f",{project.id},",
         params=_params(),
     )
 
 
-def _get_shot_group(project: IntermediateProject) -> IntermediateShotGroup:
-    return IntermediateShotGroup(
+def _get_shot_group(project: IntermediateProject) -> IntermediateGroup:
+    return IntermediateGroup(
         id=ShotgridType.GROUP.value,
         parent=f",{project.id},",
         params=_params(),
@@ -97,9 +97,9 @@ def _get_shot_group(project: IntermediateProject) -> IntermediateShotGroup:
 
 def _get_prp_assets(
     parent: IntermediateRow,
-) -> List[IntermediateAssetGroup]:
+) -> List[IntermediateGroup]:
     return [
-        IntermediateAssetGroup(
+        IntermediateGroup(
             id="PRP",
             parent=f"{parent.parent}{parent.id},",
             params=_params(),

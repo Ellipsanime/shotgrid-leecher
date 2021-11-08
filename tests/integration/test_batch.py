@@ -53,6 +53,7 @@ def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
             "_id": project_id,
             "src_id": 111,
             "type": ShotgridType.PROJECT.value,
+            "code": "code1",
             "parent": None,
             "params": params().to_dict(),
         }

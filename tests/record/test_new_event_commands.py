@@ -18,7 +18,7 @@ def test_new_events_to_list() -> None:
     now = datetime.datetime.utcnow()
     event_type = EventTypes.INITIALIZED
     user = ShotgridUser(1, str(uuid.uuid4()), str(uuid.uuid4()))
-    project = ShotgridProject(1, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(1, str(uuid.uuid4()), str(uuid.uuid4()), "")
     entity = ShotgridEntity(1, str(uuid.uuid4()), str(uuid.uuid4()))
 
     e1 = NewAssetEvent(1, str(uuid.uuid4()), now, user, project, entity)

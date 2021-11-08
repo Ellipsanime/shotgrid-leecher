@@ -122,7 +122,7 @@ AVALON_DATA = [
     },
 ]
 SHOTGRID_DATA = [
-    IntermediateProject(id=PROJECT_ID, src_id=111, params=_PROJ_DATA),
+    IntermediateProject(id=PROJECT_ID, src_id=111, params=_PROJ_DATA, code=""),
     IntermediateAssetGroup(
         id=ShotgridType.ASSET.value,
         parent=f",{PROJECT_ID},",
@@ -144,6 +144,7 @@ INTERMEDIATE_DB_DATA = [
     {
         "_id": PROJECT_ID,
         "src_id": 111,
+        "code": "Project",
         "type": "Project",
         "parent": None,
         "object_id": "614b46d27f4b49b1ae47eed6",

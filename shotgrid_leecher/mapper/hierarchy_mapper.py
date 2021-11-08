@@ -6,12 +6,10 @@ import cattr
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.intermediate_structures import (
-    IntermediateShotGroup,
-    IntermediateTopAsset,
+    IntermediateGroup,
     IntermediateTask,
     IntermediateAsset,
     IntermediateShot,
-    IntermediateAssetGroup,
     IntermediateEpisode,
     IntermediateSequence,
     IntermediateProject,
@@ -36,7 +34,7 @@ _LOG = get_logger(__name__.split(".")[-1])
 
 _TYPES_MAP: Dict[ShotgridType, type] = {
     ShotgridType.SHOT: IntermediateShot,
-    ShotgridType.GROUP: IntermediateTopAsset,
+    ShotgridType.GROUP: IntermediateGroup,
     ShotgridType.ASSET: IntermediateAsset,
     ShotgridType.PROJECT: IntermediateProject,
     ShotgridType.SEQUENCE: IntermediateSequence,
@@ -79,16 +77,16 @@ def to_row(raw_dic: Map) -> IntermediateRow:
 
 def to_top_shot(
     project: ShotgridProject, project_data: AvalonProjectData
-) -> IntermediateShotGroup:
-    return IntermediateShotGroup(
+) -> IntermediateGroup:
+    return IntermediateGroup(
         ShotgridType.SHOT.value, f",{project.name},", _to_params(project_data)
     )
 
 
 def to_top_asset(
     project: ShotgridProject, project_data: AvalonProjectData
-) -> IntermediateTopAsset:
-    return IntermediateTopAsset(
+) -> IntermediateGroup:
+    return IntermediateGroup(
         ShotgridType.ASSET.value, f",{project.name},", _to_params(project_data)
     )
 
@@ -101,7 +99,7 @@ def to_task(
     return IntermediateTask(
         id=f"{task.content}_{task.id}",
         parent=parent_task_path,
-        task_type=str(task.step_name),
+        task_type=str(task.step_name()),
         src_id=task.id,
         params=_to_params(project_data),
     )
@@ -146,8 +144,8 @@ def to_asset_group(
     asset_type: str,
     project: ShotgridProject,
     project_data: AvalonProjectData,
-) -> IntermediateAssetGroup:
-    return IntermediateAssetGroup(
+) -> IntermediateGroup:
+    return IntermediateGroup(
         id=asset_type,
         parent=f",{project.name},{ShotgridType.ASSET.value},",
         params=_to_params(project_data),
@@ -187,5 +185,6 @@ def to_project(
     return IntermediateProject(
         id=project.name,
         src_id=project.id,
+        code=project.code,
         params=_to_params(project_data),
     )

@@ -38,6 +38,11 @@ async def batch_update(
     batch_config: BatchConfig,
 ):
     project = avalon_repo.fetch_project(project_name)
+    if not project:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No project found for {project_name}",
+        )
     command = UpdateShotgridInAvalonCommand.from_http_model(
         project_name,
         batch_config,

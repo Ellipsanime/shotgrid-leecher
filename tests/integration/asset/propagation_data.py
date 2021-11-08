@@ -32,7 +32,7 @@ AVALON_DATA = [
             "resolutionHeight": _I32(),
             "resolutionWidth": _I32(),
             "tools_env": [_I32(), _I32(), _I32()],
-            "code": "TODO!!!",  # str(uuid.uuid4())[:5],
+            "code": PROJECT_ID,  # str(uuid.uuid4())[:5],
             "library_project": False,
             "visualParent": None,
             "parent": [],
@@ -47,6 +47,7 @@ SHOTGRID_DATA_PROJECT = [
     {
         "id": _RAND(10 ** 2, 10 ** 10),
         "name": PROJECT_ID,
+        "code": PROJECT_ID,
         "type": "Project",
     }
 ]
