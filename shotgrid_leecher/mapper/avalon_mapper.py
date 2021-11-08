@@ -28,9 +28,7 @@ def entity_to_project(
 
     shotgrid_project = cast(
         IntermediateProject,
-        [item for item in hierarchy_rows if item.type == ShotgridType.PROJECT][
-            -1
-        ],
+        [x for x in hierarchy_rows if x.type == ShotgridType.PROJECT][-1],
     )
 
     return attr.evolve(shotgrid_project, object_id=project.object_id())

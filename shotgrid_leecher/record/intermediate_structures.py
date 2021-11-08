@@ -14,6 +14,13 @@ cattr.register_structure_hook(ObjectId, lambda v, _: ObjectId(str(v)))
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class IntermediateLinkedAsset:
+    id: int
+    name: str
+    type: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IntermediateParams:
     clip_in: int
     clip_out: int

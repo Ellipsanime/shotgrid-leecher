@@ -72,6 +72,7 @@ class ShotFieldsMapping(GenericFieldsMapping):
                     ["sg_sequence", "Sequence", "episode"]
                 ),
                 ShotgridField.CODE.value: ShotgridField.CODE.value,
+                ShotgridField.ASSETS.value: ShotgridField.ASSETS.value,
                 ShotgridField.ID.value: ShotgridField.ID.value,
                 **dic,
             }
