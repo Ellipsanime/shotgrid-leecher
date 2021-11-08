@@ -81,27 +81,39 @@ async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
     ).extracting("src_id", filter=exp_filter).is_equal_to(
         _extract(
             "id",
-            [x for x in params_data.SHOTGRID_DATA_SHOTS if "sg_cut_in" in x],
+            [
+                x
+                for x in params_data.SHOTGRID_DATA_SHOTS
+                if x.get("sg_cut_in") or x.get("sg_cut_out")
+            ],
         )
     )
     assert_that(
         _all_intermediate_by_type(client, ShotgridType.SHOT)
-    ).extracting("params", filter=exp_filter).extracting(
+    ).extracting(
+        "params", filter=lambda x: x.get("params", dict()).get("clip_in")
+    ).extracting(
         "clip_in"
     ).is_equal_to(
         _extract(
             "sg_cut_in",
-            [x for x in params_data.SHOTGRID_DATA_SHOTS if "sg_cut_in" in x],
+            [x for x in params_data.SHOTGRID_DATA_SHOTS if x.get("sg_cut_in")],
         )
     )
     assert_that(
         _all_intermediate_by_type(client, ShotgridType.SHOT)
-    ).extracting("params", filter=exp_filter).extracting(
+    ).extracting(
+        "params", filter=lambda x: x.get("params", dict()).get("clip_out")
+    ).extracting(
         "clip_out"
     ).is_equal_to(
         _extract(
             "sg_cut_out",
-            [x for x in params_data.SHOTGRID_DATA_SHOTS if "sg_cut_in" in x],
+            [
+                x
+                for x in params_data.SHOTGRID_DATA_SHOTS
+                if x.get("sg_cut_out")
+            ],
         )
     )
 
