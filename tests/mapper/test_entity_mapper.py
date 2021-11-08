@@ -45,7 +45,10 @@ def _randomize_mapping(
 def test_to_shotgrid_project():
     # Arrange
     mapping = _randomize_mapping(_PROJ_MAPPING, ProjectFieldsMapping.from_dict)
-    data = {k: str(uuid.uuid4()) for k in mapping.mapping_values()}
+    data = {
+        k: str(uuid.uuid4()) if k != "id" else 1
+        for k in mapping.mapping_values()
+    }
     # Act
     actual = entity_mapper.to_shotgrid_project(mapping, data)
     # Assert

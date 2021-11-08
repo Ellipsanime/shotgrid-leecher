@@ -33,7 +33,10 @@ def test_new_asset_event_from_dict():
         "meta": {"entity_id": entity["id"]},
         "entity": entity,
         "user": _get_meta_dict(),
-        "project": _get_meta_dict(),
+        "project": {
+            **_get_meta_dict(),
+            "code": str(uuid.uuid4()),
+        },
         "session_uuid": str(uuid.uuid4()),
         "created_at": datetime.datetime(2020, 9, 21, 14, 2, 45),
     }

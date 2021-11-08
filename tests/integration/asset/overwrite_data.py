@@ -1,8 +1,22 @@
+from bson import ObjectId
+
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.intermediate_structures import IntermediateParams
+from shotgrid_leecher.utils.collections import drop_keys
+
 OVERWRITE_PROJECT_ID = "Project_bebc4f75"
+
+
+_PROJ_DATA = IntermediateParams(
+    **drop_keys(
+        {"library_project"},
+        AvalonProjectData().to_dict(),
+    )
+)
 
 OVERWRITE_AVALON_DATA = [
     {
-        "_id": "614ae8dfef6bfb71c7a5475a",
+        "_id": ObjectId(),
         "type": "project",
         "name": OVERWRITE_PROJECT_ID,
         "data": {
@@ -104,7 +118,9 @@ OVERWRITE_SHOTGRID_DATA = [
         "_id": OVERWRITE_PROJECT_ID,
         "src_id": 111,
         "type": "Project",
+        "code": "Project",
         "parent": None,
+        "params": _PROJ_DATA.to_dict(),
     }
 ]
 
@@ -114,20 +130,24 @@ OVERWRITE_INTERMEDIATE_DB_DATA = [
         "_id": OVERWRITE_PROJECT_ID,
         "src_id": 111,
         "type": "Project",
+        "code": "Project",
         "parent": None,
         "object_id": "614ae8dfef6bfb71c7a5475a",
+        "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Asset",
         "type": "Group",
         "parent": ",Project_bebc4f75,",
         "object_id": "614ae8dfef6bfb71c7a5475b",
+        "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
         "parent": ",Project_bebc4f75,Asset,",
         "object_id": "614ae8dfef6bfb71c7a5475c",
+        "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Fork",
@@ -135,5 +155,6 @@ OVERWRITE_INTERMEDIATE_DB_DATA = [
         "type": "Asset",
         "parent": ",Project_bebc4f75,Asset,PRP,",
         "object_id": "614ae8dfef6bfb71c7a5475d",
+        "params": _PROJ_DATA.to_dict(),
     },
 ]

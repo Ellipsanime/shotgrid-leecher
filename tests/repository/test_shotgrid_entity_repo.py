@@ -10,6 +10,7 @@ import shotgrid_leecher.repository.shotgrid_entity_repo as sut
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.mapper import entity_mapper
 from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
@@ -56,11 +57,14 @@ def test_find_project_by_id(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
     p_id = uuid.uuid4().int
-    expected = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    expected = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find_one.return_value = attr.asdict(expected)
     query = ShotgridFindProjectByIdQuery(
-        p_id, _credentials(), _default_fields_mapping().project
+        p_id,
+        _credentials(),
+        AvalonProjectData(),
+        _default_fields_mapping().project,
     )
     # Act
     actual = sut.find_project_by_id(query)
@@ -78,7 +82,7 @@ def test_find_assets_for_project(monkeypatch: MonkeyPatch):
     client = PropertyMock()
     mapper = PropertyMock()
     p_id = uuid.uuid4().int
-    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     asset = ShotgridAsset(1, "", "", "", [])
     raw_assets = [{str(uuid.uuid4()): uuid.uuid4().int}]
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
@@ -90,6 +94,7 @@ def test_find_assets_for_project(monkeypatch: MonkeyPatch):
     query = ShotgridFindAssetsByProjectQuery(
         project,
         _credentials(),
+        AvalonProjectData(),
         asset_mapping,
         task_mapping,
     )
@@ -113,7 +118,7 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
     p_id = uuid.uuid4().int
-    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     expected = [
         {
             "id": uuid.uuid4().int,
@@ -123,7 +128,10 @@ def test_find_shots_for_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_shotgrid_client", _fun(client))
     client.find.return_value = expected
     query = ShotgridFindShotsByProjectQuery(
-        project, _credentials(), _default_fields_mapping().shot
+        project,
+        _credentials(),
+        AvalonProjectData(),
+        _default_fields_mapping().shot,
     )
     # Act
     actual = sut.find_shots_for_project(query)
@@ -144,7 +152,7 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
     # Arrange
     client = PropertyMock()
     p_id = uuid.uuid4().int
-    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()))
+    project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
     shotgrid_result = [
         {
             "id": uuid.uuid4().int,
@@ -162,6 +170,7 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
     query = ShotgridFindTasksByProjectQuery(
         project,
         _credentials(),
+        AvalonProjectData(),
         _default_fields_mapping().task,
     )
     # Act

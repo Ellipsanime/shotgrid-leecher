@@ -128,6 +128,20 @@ class ShotgridCredentials:
     script_name: str
     script_key: str
 
+    @staticmethod
+    def from_struct(struct: Any) -> "ShotgridCredentials":
+        if not attr.has(type(struct)):
+            raise Exception(f"Unsupported type {type(struct)} of {struct}")
+        return ShotgridCredentials.from_dict(attr.asdict(struct))
+
+    @staticmethod
+    def from_dict(dic: Dict[str, Any]) -> "ShotgridCredentials":
+        return ShotgridCredentials(
+            shotgrid_url=dic["shotgrid_url"],
+            script_name=dic["script_name"],
+            script_key=dic["script_key"],
+        )
+
 
 @unique
 class ShotgridRefType(Enum):

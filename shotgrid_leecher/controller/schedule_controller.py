@@ -3,7 +3,11 @@ from typing import List
 from fastapi import APIRouter, Depends
 
 from shotgrid_leecher.domain import schedule_domain
-from shotgrid_leecher.record.commands import CancelBatchSchedulingCommand
+from shotgrid_leecher.mapper import query_mapper
+from shotgrid_leecher.record.commands import (
+    CancelBatchSchedulingCommand,
+    ScheduleShotgridBatchCommand,
+)
 from shotgrid_leecher.record.http_models import (
     BatchConfig,
     ScheduleQueryParams,
@@ -22,7 +26,7 @@ router = APIRouter(tags=["schedule"], prefix="/schedule")
 async def projects(
     params: ScheduleQueryParams = Depends(ScheduleQueryParams),
 ) -> List[ScheduleProject]:
-    query = params.to_find_entity_query()
+    query = query_mapper.http_to_find_query(params)
     return schedule_repo.fetch_scheduled_projects(query)
 
 
@@ -30,7 +34,7 @@ async def projects(
 async def queue(
     params: ScheduleQueryParams = Depends(ScheduleQueryParams),
 ) -> List[ScheduleQueueItem]:
-    query = params.to_find_entity_query()
+    query = query_mapper.http_to_find_query(params)
     return schedule_repo.fetch_scheduled_queue(query)
 
 
@@ -38,13 +42,15 @@ async def queue(
 async def logs(
     params: ScheduleQueryParams = Depends(ScheduleQueryParams),
 ) -> List[ScheduleLog]:
-    query = params.to_find_entity_query()
+    query = query_mapper.http_to_find_query(params)
     return schedule_repo.fetch_scheduled_logs(query)
 
 
 @router.post("/{project_name}")
 async def schedule_batch(project_name: str, batch_config: BatchConfig):
-    command = batch_config.to_schedule_command(project_name)
+    command = ScheduleShotgridBatchCommand.from_http_model(
+        project_name, batch_config
+    )
     return await schedule_domain.schedule_batch(command)
 
 

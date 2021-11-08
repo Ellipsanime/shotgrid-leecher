@@ -2,6 +2,7 @@ import json
 from typing import Dict, Any, List, cast
 
 import attr
+import cattr
 
 from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
@@ -69,6 +70,7 @@ class ProjectFieldsMapping(GenericFieldsMapping):
     def from_dict(dic: Dict[str, Any]) -> "ProjectFieldsMapping":
         return ProjectFieldsMapping(
             {
+                ShotgridField.CODE.value: ShotgridField.CODE.value,
                 ShotgridField.NAME.value: ShotgridField.NAME.value,
                 ShotgridField.TYPE.value: ShotgridField.TYPE.value,
                 ShotgridField.ID.value: ShotgridField.ID.value,
@@ -143,13 +145,11 @@ class ShotgridUser(GenericSubtype):
 
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridProject(GenericSubtype):
+    code: str
+
     @staticmethod
     def from_dict(dic: Dict[str, Any]) -> "ShotgridProject":
-        return ShotgridProject(
-            id=dic["id"],
-            name=dic["name"],
-            type=dic["type"],
-        )
+        return cattr.structure(dic, ShotgridProject)
 
 
 @attr.s(auto_attribs=True, frozen=True)

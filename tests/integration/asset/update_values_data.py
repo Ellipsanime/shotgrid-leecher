@@ -1,4 +1,16 @@
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.intermediate_structures import IntermediateParams
+from shotgrid_leecher.utils.collections import drop_keys
+
 PROJECT_ID = "Project_564e3805"
+
+_PROJ_DATA = IntermediateParams(
+    **drop_keys(
+        {"library_project"},
+        AvalonProjectData().to_dict(),
+    )
+)
+
 AVALON_DATA = [
     {
         "_id": "614b3e4214dbac102817bb1b",
@@ -102,15 +114,28 @@ SHOTGRID_DATA = [
         "_id": PROJECT_ID,
         "src_id": 111,
         "type": "Project",
+        "code": "Project",
         "parent": None,
+        "params": _PROJ_DATA.to_dict(),
     },
-    {"_id": "Asset", "type": "Group", "parent": ",Project_564e3805,"},
-    {"_id": "PRP", "type": "Group", "parent": ",Project_564e3805,Asset,"},
+    {
+        "_id": "Asset",
+        "type": "Group",
+        "parent": ",Project_564e3805,",
+        "params": _PROJ_DATA.to_dict(),
+    },
+    {
+        "_id": "PRP",
+        "type": "Group",
+        "parent": ",Project_564e3805,Asset,",
+        "params": _PROJ_DATA.to_dict(),
+    },
     {
         "_id": "Knife",
         "src_id": 23549,
         "type": "Asset",
         "parent": ",Project_564e3805,Asset,PRP,",
+        "params": _PROJ_DATA.to_dict(),
     },
 ]
 INTERMEDIATE_DB_DATA = [
@@ -118,20 +143,24 @@ INTERMEDIATE_DB_DATA = [
         "_id": PROJECT_ID,
         "src_id": 111,
         "type": "Project",
+        "code": "Project",
         "parent": None,
         "object_id": "614b3e4214dbac102817bb1b",
+        "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Asset",
         "type": "Group",
         "parent": ",Project_564e3805,",
         "object_id": "614b3e4214dbac102817bb1c",
+        "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
         "parent": ",Project_564e3805,Asset,",
         "object_id": "614b3e4214dbac102817bb1d",
+        "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Fork",
@@ -139,5 +168,6 @@ INTERMEDIATE_DB_DATA = [
         "type": "Asset",
         "parent": ",Project_564e3805,Asset,PRP,",
         "object_id": "614b3e4214dbac102817bb1e",
+        "params": _PROJ_DATA.to_dict(),
     },
 ]

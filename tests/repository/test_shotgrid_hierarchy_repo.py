@@ -19,6 +19,7 @@ from shotgrid_leecher.mapper.entity_mapper import (
     to_shotgrid_shot,
     to_shotgrid_asset,
 )
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import (
@@ -48,6 +49,7 @@ def _get_project(id_: int) -> ShotgridProject:
         id_,
         f"Project_{str(uuid.uuid4())[-2:]}",
         ShotgridType.PROJECT.value,
+        "",
     )
 
 
@@ -288,6 +290,7 @@ def _to_query(project_id: int) -> ShotgridHierarchyByProjectQuery:
         project_id,
         ShotgridCredentials("", "", ""),
         _default_fields_mapping(),
+        AvalonProjectData(),
     )
 
 

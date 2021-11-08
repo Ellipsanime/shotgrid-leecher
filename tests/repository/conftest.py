@@ -1,4 +1,4 @@
-from typing import List, Any, Optional, Dict
+from typing import List, Any, Optional
 
 from assertpy import add_extension
 from toolz import pipe
@@ -7,20 +7,27 @@ from toolz.curried import (
     map as select,
 )
 
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 
-def _find_by_type(target: List[Dict], raw_path: str, type_: str) -> List[str]:
-    def exact(x):
-        return x["parent"] == raw_path
 
-    def wild(x):
-        return (x.get("parent") or "").startswith(raw_path[:-1])
+def _find_by_type(
+    target: List[IntermediateRow],
+    raw_path: str,
+    type_: ShotgridType,
+) -> List[str]:
+    def exact(x: IntermediateRow) -> bool:
+        return x.parent == raw_path
+
+    def wild(x: IntermediateRow) -> bool:
+        return (x.parent or "").startswith(raw_path[:-1])
 
     filter_fn = wild if raw_path.endswith("*") else exact
     return pipe(
         target,
         where(filter_fn),
-        where(lambda x: x["type"] == type_),
-        select(lambda x: x["type"]),
+        where(lambda x: x.type == type_),
+        select(lambda x: x.type),
         list,
     )
 
@@ -31,8 +38,8 @@ def path_has_types(self: Any, path: Optional[str], content: List[str]):
 
     actual_content = pipe(
         self.val,
-        where(lambda x: x["parent"] == path),
-        select(lambda x: x["type"]),
+        where(lambda x: x.parent == path),
+        select(lambda x: x.type),
         set,
     )
     if len(set(content).difference(actual_content)) > 0:
@@ -45,7 +52,7 @@ def path_has_types(self: Any, path: Optional[str], content: List[str]):
 def path_counts_tasks(self: Any, path: Optional[str], count: int = 0) -> Any:
     if type(self.val) != list:
         self.error(f"{self.val} must be of type list!")
-    actual_task = _find_by_type(self.val, path, "Task")
+    actual_task = _find_by_type(self.val, path, ShotgridType.TASK)
     if len(actual_task) != count:
         return self.error(
             f"Expected task count {count} is not "
@@ -67,11 +74,11 @@ def path_counts_types(
     if type(self.val) != list:
         self.error(f"{self.val} must be of type list!")
 
-    actual_asset = _find_by_type(self.val, path, "Asset")
-    actual_shot = _find_by_type(self.val, path, "Shot")
-    actual_episode = _find_by_type(self.val, path, "Episode")
-    actual_group = _find_by_type(self.val, path, "Group")
-    actual_sequence = _find_by_type(self.val, path, "Sequence")
+    actual_asset = _find_by_type(self.val, path, ShotgridType.ASSET)
+    actual_shot = _find_by_type(self.val, path, ShotgridType.SHOT)
+    actual_episode = _find_by_type(self.val, path, ShotgridType.EPISODE)
+    actual_group = _find_by_type(self.val, path, ShotgridType.GROUP)
+    actual_sequence = _find_by_type(self.val, path, ShotgridType.SEQUENCE)
 
     if len(actual_asset) != asset:
         return self.error(

@@ -5,6 +5,7 @@ from pymongo.collection import Collection
 
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.enums import DbName
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.utils.collections import flatten_dict
 
 Map = Dict[str, Any]
@@ -26,10 +27,15 @@ def _hierarchy_collection(project_name: str) -> Collection:
     )
 
 
-def overwrite_hierarchy(project_name: str, hierarchy_rows: List[Map]):
+def overwrite_hierarchy(
+    project_name: str,
+    hierarchy_rows: List[IntermediateRow],
+) -> None:
     db = conn.get_db_client().get_database(DbName.INTERMEDIATE.value)
     db.drop_collection(project_name)
-    db.get_collection(project_name).insert_many(hierarchy_rows)
+    db.get_collection(project_name).insert_many(
+        [x.to_dict() for x in hierarchy_rows]
+    )
 
 
 def upsert_avalon_row(project_name: str, avalon_row: Map) -> ObjectId:
@@ -63,7 +69,9 @@ def drop_avalon_project(project_name: str):
 def rename_project_collections(
     project_name: str, new_project_name: str, overwrite: bool = False
 ):
-    _avalon_collection(project_name).rename(new_project_name,
-                                            dropTarget=overwrite)
-    _hierarchy_collection(project_name).rename(new_project_name,
-                                               dropTarget=overwrite)
+    _avalon_collection(project_name).rename(
+        new_project_name, dropTarget=overwrite
+    )
+    _hierarchy_collection(project_name).rename(
+        new_project_name, dropTarget=overwrite
+    )

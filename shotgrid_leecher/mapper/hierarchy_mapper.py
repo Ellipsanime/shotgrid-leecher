@@ -1,6 +1,21 @@
 from typing import Dict, Any, cast
 
+import attr
+import cattr
+
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
+    IntermediateGroup,
+    IntermediateTask,
+    IntermediateAsset,
+    IntermediateShot,
+    IntermediateEpisode,
+    IntermediateSequence,
+    IntermediateProject,
+    IntermediateParams,
+    IntermediateRow,
+)
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridAsset,
@@ -10,102 +25,166 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotParams,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.utils.collections import keep_keys
 from shotgrid_leecher.utils.logger import get_logger
-
-_LOG = get_logger(__name__.split(".")[-1])
 
 Map = Dict[str, Any]
 
+_LOG = get_logger(__name__.split(".")[-1])
 
-def to_top_shot_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": ShotgridType.SHOT.value,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},",
+_TYPES_MAP: Dict[ShotgridType, type] = {
+    ShotgridType.SHOT: IntermediateShot,
+    ShotgridType.GROUP: IntermediateGroup,
+    ShotgridType.ASSET: IntermediateAsset,
+    ShotgridType.PROJECT: IntermediateProject,
+    ShotgridType.SEQUENCE: IntermediateSequence,
+    ShotgridType.EPISODE: IntermediateEpisode,
+    ShotgridType.TASK: IntermediateTask,
+}
+
+
+def _to_params(project_data: AvalonProjectData) -> IntermediateParams:
+    return IntermediateParams(
+        clip_in=project_data.clip_in,
+        clip_out=project_data.clip_out,
+        fps=project_data.fps,
+        frame_end=project_data.frame_end,
+        frame_start=project_data.frame_start,
+        handle_end=project_data.handle_end,
+        handle_start=project_data.handle_start,
+        pixel_aspect=project_data.pixel_aspect,
+        resolution_height=project_data.resolution_height,
+        resolution_width=project_data.resolution_width,
+        tools_env=project_data.tools_env,
+    )
+
+
+def _dict_to_params(raw_dic: Map) -> IntermediateParams:
+    dic = keep_keys(set(attr.fields_dict(IntermediateParams).keys()), raw_dic)
+    return cattr.structure(dic, IntermediateParams)
+
+
+def to_row(raw_dic: Map) -> IntermediateRow:
+    params = cattr.structure(raw_dic["params"], IntermediateParams)
+    dic = {
+        **{k.lstrip("_"): v for k, v in raw_dic.items() if k != "type" and v},
+        "params": params,
     }
+    type_ = _TYPES_MAP[ShotgridType(raw_dic["type"])]
+    keep = set(attr.fields_dict(type_).keys()).intersection(set(dic.keys()))
+    return type_(**keep_keys(keep, dic))
 
 
-def to_top_asset_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": ShotgridType.ASSET.value,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},",
-    }
+def to_top_shot(
+    project: ShotgridProject, project_data: AvalonProjectData
+) -> IntermediateGroup:
+    return IntermediateGroup(
+        ShotgridType.SHOT.value, f",{project.name},", _to_params(project_data)
+    )
 
 
-def to_task_row(task: ShotgridTask, parent_task_path: str) -> Map:
-    return {
-        "_id": f"{task.content}_{task.id}",
-        "src_id": task.id,
-        "type": ShotgridType.TASK.value,
-        "parent": parent_task_path,
-        "task_type": task.step_name(),
-    }
+def to_top_asset(
+    project: ShotgridProject, project_data: AvalonProjectData
+) -> IntermediateGroup:
+    return IntermediateGroup(
+        ShotgridType.ASSET.value, f",{project.name},", _to_params(project_data)
+    )
 
 
-def to_asset_row(asset: ShotgridAsset, parent_path: str) -> Map:
-    return {
-        "_id": asset.code,
-        "src_id": asset.id,
-        "type": ShotgridType.ASSET.value,
-        "parent": parent_path,
-    }
+def to_task(
+    task: ShotgridTask,
+    parent_task_path: str,
+    project_data: AvalonProjectData,
+) -> IntermediateTask:
+    return IntermediateTask(
+        id=f"{task.content}_{task.id}",
+        parent=parent_task_path,
+        task_type=str(task.step_name()),
+        src_id=task.id,
+        params=_to_params(project_data),
+    )
 
 
-def to_shot_row(shot: ShotgridShot, parent_path: str) -> Map:
-    result = {
-        "_id": shot.code,
-        "src_id": shot.id,
-        "type": ShotgridType.SHOT.value,
-        "parent": parent_path,
-    }
+def to_asset(
+    asset: ShotgridAsset,
+    parent_path: str,
+    project_data: AvalonProjectData,
+) -> IntermediateAsset:
+    return IntermediateAsset(
+        id=asset.code,
+        src_id=asset.id,
+        parent=parent_path,
+        params=_to_params(project_data),
+    )
+
+
+def to_shot(
+    shot: ShotgridShot,
+    parent_path: str,
+    project_data: AvalonProjectData,
+) -> IntermediateShot:
+    result = IntermediateShot(
+        id=shot.code,
+        src_id=shot.id,
+        parent=parent_path,
+        params=_to_params(project_data),
+    )
     if not shot.has_params():
         return result
-    params: ShotgridShotParams = cast(ShotgridShotParams, shot.params)
-    return {
-        **result,
-        "params": {
-            "clip_in": params.cut_in,
-            "clip_out": params.cut_out,
-        },
-    }
+    raw_params: ShotgridShotParams = cast(ShotgridShotParams, shot.params)
+    params = attr.evolve(
+        result.params,
+        clip_in=raw_params.cut_in or project_data.clip_in,
+        clip_out=raw_params.cut_out or project_data.clip_out,
+    )
+    return attr.evolve(result, params=params)
 
 
-def to_asset_group_row(asset_type: str, project: ShotgridProject) -> Map:
-    return {
-        "_id": asset_type,
-        "type": ShotgridType.GROUP.value,
-        "parent": f",{project.name},{ShotgridType.ASSET.value},",
-    }
+def to_asset_group(
+    asset_type: str,
+    project: ShotgridProject,
+    project_data: AvalonProjectData,
+) -> IntermediateGroup:
+    return IntermediateGroup(
+        id=asset_type,
+        parent=f",{project.name},{ShotgridType.ASSET.value},",
+        params=_to_params(project_data),
+    )
 
 
-def to_episode_shot_group_row(
+def to_episode_shot_group(
     episode: ShotgridShotEpisode,
     project: ShotgridProject,
-) -> Map:
-    return {
-        "_id": episode.name,
-        "type": ShotgridType.EPISODE.value,
-        "src_id": episode.id,
-        "parent": f",{project.name},{ShotgridType.SHOT.value},",
-    }
+    project_data: AvalonProjectData,
+) -> IntermediateEpisode:
+    return IntermediateEpisode(
+        id=episode.name,
+        src_id=episode.id,
+        parent=f",{project.name},{ShotgridType.SHOT.value},",
+        params=_to_params(project_data),
+    )
 
 
-def to_sequence_shot_group_row(
-    sequence: ShotgridShotSequence, parent_path: str
-) -> Map:
-    return {
-        "_id": sequence.name,
-        "type": ShotgridType.SEQUENCE.value,
-        "src_id": sequence.id,
-        "parent": parent_path,
-    }
+def to_sequence_shot_group(
+    sequence: ShotgridShotSequence,
+    parent_path: str,
+    project_data: AvalonProjectData,
+) -> IntermediateSequence:
+    return IntermediateSequence(
+        id=sequence.name,
+        src_id=sequence.id,
+        parent=parent_path,
+        params=_to_params(project_data),
+    )
 
 
-def to_project_row(project: ShotgridProject) -> Map:
-    return {
-        "_id": project.name,
-        "src_id": project.id,
-        "type": ShotgridType.PROJECT.value,
-        "parent": None,
-    }
+def to_project(
+    project: ShotgridProject,
+    project_data: AvalonProjectData,
+) -> IntermediateProject:
+    return IntermediateProject(
+        id=project.name,
+        src_id=project.id,
+        code=project.code,
+        params=_to_params(project_data),
+    )
