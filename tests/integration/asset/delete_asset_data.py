@@ -5,8 +5,8 @@ from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProject,
     IntermediateParams,
-    IntermediateAssetGroup,
     IntermediateAsset,
+    IntermediateGroup,
 )
 from shotgrid_leecher.utils.collections import drop_keys
 
@@ -123,12 +123,12 @@ AVALON_DATA = [
 ]
 SHOTGRID_DATA = [
     IntermediateProject(id=PROJECT_ID, src_id=111, params=_PROJ_DATA, code=""),
-    IntermediateAssetGroup(
+    IntermediateGroup(
         id=ShotgridType.ASSET.value,
         parent=f",{PROJECT_ID},",
         params=_PROJ_DATA,
     ),
-    IntermediateAssetGroup(
+    IntermediateGroup(
         id="PRP",
         parent=f",{PROJECT_ID},Asset,",
         params=_PROJ_DATA,
