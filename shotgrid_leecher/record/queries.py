@@ -11,6 +11,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetFieldsMapping,
     ShotFieldsMapping,
     TaskFieldsMapping,
+    StepFieldsMapping,
 )
 
 
@@ -74,3 +75,8 @@ class ShotgridFindShotsByProjectQuery(ShotgridBoundEntityQuery):
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridFindTasksByProjectQuery(ShotgridBoundEntityQuery):
     task_mapping: TaskFieldsMapping
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridFindAllStepsQuery(ShotgridBoundEntityQuery):
+    step_mapping: StepFieldsMapping

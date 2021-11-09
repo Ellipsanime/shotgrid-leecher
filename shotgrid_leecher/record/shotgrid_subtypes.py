@@ -18,6 +18,22 @@ class GenericFieldsMapping:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class StepFieldsMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.STEP
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "StepFieldsMapping":
+        return StepFieldsMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.CODE.value: ShotgridField.CODE.value,
+                ShotgridField.SHORT_NAME.value: ShotgridField.SHORT_NAME.value,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class TaskFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = ShotgridType.TASK
 

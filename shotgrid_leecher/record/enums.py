@@ -49,6 +49,7 @@ class ShotgridType(Enum):
     SEQUENCE = "Sequence"
     GROUP = "Group"
     TASK = "Task"
+    STEP = "Step"
 
     @staticmethod
     def middle_types() -> List["ShotgridType"]:
@@ -110,3 +111,4 @@ class ShotgridField(Enum):
     TYPE = "type"
     TASKS = "tasks"
     ASSET_TYPE = "asset_type"
+    SHORT_NAME = "short_name"
