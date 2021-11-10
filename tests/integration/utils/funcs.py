@@ -34,7 +34,7 @@ def sg_query(
     if type_ == ShotgridType.TASK.value:
         return data.SHOTGRID_DATA_TASKS
     if type_ == ShotgridType.STEP.value:
-        return []
+        return data.SHOTGRID_DATA_STEPS
     raise RuntimeError(f"Unknown type {type_}")
 
 

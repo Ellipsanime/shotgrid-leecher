@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import Dict, Any, List, Optional
 
 import attr
@@ -125,7 +126,12 @@ class IntermediateProjectConfig:
     steps: List[IntermediateProjectStep] = []
 
     def to_dict(self) -> Map:
-        return {"steps": [x.to_dict() for x in self.steps]}
+        steps: Map = reduce(
+            lambda acc, x: {**acc, **x},
+            [x.to_dict() for x in self.steps],
+            dict(),
+        )
+        return {"steps": steps}
 
     @staticmethod
     def from_dict(raw_dic: Optional[Map]) -> "IntermediateProjectConfig":
@@ -133,8 +139,8 @@ class IntermediateProjectConfig:
             return IntermediateProjectConfig()
         return IntermediateProjectConfig(
             [
-                IntermediateProjectStep.from_dict(x)
-                for x in raw_dic.get("steps", [])
+                IntermediateProjectStep(x["code"], x["short_name"])
+                for x in raw_dic.get("steps", list())
             ]
         )
 

@@ -23,6 +23,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateTask,
     IntermediateGroup,
     IntermediateProjectConfig,
+    IntermediateProjectStep,
 )
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
@@ -79,7 +80,9 @@ def _get_project() -> IntermediateProject:
         code=f"Project_{project_id}",
         src_id=111,
         params=_params(),
-        config=IntermediateProjectConfig(),
+        config=IntermediateProjectConfig(
+            steps=[IntermediateProjectStep(x, x[:1]) for x in STEP_NAMES]
+        ),
     )
 
 

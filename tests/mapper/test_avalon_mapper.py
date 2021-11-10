@@ -20,6 +20,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateSequence,
     IntermediateGroup,
     IntermediateProjectConfig,
+    IntermediateProjectStep,
 )
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -33,7 +34,9 @@ def _get_project() -> IntermediateProject:
         src_id=111,
         params=_params(),
         code="",
-        config=IntermediateProjectConfig(),
+        config=IntermediateProjectConfig(
+            steps=[IntermediateProjectStep(x, x[:1]) for x in STEP_NAMES]
+        ),
     )
 
 
@@ -250,13 +253,15 @@ def test_shotgrid_to_avalon_assets_with_tasks_values():
         asset_grp,
         *_get_prp_asset_with_tasks(asset_grp, task_num),
     ]
-    steps = set([x.task_type for x in data[4:]])
+    steps = list([x.task_type for x in data[4:]])
 
     # Act
     actual = shotgrid_to_avalon(data)
 
     # Assert
-    assert_that(actual[project.id]["config"]["tasks"]).is_length(len(steps))
+    assert_that(actual[project.id]["config"]["tasks"].keys()).is_length(
+        len(steps)
+    )
     assert_that(actual[data[3].id]["data"]["tasks"]).is_length(task_num)
 
 

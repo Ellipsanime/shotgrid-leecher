@@ -15,6 +15,10 @@ _LOG = get_logger(__name__.split(".")[-1])
 
 Map = Dict[str, Any]
 
+_CONF_MAPPING = {
+    "steps": "tasks",
+}
+
 
 def entity_to_project(
     project: AvalonProject, hierarchy_rows: List[IntermediateRow]
@@ -102,7 +106,7 @@ def shotgrid_to_avalon(
             "type": task_row.task_type
         }
         if task_row.task_type not in project["config"]["tasks"]:
-            project["config"]["tasks"][task_row.task_type] = {}
+            raise RuntimeError(f"Task type {task_row.task_type} is unknown")
 
     return avalon_rows_dict
 
@@ -143,6 +147,12 @@ def _project_data(project: IntermediateProject) -> Map:
     }
 
 
+def _to_project_config(project: IntermediateProject) -> Map:
+    return {
+        _CONF_MAPPING.get(k, k): v for k, v in project.config.to_dict().items()
+    }
+
+
 def _project_row(project: IntermediateProject) -> Map:
     return {
         "_id": project.object_id,
@@ -150,9 +160,7 @@ def _project_row(project: IntermediateProject) -> Map:
         "name": project.id,
         "data": _project_data(project),
         "schema": "openpype:project-3.0",
-        "config": {
-            "tasks": {},
-        },
+        "config": _to_project_config(project),
     }
 
 
