@@ -19,6 +19,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateSequence,
     IntermediateGroup,
+    IntermediateProjectConfig,
 )
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -32,6 +33,7 @@ def _get_project() -> IntermediateProject:
         src_id=111,
         params=_params(),
         code="",
+        config=IntermediateProjectConfig(),
     )
 
 

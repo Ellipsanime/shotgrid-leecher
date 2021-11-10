@@ -11,6 +11,7 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindTasksByProjectQuery,
     ShotgridFindShotsByProjectQuery,
     FindEntityQuery,
+    ShotgridFindAllStepsQuery,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
@@ -45,6 +46,15 @@ def hierarchy_to_project_query(
         credentials=entity.credentials,
         project_mapping=entity.fields_mapping.project,
         project_data=entity.project_data,
+    )
+
+
+def hierarchy_to_steps_query(
+    query: ShotgridHierarchyByProjectQuery,
+) -> ShotgridFindAllStepsQuery:
+    return ShotgridFindAllStepsQuery(
+        credentials=query.credentials,
+        step_mapping=query.fields_mapping.step,
     )
 
 

@@ -22,6 +22,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateAsset,
     IntermediateTask,
     IntermediateGroup,
+    IntermediateProjectConfig,
 )
 from shotgrid_leecher.record.results import BatchResult
 from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
@@ -31,6 +32,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetFieldsMapping,
     ShotFieldsMapping,
     TaskFieldsMapping,
+    StepFieldsMapping,
 )
 from shotgrid_leecher.repository import intermediate_hierarchy_repo
 from shotgrid_leecher.writers import db_writer
@@ -64,6 +66,7 @@ def _default_fields_mapping() -> FieldsMapping:
         AssetFieldsMapping.from_dict({}),
         ShotFieldsMapping.from_dict({}),
         TaskFieldsMapping.from_dict({}),
+        StepFieldsMapping.from_dict({}),
     )
 
 
@@ -76,6 +79,7 @@ def _get_project() -> IntermediateProject:
         code=f"Project_{project_id}",
         src_id=111,
         params=_params(),
+        config=IntermediateProjectConfig(),
     )
 
 

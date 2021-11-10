@@ -119,6 +119,7 @@ class FieldsMapping:
     asset: AssetFieldsMapping
     shot: ShotFieldsMapping
     task: TaskFieldsMapping
+    step: StepFieldsMapping
 
     @staticmethod
     def from_dict(dic: Dict[str, Dict[str, str]]) -> "FieldsMapping":
@@ -137,6 +138,9 @@ class FieldsMapping:
             ),
             task=TaskFieldsMapping.from_dict(
                 dic.get(ShotgridType.TASK.value.lower(), {})
+            ),
+            step=StepFieldsMapping.from_dict(
+                dic.get(ShotgridType.STEP.value.lower(), {})
             ),
         )
 

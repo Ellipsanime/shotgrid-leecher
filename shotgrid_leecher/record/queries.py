@@ -78,5 +78,6 @@ class ShotgridFindTasksByProjectQuery(ShotgridBoundEntityQuery):
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class ShotgridFindAllStepsQuery(ShotgridBoundEntityQuery):
+class ShotgridFindAllStepsQuery:
     step_mapping: StepFieldsMapping
+    credentials: ShotgridCredentials

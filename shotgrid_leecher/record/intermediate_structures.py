@@ -102,9 +102,64 @@ class IntermediateSequence(IntermediateRow):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class IntermediateProjectStep:
+    code: str
+    short_name: str
+
+    def to_dict(self) -> Map:
+        return {
+            self.code: {
+                "short_name": self.short_name,
+            }
+        }
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateProjectStep":
+        code = list(raw_dic.keys())[0]
+        short_name = raw_dic[code]["short_name"]
+        return IntermediateProjectStep(code=code, short_name=short_name)
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class IntermediateProjectConfig:
+    steps: List[IntermediateProjectStep] = []
+
+    def to_dict(self) -> Map:
+        return {"steps": [x.to_dict() for x in self.steps]}
+
+    @staticmethod
+    def from_dict(raw_dic: Optional[Map]) -> "IntermediateProjectConfig":
+        if not raw_dic:
+            return IntermediateProjectConfig()
+        return IntermediateProjectConfig(
+            [
+                IntermediateProjectStep.from_dict(x)
+                for x in raw_dic.get("steps", [])
+            ]
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IntermediateProject(IntermediateRow):
     src_id: int
     code: str
+    config: IntermediateProjectConfig
     object_id: Optional[ObjectId] = attr.attrib(default=None)
     parent: str = attr.attrib(init=False, default=None)
     type = ShotgridType.PROJECT
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateProject":
+        config = IntermediateProjectConfig.from_dict(raw_dic.get("config"))
+        dic: Map = {
+            **raw_dic,
+            "config": config,
+        }
+        return IntermediateProject(
+            id=dic["id"],
+            params=dic["params"],
+            src_id=dic["src_id"],
+            code=dic["code"],
+            config=dic["config"],
+            object_id=dic.get("object_id"),
+        )
