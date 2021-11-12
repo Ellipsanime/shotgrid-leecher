@@ -2,12 +2,14 @@
 
 
 ### [0.0.5] Project data propagation
+#### Nov ?? - 2021
+ - Add support of linked assets at the APIs end
 #### Nov 12 - 2021
  - Add shotgrid step mapping for shot names within project config
 #### Nov 08 - 2021
  - Propagate project data (fps, tool env, aspect ratio, etc) to all its descendants throughout the hierarchy
  - Wire up shotgrid project code with its avalon alternative
- 
+
 ### [0.0.4] New Batch API
 #### Oct 27 - 2021
  - Check Batch API now return the Shotgrid project name when valid
