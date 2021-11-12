@@ -9,6 +9,7 @@ from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.utils.collections import flatten_dict
 
 Map = Dict[str, Any]
+_ROW_FLATTEN_EXCEPTIONS = {"config.tasks"}
 
 
 def _avalon_collection(project_name: str) -> Collection:
@@ -39,7 +40,7 @@ def overwrite_hierarchy(
 
 
 def upsert_avalon_row(project_name: str, avalon_row: Map) -> ObjectId:
-    query = {"$set": flatten_dict(avalon_row)}
+    query = {"$set": flatten_dict(avalon_row, _ROW_FLATTEN_EXCEPTIONS)}
     result = _avalon_collection(project_name).update_one(
         {"_id": avalon_row["_id"]}, query, upsert=True
     )
