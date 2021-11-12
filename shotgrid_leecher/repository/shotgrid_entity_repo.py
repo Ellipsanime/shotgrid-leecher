@@ -8,6 +8,7 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindAssetsByProjectQuery,
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
+    ShotgridFindAllStepsQuery,
 )
 from shotgrid_leecher.record.shotgrid_filters import (
     CompositeFilter,
@@ -19,6 +20,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridShot,
     ShotgridAsset,
+    ShotgridStep,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
@@ -84,3 +86,13 @@ def find_tasks_for_project(
         list(query.task_mapping.mapping_table.values()),
     )
     return [mapper.to_shotgrid_task(query.task_mapping, x) for x in data]
+
+
+def find_steps(query: ShotgridFindAllStepsQuery) -> List[ShotgridStep]:
+    client = conn.get_shotgrid_client(query.credentials)
+    data = client.find(
+        ShotgridType.STEP.value,
+        [],
+        list(query.step_mapping.mapping_table.values()),
+    )
+    return [mapper.to_shotgrid_step(query.step_mapping, x) for x in data]

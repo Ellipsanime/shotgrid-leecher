@@ -14,6 +14,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridAsset,
     ShotgridShotParams,
     ShotgridAssetTask,
+    ShotgridStep,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
@@ -21,6 +22,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetFieldsMapping,
     ProjectFieldsMapping,
     ShotgridProject,
+    StepFieldsMapping,
 )
 from shotgrid_leecher.utils.collections import swap_mapping_keys_values
 
@@ -84,6 +86,18 @@ def to_shotgrid_shot(
         sequence=sequence,
         episode=episode,
         sequence_episode=sequence_episode,
+    )
+
+
+def to_shotgrid_step(
+    step_mapping: StepFieldsMapping,
+    target: Map,
+) -> ShotgridStep:
+    data = swap_mapping_keys_values(step_mapping.mapping_table, target)
+    return ShotgridStep(
+        id=data[ShotgridField.ID.value],
+        short_name=data[ShotgridField.SHORT_NAME.value],
+        code=data[ShotgridField.CODE.value],
     )
 
 

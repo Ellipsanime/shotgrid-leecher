@@ -47,6 +47,13 @@ SHOTGRID_DATA_PROJECT = [
         "code": PROJECT_ID,
     }
 ]
+SHOTGRID_DATA_STEPS = [
+    {"code": "modeling", "short_name": "m", "id": -2},
+    {"code": "rigging", "short_name": "r", "id": -2},
+    {"code": "render", "short_name": "re", "id": -2},
+    {"code": "layout", "short_name": "l", "id": -2},
+    {"code": "animation", "short_name": "a", "id": -2},
+]
 SHOTGRID_DATA_ASSETS = [
     {
         "type": "Asset",

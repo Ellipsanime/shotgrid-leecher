@@ -7,6 +7,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateParams,
     IntermediateAsset,
     IntermediateGroup,
+    IntermediateProjectConfig,
 )
 from shotgrid_leecher.utils.collections import drop_keys
 
@@ -122,7 +123,13 @@ AVALON_DATA = [
     },
 ]
 SHOTGRID_DATA = [
-    IntermediateProject(id=PROJECT_ID, src_id=111, params=_PROJ_DATA, code=""),
+    IntermediateProject(
+        id=PROJECT_ID,
+        src_id=111,
+        params=_PROJ_DATA,
+        code="",
+        config=IntermediateProjectConfig(),
+    ),
     IntermediateGroup(
         id=ShotgridType.ASSET.value,
         parent=f",{PROJECT_ID},",

@@ -2,6 +2,8 @@
 
 
 ### [0.0.5] Project data propagation
+#### Nov 12 - 2021
+ - Add shotgrid step mapping for shot names within project config
 #### Nov 08 - 2021
  - Propagate project data (fps, tool env, aspect ratio, etc) to all its descendants throughout the hierarchy
  - Wire up shotgrid project code with its avalon alternative

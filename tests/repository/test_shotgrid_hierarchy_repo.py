@@ -35,6 +35,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetFieldsMapping,
     ShotFieldsMapping,
     TaskFieldsMapping,
+    StepFieldsMapping,
 )
 
 _RAND = random.randint
@@ -269,6 +270,7 @@ def _default_fields_mapping() -> FieldsMapping:
         AssetFieldsMapping.from_dict({}),
         ShotFieldsMapping.from_dict({}),
         TaskFieldsMapping.from_dict({}),
+        StepFieldsMapping.from_dict({}),
     )
 
 
@@ -279,6 +281,7 @@ def _patch_repo(
     shots: List,
     tasks: List,
 ) -> None:
+    monkeypatch.setattr(entity_repo, "find_steps", _fun([]))
     monkeypatch.setattr(entity_repo, "find_project_by_id", _fun(project))
     monkeypatch.setattr(entity_repo, "find_assets_for_project", _fun(assets))
     monkeypatch.setattr(entity_repo, "find_shots_for_project", _fun(shots))

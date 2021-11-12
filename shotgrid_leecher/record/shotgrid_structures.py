@@ -98,6 +98,12 @@ class ShotgridShot(ShotgridEntity):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class ShotgridStep(ShotgridEntity):
+    code: str
+    short_name: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridTask(ShotgridEntity):
     content: str
     entity: ShotgridTaskEntity

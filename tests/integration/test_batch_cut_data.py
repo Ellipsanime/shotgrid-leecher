@@ -67,7 +67,7 @@ async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
         str(ObjectId()),
         project_id,
         AvalonProjectData(clip_in=None, clip_out=None),
-        dict(),
+        {"tasks": {x: {"short_name": x[:1]} for x in ["render"]}},
     )
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))

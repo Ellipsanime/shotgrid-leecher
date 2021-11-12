@@ -56,6 +56,9 @@ def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
             "code": "code1",
             "parent": None,
             "params": params().to_dict(),
+            "config": {
+                "steps": [{"code": x, "short_name": x[:1]} for x in STEP_NAMES]
+            },
         }
     )
 
@@ -135,6 +138,7 @@ def _create_avalon_project_row(project_name: str) -> Map:
             "imageio": {"hiero": {"workfile": {"logLut": "Cineon"}}},
             "roots": {"windows": "C:/projects"},
             "templates": {"default": {}},
+            "tasks": {x: {"short_name": x[:1]} for x in STEP_NAMES},
         },
         "data": {},
     }
@@ -217,7 +221,15 @@ async def test_update_shotgrid_to_avalon_update_project(
     assert_that(all_avalon(client)).extracting(
         "config", filter={"type": "project"}
     ).extracting("apps", "imageio", "roots", "templates").is_equal_to(
-        [tuple([v for k, v in project_avalon_init_data["config"].items()])]
+        [
+            tuple(
+                [
+                    v
+                    for k, v in project_avalon_init_data["config"].items()
+                    if k != "tasks"
+                ]
+            )
+        ]
     )
 
 

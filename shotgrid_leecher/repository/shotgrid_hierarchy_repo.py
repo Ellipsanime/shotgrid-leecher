@@ -181,10 +181,25 @@ def _fetch_project_assets(
             yield mapper.to_asset(asset, parent_path, query.project_data)
 
 
+def _fetch_identified(
+    assets: List[IntermediateRow],
+    shots: List[IntermediateRow],
+) -> Dict[int, IntermediateRow]:
+    rows_dict = {
+        int(x.src_id): x
+        for x in assets + shots
+        if x.has_field("src_id") and x.src_id
+    }
+    return rows_dict
+
+
 @timed
 def get_hierarchy_by_project(
     query: ShotgridHierarchyByProjectQuery,
 ) -> List[IntermediateRow]:
+    steps = entity_repo.find_steps(
+        query_mapper.hierarchy_to_steps_query(query)
+    )
     project = entity_repo.find_project_by_id(
         query_mapper.hierarchy_to_project_query(query)
     )
@@ -198,21 +213,16 @@ def get_hierarchy_by_project(
         _fetch_project_shots,
         list,
     )
-    rows_dict = {
-        int(x.src_id): x
-        for x in assets + shots
-        if x.has_field("src_id") and x.src_id
-    }
     tasks = pipe(
         query_mapper.hierarchy_to_tasks_query(project, query),
-        _fetch_project_tasks(rows_dict),
+        _fetch_project_tasks(_fetch_identified(assets, shots)),
         list,
     )
 
     return [
         x
         for x in [
-            mapper.to_project(project, query.project_data),
+            mapper.to_project(project, steps, query.project_data),
             *assets,
             *shots,
             *tasks,

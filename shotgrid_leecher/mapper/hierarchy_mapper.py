@@ -1,4 +1,4 @@
-from typing import Dict, Any, cast
+from typing import Dict, Any, cast, List
 
 import attr
 import cattr
@@ -15,6 +15,8 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProject,
     IntermediateParams,
     IntermediateRow,
+    IntermediateProjectConfig,
+    IntermediateProjectStep,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -23,6 +25,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotEpisode,
     ShotgridShotSequence,
     ShotgridShotParams,
+    ShotgridStep,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.collections import keep_keys
@@ -70,8 +73,10 @@ def to_row(raw_dic: Map) -> IntermediateRow:
         **{k.lstrip("_"): v for k, v in raw_dic.items() if k != "type" and v},
         "params": params,
     }
-    type_ = _TYPES_MAP[ShotgridType(raw_dic["type"])]
+    type_: Any = _TYPES_MAP[ShotgridType(raw_dic["type"])]
     keep = set(attr.fields_dict(type_).keys()).intersection(set(dic.keys()))
+    if "from_dict" in dir(type_):
+        return type_.from_dict(keep_keys(keep, dic))
     return type_(**keep_keys(keep, dic))
 
 
@@ -180,11 +185,16 @@ def to_sequence_shot_group(
 
 def to_project(
     project: ShotgridProject,
+    steps: List[ShotgridStep],
     project_data: AvalonProjectData,
 ) -> IntermediateProject:
+    project_config = IntermediateProjectConfig(
+        steps=[IntermediateProjectStep(x.code, x.short_name) for x in steps]
+    )
     return IntermediateProject(
         id=project.name,
         src_id=project.id,
         code=project.code,
+        config=project_config,
         params=_to_params(project_data),
     )

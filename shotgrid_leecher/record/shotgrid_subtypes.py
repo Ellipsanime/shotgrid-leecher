@@ -18,6 +18,22 @@ class GenericFieldsMapping:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class StepFieldsMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.STEP
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "StepFieldsMapping":
+        return StepFieldsMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.CODE.value: ShotgridField.CODE.value,
+                ShotgridField.SHORT_NAME.value: ShotgridField.SHORT_NAME.value,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class TaskFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = ShotgridType.TASK
 
@@ -103,6 +119,7 @@ class FieldsMapping:
     asset: AssetFieldsMapping
     shot: ShotFieldsMapping
     task: TaskFieldsMapping
+    step: StepFieldsMapping
 
     @staticmethod
     def from_dict(dic: Dict[str, Dict[str, str]]) -> "FieldsMapping":
@@ -121,6 +138,9 @@ class FieldsMapping:
             ),
             task=TaskFieldsMapping.from_dict(
                 dic.get(ShotgridType.TASK.value.lower(), {})
+            ),
+            step=StepFieldsMapping.from_dict(
+                dic.get(ShotgridType.STEP.value.lower(), {})
             ),
         )
 
