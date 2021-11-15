@@ -14,13 +14,6 @@ cattr.register_structure_hook(ObjectId, lambda v, _: ObjectId(str(v)))
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class IntermediateLinkedAsset:
-    id: int
-    name: str
-    type: str
-
-
-@attr.s(auto_attribs=True, frozen=True)
 class IntermediateParams:
     clip_in: int
     clip_out: int
@@ -89,10 +82,28 @@ class IntermediateTask(IntermediateRow):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class IntermediateLinkedAsset:
+    id: int
+    name: str
+    type = ShotgridType.LINKED_ASSET
+    object_id: Optional[ObjectId] = attr.attrib(default=None)
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IntermediateShot(IntermediateRow):
     src_id: int
+    linked_assets: List[IntermediateLinkedAsset]
     type = ShotgridType.SHOT
     object_id: Optional[ObjectId] = attr.attrib(default=None)
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateShot":
+        type_ = IntermediateShot
+        dic = {
+            **raw_dic,
+            "linked_assets": raw_dic.get("linked_assets", []),
+        }
+        return type_(**dic)
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -155,7 +166,7 @@ class IntermediateProjectConfig:
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateProject(IntermediateRow):
     src_id: int
-    code: str
+    code: Optional[str]
     config: IntermediateProjectConfig
     object_id: Optional[ObjectId] = attr.attrib(default=None)
     parent: str = attr.attrib(init=False, default=None)
@@ -172,7 +183,7 @@ class IntermediateProject(IntermediateRow):
             id=dic["id"],
             params=dic["params"],
             src_id=dic["src_id"],
-            code=dic["code"],
+            code=dic.get("code"),
             config=dic["config"],
             object_id=dic.get("object_id"),
         )

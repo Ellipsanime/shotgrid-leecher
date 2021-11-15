@@ -8,6 +8,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateProject,
     IntermediateTask,
+    IntermediateShot,
 )
 from shotgrid_leecher.utils.logger import get_logger
 
@@ -162,6 +163,16 @@ def _project_row(project: IntermediateProject) -> Map:
     }
 
 
+def _inputs(row: IntermediateRow) -> Map:
+    if row.type != ShotgridType.SHOT:
+        return {}
+    shot = cast(IntermediateShot, row)
+    linked_assets = [x for x in shot.linked_assets if x.object_id]
+    if not linked_assets:
+        return {}
+    return {"inputs": [x.object_id for x in linked_assets]}
+
+
 def _create_avalon_asset_row(
     hierarchy_row: IntermediateRow,
     parent: str,
@@ -169,6 +180,7 @@ def _create_avalon_asset_row(
 ) -> Map:
     data = {
         **hierarchy_row.params.to_avalonish_dict(),
+        **_inputs(hierarchy_row),
         "tasks": dict(),
         "parents": hierarchy_row.parent.split(",")[2:-1],
         "visualParent": visual_parent,

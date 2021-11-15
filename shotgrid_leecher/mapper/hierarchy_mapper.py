@@ -17,6 +17,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateProjectConfig,
     IntermediateProjectStep,
+    IntermediateLinkedAsset,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -26,6 +27,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotSequence,
     ShotgridShotParams,
     ShotgridStep,
+    ShotgridLinkedAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.collections import keep_keys
@@ -60,6 +62,12 @@ def _to_params(project_data: AvalonProjectData) -> IntermediateParams:
         resolution_width=project_data.resolution_width,
         tools_env=project_data.tools_env,
     )
+
+
+def _to_linked_assets(
+    linked_assets: List[ShotgridLinkedAsset],
+) -> List[IntermediateLinkedAsset]:
+    return [IntermediateLinkedAsset(x.id, x.name) for x in linked_assets]
 
 
 def _dict_to_params(raw_dic: Map) -> IntermediateParams:
@@ -133,6 +141,7 @@ def to_shot(
         src_id=shot.id,
         parent=parent_path,
         params=_to_params(project_data),
+        linked_assets=_to_linked_assets(shot.linked_assets),
     )
     if not shot.has_params():
         return result

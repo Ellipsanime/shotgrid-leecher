@@ -2,7 +2,10 @@ from typing import Dict, Any, List, Iterator, Set, Tuple, Optional, cast
 
 import attr
 from bson.objectid import ObjectId
-from toolz import get_in, curry, pipe
+from toolz import curry, pipe
+from toolz.curried import (
+    map as select,
+)
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
@@ -13,7 +16,11 @@ from shotgrid_leecher.record.commands import (
     ShotgridCheckCommand,
     CreateShotgridInAvalonCommand,
 )
-from shotgrid_leecher.record.intermediate_structures import IntermediateRow
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
+    IntermediateRow,
+    IntermediateShot,
+)
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridHierarchyByProjectQuery,
@@ -98,35 +105,71 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
         avalon_tree[row["name"]]["_id"] = object_id
 
 
+def _assign_linked_assets_ids(
+    src_ids_hash: Dict[int, IntermediateRow],
+    row: IntermediateRow,
+) -> IntermediateRow:
+    if row.type != ShotgridType.SHOT:
+        return row
+    with_ = attr.evolve
+    shot = cast(IntermediateShot, row)
+    linked_assets = pipe(
+        shot.linked_assets,
+        select(lambda x: (src_ids_hash.get(x.id), x)),
+        select(
+            lambda x: with_(x[1], object_id=x[0].object_id) if x[0] else x[1]
+        ),
+        list,
+    )
+    return with_(shot, linked_assets=linked_assets)
+
+
 @curry
 def _assign_object_ids(
-    shotgrid_hierarchy: List[IntermediateRow],
-    intermediate_hierarchy: List[IntermediateRow],
+    raw_current_hierarchy: List[IntermediateRow],
+    previous_hierarchy: List[IntermediateRow],
 ) -> Iterator[IntermediateRow]:
-    source_id_tree = {
-        x.src_id: x
-        for x in intermediate_hierarchy
-        if x.has_field("src_id") and x.src_id
-    }
-    ids_tree = {x.id: x for x in intermediate_hierarchy if not x.src_id}
-    for row in shotgrid_hierarchy:
+    src_ids_hash, ids_hash = _get_hashes(previous_hierarchy)
+    current_hierarchy = [
+        _assign_linked_assets_ids(src_ids_hash, x)
+        for x in raw_current_hierarchy
+    ]
+    for row in current_hierarchy:
         if row.has_field("src_id") and row.src_id:
             src_id = cast(int, row.src_id)
             object_id = try_or_call(
-                lambda: source_id_tree[src_id].object_id,
+                lambda: src_ids_hash[src_id].object_id,
                 lambda: generator.object_id(),
             )
             yield attr.evolve(row, object_id=object_id)
             continue
 
         object_id = try_or_call(
-            lambda: ids_tree[row.id].object_id,
+            lambda: ids_hash[row.id].object_id,
             lambda: generator.object_id(),
         )
         yield attr.evolve(row, object_id=object_id)
 
 
+def _get_hashes(
+    previous_hierarchy: List[IntermediateRow],
+) -> Tuple[Dict[int, IntermediateRow], Dict[str, IntermediateRow]]:
+    src_ids_hash = {
+        x.src_id: x
+        for x in previous_hierarchy
+        if x.has_field("src_id") and x.src_id
+    }
+    ids_hash = {x.id: x for x in previous_hierarchy if not x.src_id}
+    return src_ids_hash, ids_hash
+
+
 def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
+    if (row.get("data") or dict()).get("visualParent"):
+        print(row["data"]["visualParent"])
+        if not row["data"]["visualParent"]:
+            print("none")
+        print(avalon_tree[row["data"]["visualParent"]])
+        print(avalon_tree[row["data"]["visualParent"]].get("_id"))
     return {
         **row,
         "parent": (
@@ -136,7 +179,7 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
             **row["data"],
             "visualParent": (
                 avalon_tree[row["data"]["visualParent"]].get("_id")
-                if get_in("data.visualParent".split("."), row)
+                if (row.get("data") or dict()).get("visualParent")
                 else None
             ),
         },
