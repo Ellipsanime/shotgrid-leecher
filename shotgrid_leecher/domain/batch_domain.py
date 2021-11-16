@@ -3,9 +3,6 @@ from typing import Dict, Any, List, Iterator, Set, Tuple, Optional, cast
 import attr
 from bson.objectid import ObjectId
 from toolz import curry, pipe
-from toolz.curried import (
-    map as select,
-)
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
@@ -55,11 +52,11 @@ def check_shotgrid_before_batch(
 def update_shotgrid_in_avalon(
     command: UpdateShotgridInAvalonCommand,
 ) -> BatchResult:
-    shotgrid_hierarchy, dropped_ids = _fetch_and_augment_hierarchy(command)
-    if not shotgrid_hierarchy:
+    current_hierarchy, dropped_ids = _fetch_and_augment_hierarchy(command)
+    if not current_hierarchy:
         return BatchResult.NO_SHOTGRID_HIERARCHY
     # TODO get rid of mutability and avalon_tree
-    avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
+    avalon_tree = avalon_mapper.shotgrid_to_avalon(current_hierarchy)
     avalon_rows = list(avalon_tree.values())
 
     if command.project_name != avalon_rows[0]["name"]:
@@ -76,7 +73,7 @@ def update_shotgrid_in_avalon(
         avalon_tree[row["name"]]["_id"] = object_id
 
     db_writer.delete_avalon_rows(command.project_name, dropped_ids)
-    db_writer.overwrite_hierarchy(command.project_name, shotgrid_hierarchy)
+    db_writer.overwrite_hierarchy(command.project_name, current_hierarchy)
 
     return BatchResult.OK
 
@@ -89,9 +86,9 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
         command.fields_mapping,
         default_project_data,
     )
-    shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
+    current_hierarchy = repository.get_hierarchy_by_project(query)
     # TODO get rid of mutability and avalon_tree
-    avalon_tree = avalon_mapper.shotgrid_to_avalon(shotgrid_hierarchy)
+    avalon_tree = avalon_mapper.shotgrid_to_avalon(current_hierarchy)
 
     if not avalon_tree:
         return
@@ -106,34 +103,31 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
 
 
 def _assign_linked_assets_ids(
-    src_ids_hash: Dict[int, IntermediateRow],
-    row: IntermediateRow,
-) -> IntermediateRow:
-    if row.type != ShotgridType.SHOT:
-        return row
+    rows: List[IntermediateRow],
+) -> Iterator[IntermediateRow]:
+    ids_hash = {
+        x.src_id: x.object_id for x in rows if x.type == ShotgridType.ASSET
+    }
     with_ = attr.evolve
-    shot = cast(IntermediateShot, row)
-    linked_assets = pipe(
-        shot.linked_assets,
-        select(lambda x: (src_ids_hash.get(x.id), x)),
-        select(
-            lambda x: with_(x[1], object_id=x[0].object_id) if x[0] else x[1]
-        ),
-        list,
-    )
-    return with_(shot, linked_assets=linked_assets)
+    for row in rows:
+        if row.type != ShotgridType.SHOT:
+            yield row
+            continue
+        shot = cast(IntermediateShot, row)
+        linked_assets = [
+            with_(x, object_id=ids_hash[x.id])
+            for x in shot.linked_assets
+            if ids_hash.get(x.id)
+        ]
+        yield with_(shot, linked_assets=linked_assets)
 
 
 @curry
 def _assign_object_ids(
-    raw_current_hierarchy: List[IntermediateRow],
+    current_hierarchy: List[IntermediateRow],
     previous_hierarchy: List[IntermediateRow],
 ) -> Iterator[IntermediateRow]:
     src_ids_hash, ids_hash = _get_hashes(previous_hierarchy)
-    current_hierarchy = [
-        _assign_linked_assets_ids(src_ids_hash, x)
-        for x in raw_current_hierarchy
-    ]
     for row in current_hierarchy:
         if row.has_field("src_id") and row.src_id:
             src_id = cast(int, row.src_id)
@@ -164,12 +158,6 @@ def _get_hashes(
 
 
 def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
-    if (row.get("data") or dict()).get("visualParent"):
-        print(row["data"]["visualParent"])
-        if not row["data"]["visualParent"]:
-            print("none")
-        print(avalon_tree[row["data"]["visualParent"]])
-        print(avalon_tree[row["data"]["visualParent"]].get("_id"))
     return {
         **row,
         "parent": (
@@ -187,17 +175,17 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
 
 
 @curry
-def _fetch_intermediate_hierarchy(
-    project_name: str, shotgrid_hierarchy: List[IntermediateRow]
+def _fetch_previous_hierarchy(
+    project_name: str, current_hierarchy: List[IntermediateRow]
 ) -> List[IntermediateRow]:
-    intermediate_hierarchy = list(
+    previous_hierarchy = list(
         intermediate_hierarchy_repo.fetch_by_project(project_name)
     )
-    if intermediate_hierarchy:
-        return intermediate_hierarchy
+    if previous_hierarchy:
+        return previous_hierarchy
     avalon_project = avalon_mapper.entity_to_project(
         avalon_repo.fetch_project(project_name),
-        shotgrid_hierarchy,
+        current_hierarchy,
     )
     return [avalon_project] if avalon_project else []
 
@@ -209,10 +197,10 @@ def _to_paths(
 
 
 def _detect_deletion(
-    shotgrid_hierarchy: List[IntermediateRow],
-    intermediate_hierarchy: List[IntermediateRow],
+    current_hierarchy: List[IntermediateRow],
+    previous_hierarchy: List[IntermediateRow],
 ) -> Set[Tuple[Optional[str], str]]:
-    return _to_paths(intermediate_hierarchy) - _to_paths(shotgrid_hierarchy)
+    return _to_paths(previous_hierarchy) - _to_paths(current_hierarchy)
 
 
 def _fetch_and_augment_hierarchy(
@@ -224,36 +212,37 @@ def _fetch_and_augment_hierarchy(
         command.fields_mapping,
         command.project_data,
     )
-    shotgrid_hierarchy = repository.get_hierarchy_by_project(query)
-    if not shotgrid_hierarchy:
+    current_hierarchy = repository.get_hierarchy_by_project(query)
+    if not current_hierarchy:
         return [], set()
-    intermediate_hierarchy, dropped_ids = pipe(
-        shotgrid_hierarchy,
-        _fetch_intermediate_hierarchy(command.project_name),
-        _propagate_deletion(shotgrid_hierarchy),
+    previous_hierarchy, dropped_ids = pipe(
+        current_hierarchy,
+        _fetch_previous_hierarchy(command.project_name),
+        _propagate_deletion(current_hierarchy),
+    )
+    assigned_hierarchy = list(
+        _assign_object_ids(current_hierarchy, previous_hierarchy)
     )
     return (
-        list(_assign_object_ids(shotgrid_hierarchy, intermediate_hierarchy)),
+        list(_assign_linked_assets_ids(assigned_hierarchy)),
         dropped_ids,
     )
 
 
 @curry
 def _propagate_deletion(
-    shotgrid_hierarchy: List[IntermediateRow],
-    intermediate_hierarchy: List[IntermediateRow],
+    current_hierarchy: List[IntermediateRow],
+    previous_hierarchy: List[IntermediateRow],
 ) -> Tuple[List[IntermediateRow], Set[ObjectId]]:
-    deleted_ones = _detect_deletion(shotgrid_hierarchy, intermediate_hierarchy)
+    deleted_ones = _detect_deletion(current_hierarchy, previous_hierarchy)
     if not deleted_ones:
-        return intermediate_hierarchy, set()
+        return previous_hierarchy, set()
     altered_hierarchy = [
-        x
-        for x in intermediate_hierarchy
-        if not (x.parent, x.id) in deleted_ones
+        x for x in previous_hierarchy if not (x.parent, x.id) in deleted_ones
     ]
     deleted_object_ids = {
         x.object_id
-        for x in intermediate_hierarchy
+        for x in previous_hierarchy
         if (x.parent, x.id) in deleted_ones and x.object_id
     }
     return altered_hierarchy, deleted_object_ids
