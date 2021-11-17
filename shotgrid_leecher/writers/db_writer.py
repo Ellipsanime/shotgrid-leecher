@@ -74,7 +74,7 @@ def drop_avalon_assets(project_name: str) -> DeleteResult:
         .get_database(DbName.AVALON.value)
         .get_collection(project_name)
     )
-    return db.delete_many({"type": {"$ne": AvalonType.PROJECT.value}})
+    return db.delete_many({"type": {"$eq": AvalonType.ASSET.value}})
 
 
 def rename_project_collections(
