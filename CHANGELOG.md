@@ -2,8 +2,9 @@
 
 
 ### [0.0.5] Project data propagation
-#### Nov ?? - 2021
+#### Nov 17 - 2021
  - Add support of linked assets at the APIs end
+ - Make batch overwrite more softy regarding avalon project
 #### Nov 12 - 2021
  - Add shotgrid step mapping for shot names within project config
 #### Nov 08 - 2021
