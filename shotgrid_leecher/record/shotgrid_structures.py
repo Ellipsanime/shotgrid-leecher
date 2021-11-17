@@ -43,6 +43,11 @@ class ShotgridAssetTask(ShotgridNamedEntity):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class ShotgridLinkedAsset(ShotgridNamedEntity):
+    pass
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridShotParams:
     cut_in: Optional[int]
     cut_out: Optional[int]
@@ -66,6 +71,7 @@ class ShotgridShot(ShotgridEntity):
     sequence: Optional[ShotgridShotSequence]
     episode: Optional[ShotgridShotEpisode]
     sequence_episode: Optional[ShotgridShotEpisode]
+    linked_assets: List[ShotgridLinkedAsset] = []
 
     def has_params(self) -> bool:
         return self.params is not None and bool(

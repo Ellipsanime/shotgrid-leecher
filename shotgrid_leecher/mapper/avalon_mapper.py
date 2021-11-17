@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Optional, Iterator, Tuple, cast
 
 import attr
+from bson import ObjectId
 
 from shotgrid_leecher.record.avalon_structures import AvalonProject
 from shotgrid_leecher.record.enums import ShotgridType, AvalonType
@@ -8,7 +9,9 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateProject,
     IntermediateTask,
+    IntermediateShot,
 )
+from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
@@ -21,45 +24,43 @@ _CONF_MAPPING = {
 
 
 def entity_to_project(
-    project: AvalonProject, hierarchy_rows: List[IntermediateRow]
+    project: AvalonProject, intermediate_rows: List[IntermediateRow]
 ) -> Optional[IntermediateProject]:
     if not project:
         return None
 
     shotgrid_project = cast(
         IntermediateProject,
-        [item for item in hierarchy_rows if item.type == ShotgridType.PROJECT][
-            -1
-        ],
+        [x for x in intermediate_rows if x.type == ShotgridType.PROJECT][-1],
     )
 
     return attr.evolve(shotgrid_project, object_id=project.object_id())
 
 
 def shotgrid_to_avalon(
-    hierarchy_rows: List[IntermediateRow],
+    intermediate_rows: List[IntermediateRow],
 ) -> Dict[str, Map]:
     """
     Utility function to map hierarchy shotgrid data to MongoDB avalon format.
 
     Note:
-        hierarchy_rows should be ordered from top to bottom
+        intermediate_rows should be ordered from top to bottom
         according to the shotgrid hierarchy.
 
     Args:
-        hierarchy_rows list(IntermediateRow):
+        intermediate_rows list(IntermediateRow):
         list of rows to format to avalon format.
 
     Returns dict(str, dict(str, any)): Map of formatted rows with unique
                                        name as key and mongodb row as value.
 
     """
-    if not hierarchy_rows:
+    if not intermediate_rows:
         return {}
 
     project_rows = [
         cast(IntermediateProject, x)
-        for x in hierarchy_rows
+        for x in intermediate_rows
         if x.type == ShotgridType.PROJECT
     ]
     if len(project_rows) > 1:
@@ -80,15 +81,14 @@ def shotgrid_to_avalon(
 
     project = _project_row(project_rows[0])
 
-    avalon_rows_dict = dict(list(_asset_rows(hierarchy_rows, project)))
+    avalon_rows_dict = dict(list(_asset_rows(intermediate_rows, project)))
     avalon_rows_dict = {
         project_rows[0].id: project,
         **avalon_rows_dict,
     }
-
     task_rows: List[IntermediateTask] = [
         cast(IntermediateTask, x)
-        for x in hierarchy_rows
+        for x in intermediate_rows
         if x.type == ShotgridType.TASK
     ]
     for task_row in task_rows:
@@ -101,7 +101,6 @@ def shotgrid_to_avalon(
             if avalon_rows_dict[parent]["data"]["tasks"].get(raw_task_name)
             else raw_task_name
         )
-
         avalon_rows_dict[parent]["data"]["tasks"][task_name] = {
             "type": task_row.task_type
         }
@@ -118,20 +117,20 @@ def _get_parent(row: IntermediateRow) -> str:
 
 
 def _asset_rows(
-    hierarchy_rows: List[IntermediateRow], project: Map
+    intermediate_rows: List[IntermediateRow], project: Map
 ) -> Iterator[Tuple[str, Map]]:
 
     aka_asset_types = ShotgridType.middle_types()
-    asset_rows = [x for x in hierarchy_rows if x.type in aka_asset_types]
+    asset_rows = [x for x in intermediate_rows if x.type in aka_asset_types]
 
-    for hierarchy_row in asset_rows:
-        parent = _get_parent(hierarchy_row)
+    for intermediate_row in asset_rows:
+        parent = _get_parent(intermediate_row)
         visual_parent = parent if parent != project["name"] else None
 
         yield (
-            hierarchy_row.id,
+            intermediate_row.id,
             _create_avalon_asset_row(
-                hierarchy_row, project["name"], visual_parent
+                intermediate_row, project["name"], visual_parent
             ),
         )
 
@@ -153,9 +152,21 @@ def _to_project_config(project: IntermediateProject) -> Map:
     }
 
 
+def _try_fortify_object_id(object_id: Any) -> ObjectId:
+    return try_or(
+        lambda: object_id
+        if type(object_id) == ObjectId
+        else ObjectId(str(object_id)),
+        object_id,
+    )
+    # return (
+    #     object_id if type(object_id) == ObjectId else ObjectId(str(object_id))
+    # )
+
+
 def _project_row(project: IntermediateProject) -> Map:
     return {
-        "_id": project.object_id,
+        "_id": _try_fortify_object_id(project.object_id),
         "type": AvalonType.PROJECT.value,
         "name": project.id,
         "data": _project_data(project),
@@ -164,21 +175,34 @@ def _project_row(project: IntermediateProject) -> Map:
     }
 
 
+def _inputs(row: IntermediateRow) -> Map:
+    if row.type != ShotgridType.SHOT:
+        return {}
+    shot = cast(IntermediateShot, row)
+    linked_assets = [x for x in shot.linked_assets if x.object_id]
+    if not linked_assets:
+        return {}
+    return {
+        "inputs": [_try_fortify_object_id(x.object_id) for x in linked_assets]
+    }
+
+
 def _create_avalon_asset_row(
-    hierarchy_row: IntermediateRow,
+    intermediate_row: IntermediateRow,
     parent: str,
     visual_parent: Optional[str],
 ) -> Map:
     data = {
-        **hierarchy_row.params.to_avalonish_dict(),
+        **intermediate_row.params.to_avalonish_dict(),
+        **_inputs(intermediate_row),
         "tasks": dict(),
-        "parents": hierarchy_row.parent.split(",")[2:-1],
+        "parents": intermediate_row.parent.split(",")[2:-1],
         "visualParent": visual_parent,
     }
     return {
-        "_id": hierarchy_row.object_id,
+        "_id": _try_fortify_object_id(intermediate_row.object_id),
         "type": AvalonType.ASSET.value,
-        "name": hierarchy_row.id,
+        "name": intermediate_row.id,
         "data": data,
         "schema": "openpype:project-3.0",  # TODO check it
         "parent": parent,

@@ -165,7 +165,9 @@ def _fetch_project_assets(
 ) -> Iterator[IntermediateRow]:
     # TODO: Fields should be configurable
     project = query.project
-    assets = entity_repo.find_assets_for_project(query)
+    assets = [
+        x for x in entity_repo.find_assets_for_project(query) if x.asset_type
+    ]
     archetype = ShotgridType.ASSET.value
 
     if assets:

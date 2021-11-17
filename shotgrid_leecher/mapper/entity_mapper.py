@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional, Callable, TypeVar
 
 import attr
+import cattr
 from toolz import curry, get_in
 
 from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
@@ -15,6 +16,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotParams,
     ShotgridAssetTask,
     ShotgridStep,
+    ShotgridLinkedAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
@@ -63,21 +65,18 @@ def to_shotgrid_shot(
     target: Map,
 ) -> ShotgridShot:
     data = swap_mapping_keys_values(shot_mapping.mapping_table, target)
-    sequence: Optional[ShotgridShotSequence] = _sub_entity(
-        ShotgridField.SEQUENCE.value,
-        ShotgridShotSequence,
-        data,
-    )
-    episode: Optional[ShotgridShotEpisode] = _sub_entity(
-        ShotgridField.EPISODE.value,
+    linked_assets = [
+        cattr.structure(x, ShotgridLinkedAsset)
+        for x in data.get(ShotgridField.ASSETS.value, [])
+    ]
+    sequence = _sub_entity(ShotgridField.SEQUENCE, ShotgridShotSequence, data)
+    episode = _sub_entity(ShotgridField.EPISODE, ShotgridShotEpisode, data)
+    sequence_episode = _sub_entity(
+        ShotgridField.SEQUENCE_EPISODE,
         ShotgridShotEpisode,
         data,
     )
-    sequence_episode: Optional[ShotgridShotEpisode] = _sub_entity(
-        ShotgridField.SEQUENCE_EPISODE.value,
-        ShotgridShotEpisode,
-        data,
-    )
+
     return ShotgridShot(
         id=data[ShotgridField.ID.value],
         params=_to_shot_params(data),
@@ -86,6 +85,7 @@ def to_shotgrid_shot(
         sequence=sequence,
         episode=episode,
         sequence_episode=sequence_episode,
+        linked_assets=linked_assets,
     )
 
 
@@ -109,7 +109,7 @@ def to_shotgrid_task(
     step_field = ShotgridField.STEP.value
     data = swap_mapping_keys_values(task_mapping.mapping_table, target)
     entity: Optional[ShotgridTaskEntity] = _sub_entity(
-        ShotgridField.ENTITY.value,
+        ShotgridField.ENTITY,
         ShotgridTaskEntity,
         data,
     )
@@ -161,22 +161,22 @@ def _to_shot_params(data: Map) -> Optional[ShotgridShotParams]:
 
 
 def _sub_entity(
-    key_field: str,
+    field: ShotgridField,
     ctor: Callable[[int, str, str], TOut],
     data: Map,
 ) -> Optional[TOut]:
-    if not data.get(key_field):
+    if not data.get(field.value):
         return None
     id_ = get_in(
-        [key_field, ShotgridField.ID.value],
+        [field.value, ShotgridField.ID.value],
         data,
     )
     name = get_in(
-        [key_field, ShotgridField.NAME.value],
+        [field.value, ShotgridField.NAME.value],
         data,
     )
     type_ = get_in(
-        [key_field, ShotgridField.TYPE.value],
+        [field.value, ShotgridField.TYPE.value],
         data,
     )
     return ctor(id_, name, type_)

@@ -34,6 +34,14 @@ _ASSET_TASK_MAPPING = {
 }
 
 
+_VALUES = {
+    ShotgridField.ASSETS.value: [
+        {"id": x, "name": str(uuid.uuid4()), "type": str(uuid.uuid4())}
+        for x in range(random.randint(5, 10))
+    ]
+}
+
+
 def _randomize_mapping(
     initial: T,
     ctor: Callable[[Dict], T],
@@ -61,7 +69,9 @@ def test_to_shotgrid_project():
 def test_to_shotgrid_shot():
     # Arrange
     mapping = _randomize_mapping(_SHOT_MAPPING, ShotFieldsMapping.from_dict)
-    data = {k: str(uuid.uuid4()) for k in mapping.mapping_values()}
+    data = {
+        k: _VALUES.get(k, str(uuid.uuid4())) for k in mapping.mapping_values()
+    }
     # Act
     actual: ShotgridShot = entity_mapper.to_shotgrid_shot(mapping, data)
     # Assert

@@ -4,6 +4,7 @@ from itertools import chain
 from string import ascii_uppercase
 from typing import Any, List, Tuple, Callable
 
+import attr
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
@@ -324,6 +325,44 @@ def test_random_assets_traversal(monkeypatch: MonkeyPatch, size: int):
     assert_that(actual).path_counts_tasks(
         f",{project.name},Asset,*",
         count=len(tasks),
+    )
+
+
+@pytest.mark.parametrize(
+    "size",
+    list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
+)
+def test_random_assets_traversal_without_sg_type(
+    monkeypatch: MonkeyPatch, size: int
+):
+    # Arrange
+    n_group = int(size / 10)
+    assets, tasks = _get_random_assets_with_tasks(n_group, size)
+    assets = [
+        attr.evolve(x, asset_type=random.choice([None, x.asset_type]))
+        for x in assets
+    ]
+    project_id = random.randint(10, 1000)
+    project = _get_project(project_id)
+    _patch_repo(monkeypatch, project, assets, [], tasks)
+    # Arrange
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
+    # Act
+    assert_that(actual).is_type_of(list)
+    assert_that(len(actual)).is_less_than_or_equal_to(
+        n_group * size + n_group * 2 + 2
+    )
+    assert_that(actual).path_counts_types(
+        f",{project.name},",
+        group=1 if len([x for x in assets if x.asset_type]) else 0,
+    )
+    assert_that(actual).path_counts_types(
+        f",{project.name},Asset,",
+        group=len([x for x in assets if x.asset_type]),
+    )
+    assert_that(actual).path_counts_tasks(
+        f",{project.name},Asset,*",
+        count=len(list(chain(*[x.tasks for x in assets if x.asset_type]))),
     )
 
 

@@ -116,6 +116,7 @@ def _get_ep_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             src_id=uuid.uuid4().int,
             parent=f"{parent.parent}{parent.id},{ep_name},",
             params=_params(),
+            linked_assets=[],
         ),
     ]
 
@@ -135,6 +136,7 @@ def _get_seq_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             src_id=uuid.uuid4().int,
             parent=f"{parent.parent}{parent.id},{seq_name},",
             params=_params(),
+            linked_assets=[],
         ),
     ]
 
@@ -163,6 +165,7 @@ def _get_ep_with_seq_with_shot(
             src_id=uuid.uuid4().int,
             parent=f"{parent.parent}{parent.id},{ep_name},{seq_name},",
             params=_params(),
+            linked_assets=[],
         ),
     ]
 

@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from bson import ObjectId
+
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.intermediate_structures import (
@@ -38,7 +40,7 @@ _PROJ_DATA = IntermediateParams(
 
 AVALON_DATA = [
     {
-        "_id": "614b46d27f4b49b1ae47eed6",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed6"),
         "type": "project",
         "name": PROJECT_ID,
         "data": {
@@ -62,7 +64,7 @@ AVALON_DATA = [
         "parent": None,
     },
     {
-        "_id": "614b46d27f4b49b1ae47eed7",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed7"),
         "type": "asset",
         "name": "Asset",
         "data": {
@@ -71,10 +73,10 @@ AVALON_DATA = [
             "parents": [],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614b46d27f4b49b1ae47eed6",
+        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
     },
     {
-        "_id": "614b46d27f4b49b1ae47eed8",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed8"),
         "type": "asset",
         "name": "PRP",
         "data": {
@@ -83,10 +85,10 @@ AVALON_DATA = [
             "parents": ["Asset"],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614b46d27f4b49b1ae47eed6",
+        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
     },
     {
-        "_id": "614b46d27f4b49b1ae47eed9",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed9"),
         "type": "asset",
         "name": "Fork",
         "data": {
@@ -95,10 +97,10 @@ AVALON_DATA = [
             "parents": ["Asset", "PRP"],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614b46d27f4b49b1ae47eed6",
+        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
     },
     {
-        "_id": "614b46d27f4b49b1ae47ee10",
+        "_id": ObjectId("614b46d27f4b49b1ae47ee10"),
         "type": "asset",
         "name": "Knife",
         "data": {
@@ -107,10 +109,10 @@ AVALON_DATA = [
             "parents": ["Asset", "PRP"],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614b46d27f4b49b1ae47eed6",
+        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
     },
     {
-        "_id": "614b46d27f4b49b1ae47ee11",
+        "_id": ObjectId("614b46d27f4b49b1ae47ee11"),
         "type": "asset",
         "name": "Dagger",
         "data": {
@@ -119,7 +121,7 @@ AVALON_DATA = [
             "parents": ["Asset", "PRP"],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614b46d27f4b49b1ae47eed6",
+        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
     },
 ]
 SHOTGRID_DATA = [
@@ -154,21 +156,21 @@ INTERMEDIATE_DB_DATA = [
         "code": "Project",
         "type": "Project",
         "parent": None,
-        "object_id": "614b46d27f4b49b1ae47eed6",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed6"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Asset",
         "type": "Group",
         "parent": f",{PROJECT_ID},",
-        "object_id": "614b46d27f4b49b1ae47eed7",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed7"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
         "parent": f",{PROJECT_ID},Asset,",
-        "object_id": "614b46d27f4b49b1ae47eed8",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed8"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
@@ -176,7 +178,7 @@ INTERMEDIATE_DB_DATA = [
         "src_id": 50711,
         "type": "Asset",
         "parent": f",{PROJECT_ID},Asset,PRP,",
-        "object_id": "614b46d27f4b49b1ae47eed9",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed9"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
@@ -184,7 +186,7 @@ INTERMEDIATE_DB_DATA = [
         "src_id": 50712,
         "type": "Asset",
         "parent": f",{PROJECT_ID},Asset,PRP,",
-        "object_id": "614b46d27f4b49b1ae47ee10",
+        "object_id": ObjectId("614b46d27f4b49b1ae47ee10"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
@@ -192,7 +194,7 @@ INTERMEDIATE_DB_DATA = [
         "src_id": 50713,
         "type": "Asset",
         "parent": f",{PROJECT_ID},Asset,PRP,Knife,",
-        "object_id": "614b46d27f4b49b1ae47ee11",
+        "object_id": ObjectId("614b46d27f4b49b1ae47ee11"),
         "params": _PROJ_DATA.to_dict(),
     },
 ]

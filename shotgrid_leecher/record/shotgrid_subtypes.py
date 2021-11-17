@@ -72,6 +72,7 @@ class ShotFieldsMapping(GenericFieldsMapping):
                     ["sg_sequence", "Sequence", "episode"]
                 ),
                 ShotgridField.CODE.value: ShotgridField.CODE.value,
+                ShotgridField.ASSETS.value: ShotgridField.ASSETS.value,
                 ShotgridField.ID.value: ShotgridField.ID.value,
                 **dic,
             }
@@ -168,7 +169,8 @@ class ShotgridProject(GenericSubtype):
     code: str
 
     @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "ShotgridProject":
+    def from_dict(raw_dic: Dict[str, Any]) -> "ShotgridProject":
+        dic = {"code": "", **raw_dic}
         return cattr.structure(dic, ShotgridProject)
 
 
