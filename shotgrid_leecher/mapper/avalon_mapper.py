@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Optional, Iterator, Tuple, cast
 
 import attr
+from bson import ObjectId
 
 from shotgrid_leecher.record.avalon_structures import AvalonProject
 from shotgrid_leecher.record.enums import ShotgridType, AvalonType
@@ -10,6 +11,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateTask,
     IntermediateShot,
 )
+from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
@@ -150,9 +152,21 @@ def _to_project_config(project: IntermediateProject) -> Map:
     }
 
 
+def _try_fortify_object_id(object_id: Any) -> ObjectId:
+    return try_or(
+        lambda: object_id
+        if type(object_id) == ObjectId
+        else ObjectId(str(object_id)),
+        object_id,
+    )
+    # return (
+    #     object_id if type(object_id) == ObjectId else ObjectId(str(object_id))
+    # )
+
+
 def _project_row(project: IntermediateProject) -> Map:
     return {
-        "_id": project.object_id,
+        "_id": _try_fortify_object_id(project.object_id),
         "type": AvalonType.PROJECT.value,
         "name": project.id,
         "data": _project_data(project),
@@ -168,7 +182,9 @@ def _inputs(row: IntermediateRow) -> Map:
     linked_assets = [x for x in shot.linked_assets if x.object_id]
     if not linked_assets:
         return {}
-    return {"inputs": [x.object_id for x in linked_assets]}
+    return {
+        "inputs": [_try_fortify_object_id(x.object_id) for x in linked_assets]
+    }
 
 
 def _create_avalon_asset_row(
@@ -184,7 +200,7 @@ def _create_avalon_asset_row(
         "visualParent": visual_parent,
     }
     return {
-        "_id": intermediate_row.object_id,
+        "_id": _try_fortify_object_id(intermediate_row.object_id),
         "type": AvalonType.ASSET.value,
         "name": intermediate_row.id,
         "data": data,

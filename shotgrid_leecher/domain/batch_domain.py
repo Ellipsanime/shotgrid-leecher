@@ -63,7 +63,7 @@ def update_shotgrid_in_avalon(
         return BatchResult.WRONG_PROJECT_NAME
 
     if command.overwrite:
-        db_writer.drop_avalon_project(command.project_name)
+        db_writer.drop_avalon_assets(command.project_name)
 
     for row in avalon_rows:
         object_id = db_writer.upsert_avalon_row(

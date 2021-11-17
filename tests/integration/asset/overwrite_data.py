@@ -16,7 +16,7 @@ _PROJ_DATA = IntermediateParams(
 
 OVERWRITE_AVALON_DATA = [
     {
-        "_id": ObjectId(),
+        "_id": ObjectId("614ae8dfef6bfb71c7a5475a"),
         "type": "project",
         "name": OVERWRITE_PROJECT_ID,
         "data": {
@@ -40,7 +40,7 @@ OVERWRITE_AVALON_DATA = [
         "parent": None,
     },
     {
-        "_id": "614ae8dfef6bfb71c7a5475b",
+        "_id": ObjectId("614ae8dfef6bfb71c7a5475b"),
         "type": "asset",
         "name": "Asset",
         "data": {
@@ -61,10 +61,10 @@ OVERWRITE_AVALON_DATA = [
             "parents": [],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614ae8dfef6bfb71c7a5475a",
+        "parent": ObjectId("614ae8dfef6bfb71c7a5475a"),
     },
     {
-        "_id": "614ae8dfef6bfb71c7a5475c",
+        "_id": ObjectId("614ae8dfef6bfb71c7a5475c"),
         "type": "asset",
         "name": "PRP",
         "data": {
@@ -85,10 +85,10 @@ OVERWRITE_AVALON_DATA = [
             "parents": ["Asset"],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614ae8dfef6bfb71c7a5475a",
+        "parent": ObjectId("614ae8dfef6bfb71c7a5475a"),
     },
     {
-        "_id": "614ae8dfef6bfb71c7a5475d",
+        "_id": ObjectId("614ae8dfef6bfb71c7a5475d"),
         "type": "asset",
         "name": "Fork",
         "data": {
@@ -109,7 +109,7 @@ OVERWRITE_AVALON_DATA = [
             "parents": ["Asset", "PRP"],
         },
         "schema": "openpype:project-3.0",
-        "parent": "614ae8dfef6bfb71c7a5475a",
+        "parent": ObjectId("614ae8dfef6bfb71c7a5475a"),
     },
 ]
 
@@ -132,21 +132,21 @@ OVERWRITE_INTERMEDIATE_DB_DATA = [
         "type": "Project",
         "code": "Project",
         "parent": None,
-        "object_id": "614ae8dfef6bfb71c7a5475a",
+        "object_id": ObjectId("614ae8dfef6bfb71c7a5475a"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Asset",
         "type": "Group",
         "parent": ",Project_bebc4f75,",
-        "object_id": "614ae8dfef6bfb71c7a5475b",
+        "object_id": ObjectId("614ae8dfef6bfb71c7a5475b"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
         "parent": ",Project_bebc4f75,Asset,",
-        "object_id": "614ae8dfef6bfb71c7a5475c",
+        "object_id": ObjectId("614ae8dfef6bfb71c7a5475c"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
@@ -154,7 +154,7 @@ OVERWRITE_INTERMEDIATE_DB_DATA = [
         "src_id": 16284,
         "type": "Asset",
         "parent": ",Project_bebc4f75,Asset,PRP,",
-        "object_id": "614ae8dfef6bfb71c7a5475d",
+        "object_id": ObjectId("614ae8dfef6bfb71c7a5475d"),
         "params": _PROJ_DATA.to_dict(),
     },
 ]

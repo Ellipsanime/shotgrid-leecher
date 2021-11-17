@@ -1,3 +1,5 @@
+from bson import ObjectId
+
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.intermediate_structures import IntermediateParams
 from shotgrid_leecher.utils.collections import drop_keys
@@ -13,7 +15,7 @@ _PROJ_DATA = IntermediateParams(
 
 AVALON_DATA = [
     {
-        "_id": "614b46d27f4b49b1ae47eed6",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed6"),
         "type": "project",
         "name": PROJECT_ID,
         "data": {
@@ -37,7 +39,7 @@ AVALON_DATA = [
         "parent": None,
     },
     {
-        "_id": "614b46d27f4b49b1ae47eed7",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed7"),
         "type": "asset",
         "name": "Asset",
         "data": {
@@ -61,7 +63,7 @@ AVALON_DATA = [
         "parent": "614b46d27f4b49b1ae47eed6",
     },
     {
-        "_id": "614b46d27f4b49b1ae47eed8",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed8"),
         "type": "asset",
         "name": "PRP",
         "data": {
@@ -85,7 +87,7 @@ AVALON_DATA = [
         "parent": "614b46d27f4b49b1ae47eed6",
     },
     {
-        "_id": "614b46d27f4b49b1ae47eed9",
+        "_id": ObjectId("614b46d27f4b49b1ae47eed9"),
         "type": "asset",
         "name": "Fork",
         "data": {
@@ -151,21 +153,21 @@ INTERMEDIATE_DB_DATA = [
         "code": "Project",
         "type": "Project",
         "parent": None,
-        "object_id": "614b46d27f4b49b1ae47eed6",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed6"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Asset",
         "type": "Group",
         "parent": f",{PROJECT_ID},",
-        "object_id": "614b46d27f4b49b1ae47eed7",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed7"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
         "parent": f",{PROJECT_ID},Asset,",
-        "object_id": "614b46d27f4b49b1ae47eed8",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed8"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
@@ -173,7 +175,7 @@ INTERMEDIATE_DB_DATA = [
         "src_id": 50711,
         "type": "Asset",
         "parent": f",{PROJECT_ID},Asset,PRP,",
-        "object_id": "614b46d27f4b49b1ae47eed9",
+        "object_id": ObjectId("614b46d27f4b49b1ae47eed9"),
         "params": _PROJ_DATA.to_dict(),
     },
 ]

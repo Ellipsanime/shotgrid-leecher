@@ -2,9 +2,10 @@ from typing import Dict, Any, List, Set
 
 from bson import ObjectId
 from pymongo.collection import Collection
+from pymongo.results import DeleteResult
 
 import shotgrid_leecher.utils.connectivity as conn
-from shotgrid_leecher.record.enums import DbName
+from shotgrid_leecher.record.enums import DbName, AvalonType
 from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.utils.collections import flatten_dict
 
@@ -65,6 +66,15 @@ def drop_avalon_project(project_name: str):
     db = conn.get_db_client().get_database(DbName.AVALON.value)
     db.drop_collection(project_name)
     db.create_collection(project_name)
+
+
+def drop_avalon_assets(project_name: str) -> DeleteResult:
+    db = (
+        conn.get_db_client()
+        .get_database(DbName.AVALON.value)
+        .get_collection(project_name)
+    )
+    return db.delete_many({"type": {"$ne": AvalonType.PROJECT.value}})
 
 
 def rename_project_collections(
