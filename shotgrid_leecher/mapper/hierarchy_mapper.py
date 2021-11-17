@@ -31,6 +31,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.collections import keep_keys
+from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.utils.logger import get_logger
 
 Map = Dict[str, Any]
@@ -48,7 +49,7 @@ _TYPES_MAP: Dict[ShotgridType, type] = {
 }
 
 
-def _to_params(project_data: AvalonProjectData) -> IntermediateParams:
+def to_params(project_data: AvalonProjectData) -> IntermediateParams:
     return IntermediateParams(
         clip_in=project_data.clip_in,
         clip_out=project_data.clip_out,
@@ -75,8 +76,20 @@ def _dict_to_params(raw_dic: Map) -> IntermediateParams:
     return cattr.structure(dic, IntermediateParams)
 
 
-def to_row(raw_dic: Map) -> IntermediateRow:
-    params = cattr.structure(raw_dic["params"], IntermediateParams)
+def to_row(
+    raw_dic: Map,
+    project_params: IntermediateParams = None,
+) -> IntermediateRow:
+
+    has_params = raw_dic.get("params")
+
+    if not has_params and not project_params:
+        raise RuntimeError(f"Impossible to get params for {raw_dic}")
+
+    params = try_or(
+        lambda: cattr.structure(raw_dic["params"], IntermediateParams),
+        project_params,
+    )
     dic = {
         **{k.lstrip("_"): v for k, v in raw_dic.items() if k != "type" and v},
         "params": params,
@@ -92,7 +105,7 @@ def to_top_shot(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.SHOT.value, f",{project.name},", _to_params(project_data)
+        ShotgridType.SHOT.value, f",{project.name},", to_params(project_data)
     )
 
 
@@ -100,7 +113,7 @@ def to_top_asset(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.ASSET.value, f",{project.name},", _to_params(project_data)
+        ShotgridType.ASSET.value, f",{project.name},", to_params(project_data)
     )
 
 
@@ -114,7 +127,7 @@ def to_task(
         parent=parent_task_path,
         task_type=str(task.step_name()),
         src_id=task.id,
-        params=_to_params(project_data),
+        params=to_params(project_data),
     )
 
 
@@ -127,7 +140,7 @@ def to_asset(
         id=asset.code,
         src_id=asset.id,
         parent=parent_path,
-        params=_to_params(project_data),
+        params=to_params(project_data),
     )
 
 
@@ -140,7 +153,7 @@ def to_shot(
         id=shot.code,
         src_id=shot.id,
         parent=parent_path,
-        params=_to_params(project_data),
+        params=to_params(project_data),
         linked_assets=_to_linked_assets(shot.linked_assets),
     )
     if not shot.has_params():
@@ -162,7 +175,7 @@ def to_asset_group(
     return IntermediateGroup(
         id=asset_type,
         parent=f",{project.name},{ShotgridType.ASSET.value},",
-        params=_to_params(project_data),
+        params=to_params(project_data),
     )
 
 
@@ -175,7 +188,7 @@ def to_episode_shot_group(
         id=episode.name,
         src_id=episode.id,
         parent=f",{project.name},{ShotgridType.SHOT.value},",
-        params=_to_params(project_data),
+        params=to_params(project_data),
     )
 
 
@@ -188,7 +201,7 @@ def to_sequence_shot_group(
         id=sequence.name,
         src_id=sequence.id,
         parent=parent_path,
-        params=_to_params(project_data),
+        params=to_params(project_data),
     )
 
 
@@ -205,5 +218,5 @@ def to_project(
         src_id=project.id,
         code=project.code,
         config=project_config,
-        params=_to_params(project_data),
+        params=to_params(project_data),
     )

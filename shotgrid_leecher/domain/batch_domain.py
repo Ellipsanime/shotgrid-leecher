@@ -6,7 +6,7 @@ from toolz import curry, pipe
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
-from shotgrid_leecher.mapper import avalon_mapper
+from shotgrid_leecher.mapper import avalon_mapper, hierarchy_mapper
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.commands import (
     UpdateShotgridInAvalonCommand,
@@ -176,10 +176,15 @@ def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
 
 @curry
 def _fetch_previous_hierarchy(
-    project_name: str, current_hierarchy: List[IntermediateRow]
+    project_name: str,
+    project_data: AvalonProjectData,
+    current_hierarchy: List[IntermediateRow],
 ) -> List[IntermediateRow]:
+    project_params = hierarchy_mapper.to_params(project_data)
     previous_hierarchy = list(
-        intermediate_hierarchy_repo.fetch_by_project(project_name)
+        intermediate_hierarchy_repo.fetch_by_project(
+            project_name, project_params
+        )
     )
     if previous_hierarchy:
         return previous_hierarchy
@@ -217,7 +222,7 @@ def _fetch_and_augment_hierarchy(
         return [], set()
     previous_hierarchy, dropped_ids = pipe(
         current_hierarchy,
-        _fetch_previous_hierarchy(command.project_name),
+        _fetch_previous_hierarchy(command.project_name, command.project_data),
         _propagate_deletion(current_hierarchy),
     )
     assigned_hierarchy = list(
