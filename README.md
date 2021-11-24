@@ -24,6 +24,7 @@ docker build . -t leecher --no-cache
  - Run built image with:
 ```shell
 docker run -e MONGODB_URL='mongodb://127.0.0.1:27017' \
+  -e MAX_WORKERS="1" \
   -p 8080:8080 -e PORT="8080" -d --name leecher leecher
 ```
 Here **MONGODB_URL** points to the OpenPype database instance and **PORT** specifies the API leecher server port
@@ -32,7 +33,7 @@ Here **MONGODB_URL** points to the OpenPype database instance and **PORT** speci
 
  - You can use additional environment variables such as:
    - **WORKERS_PER_CORE**
-   - **MAX_WORKERS**
+   - **MAX_WORKERS** - **Bugfix** (Must be fixed at 1 for now)
    - **WEB_CONCURRENCY**
    - **LOG_LEVEL**
    - **HOST**
