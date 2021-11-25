@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
 from motor.motor_asyncio import AsyncIOMotorCollection
+from pymongo import UpdateOne
 
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.commands import (
@@ -29,13 +30,19 @@ def queue_requests(
     now = datetime.now()
     queue_table = _collection(DbCollection.SCHEDULE_QUEUE)
     documents = [
-        {
-            "command": x.to_dict(),
-            "datetime": now + timedelta(seconds=i * 0.01),
-        }
+        UpdateOne(
+            {"_id": x.project_name},
+            {
+                "$set": {
+                    "command": x.to_dict(),
+                    "datetime": now + timedelta(seconds=i * 0.01),
+                }
+            },
+            upsert=True,
+        )
         for x, i in zip(commands, range(len(commands)))
     ]
-    return queue_table.insert_many(documents)
+    return queue_table.bulk_write(documents)
 
 
 def request_scheduling(

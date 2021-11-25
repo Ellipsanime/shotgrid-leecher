@@ -22,8 +22,9 @@ _LOG = get_logger(__name__.split(".")[-1])
 _UNROLL_BATCH_SIZE = 10
 
 
-async def schedule_batch(command: ScheduleShotgridBatchCommand) -> None:
+async def schedule_batch(command: ScheduleShotgridBatchCommand) -> BatchResult:
     writer.request_scheduling(command)
+    return BatchResult.OK
 
 
 async def queue_scheduled_batches() -> Dict[str, Any]:
@@ -53,12 +54,12 @@ def _batch_and_log(_: Any) -> None:
     request = schedule_writer.dequeue_request()
     if not request:
         return None
-    project_data = avalon_repo.fetch_project(request.project_name).data
-    command = UpdateShotgridInAvalonCommand.from_dict(
-        {**request.to_dict(), "project_data": project_data.to_dict()}
-    )
     start = time.time()
     try:
+        project_data = avalon_repo.fetch_project(request.project_name).data
+        command = UpdateShotgridInAvalonCommand.from_dict(
+            {**request.to_dict(), "project_data": project_data.to_dict()}
+        )
         result = batch_domain.update_shotgrid_in_avalon(command)
         log_command = LogBatchUpdateCommand(
             result,
@@ -71,8 +72,8 @@ def _batch_and_log(_: Any) -> None:
     except Exception as ex:
         log_command = LogBatchUpdateCommand(
             BatchResult.FAILURE,
-            command.project_name,
-            command.project_id,
+            request.project_name,
+            request.project_id,
             time.time() - start,
             {"exception": try_or(lambda x: x[0], ex.args, ex.args)},
         )

@@ -20,19 +20,19 @@ _LOG = get_logger(__name__.split(".")[-1])
 
 
 @app.on_event("startup")
-@repeat_every(seconds=55, logger=_LOG)
+@repeat_every(seconds=180, logger=_LOG)
 async def queue_scheduled_batches() -> None:
     await schedule_domain.queue_scheduled_batches()
 
 
 @app.on_event("startup")
-@repeat_every(seconds=30, logger=_LOG)
+@repeat_every(seconds=120, logger=_LOG)
 async def dequeue_and_process_batches() -> None:
     await schedule_domain.dequeue_and_process_batches()
 
 
 def start():
-    uvicorn.run(app, host="0.0.0.0", port=os.getenv("APP_PORT", 9001))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("APP_PORT", 9001)))
 
 
 if __name__ == "__main__":
