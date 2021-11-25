@@ -121,7 +121,7 @@ class LogBatchUpdateCommand:
     project_id: int
     duration: float
     data: Any
-    datetime: dt = attr.ib(default=dt.now())
+    datetime: dt
 
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self, value_serializer=attr_value_to_dict)

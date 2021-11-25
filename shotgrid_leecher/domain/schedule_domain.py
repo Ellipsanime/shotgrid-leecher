@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from typing import Any, Dict
 
 from starlette.concurrency import run_in_threadpool
@@ -67,6 +68,7 @@ def _batch_and_log(_: Any) -> None:
             command.project_id,
             time.time() - start,
             None,
+            datetime.now(),
         )
         schedule_writer.log_batch_result(log_command)
     except Exception as ex:
@@ -76,6 +78,7 @@ def _batch_and_log(_: Any) -> None:
             request.project_id,
             time.time() - start,
             {"exception": try_or(lambda x: x[0], ex.args, ex.args)},
+            datetime.now(),
         )
         _LOG.error(ex)
         schedule_writer.log_batch_result(log_command)
