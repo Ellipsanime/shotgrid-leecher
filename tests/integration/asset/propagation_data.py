@@ -36,7 +36,7 @@ AVALON_DATA = [
             "library_project": False,
             "visualParent": None,
             "parent": [],
-            "tasks": None,
+            "tasks": {},
         },
         "schema": "openpype:project-3.0",
         "config": {"tasks": None},

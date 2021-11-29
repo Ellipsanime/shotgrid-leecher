@@ -40,13 +40,13 @@ async def test_batch_with_linked_assets_propagation_without_history(
     # Assert
     assert_that(all_avalon(client)).extracting(
         "data", filter={"name": "SHOT10"}
-    ).extracting("inputs").is_length(1)
+    ).extracting("inputLinks").is_length(1)
     assert_that(
         [
-            x["data"]["inputs"]
+            x["data"]["inputLinks"]
             for x in all_avalon(client)
             if x["name"] == "SHOT10"
-        ][0][0]
+        ][0][0]["id"]
     ).is_type_of(ObjectId)
 
 
@@ -78,13 +78,13 @@ async def test_batch_with_linked_assets_propagation_with_history(
     # Assert
     assert_that(all_avalon(client)).extracting(
         "data", filter={"name": "SHOT10"}
-    ).extracting("inputs").is_length(1)
+    ).extracting("inputLinks").is_length(1)
     assert_that(
         [
-            x["data"]["inputs"]
+            x["data"]["inputLinks"]
             for x in all_avalon(client)
             if x["name"] == "SHOT10"
-        ][0][0]
+        ][0][0]["id"]
     ).is_equal_to(
         linked_assets_data.INTERMEDIATE_DB_DATA[5]["linked_assets"][0][
             "object_id"

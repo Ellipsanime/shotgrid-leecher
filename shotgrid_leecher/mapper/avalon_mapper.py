@@ -183,7 +183,14 @@ def _inputs(row: IntermediateRow) -> Map:
     if not linked_assets:
         return {}
     return {
-        "inputs": [_try_fortify_object_id(x.object_id) for x in linked_assets]
+        "inputLinks": [
+            {
+                "id": _try_fortify_object_id(x.object_id),
+                "linkedBy": "shotgrid",
+                "type": "breakdown",
+            }
+            for x in linked_assets
+        ]
     }
 
 

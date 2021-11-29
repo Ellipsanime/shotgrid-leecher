@@ -1,4 +1,6 @@
+import sys
 import time
+import traceback
 from datetime import datetime
 from typing import Any, Dict
 
@@ -72,12 +74,17 @@ def _batch_and_log(_: Any) -> None:
         )
         schedule_writer.log_batch_result(log_command)
     except Exception as ex:
+        _, _, ex_traceback = sys.exc_info()
+        traceback.print_tb(ex_traceback, limit=10, file=sys.stdout)
         log_command = LogBatchUpdateCommand(
             BatchResult.FAILURE,
             request.project_name,
             request.project_id,
             time.time() - start,
-            {"exception": try_or(lambda x: x[0], ex.args, ex.args)},
+            {
+                "exception": try_or(lambda x: x[0], ex.args, ex.args),
+                "traceback": str(ex_traceback),
+            },
             datetime.now(),
         )
         _LOG.error(ex)

@@ -10,7 +10,7 @@ from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.utils.collections import flatten_dict
 
 Map = Dict[str, Any]
-_ROW_FLATTEN_EXCEPTIONS = {"config.tasks"}
+_ROW_FLATTEN_EXCEPTIONS = {"config.tasks", "data.tasks"}
 
 
 def _avalon_collection(project_name: str) -> Collection:
