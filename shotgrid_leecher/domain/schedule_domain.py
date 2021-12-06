@@ -13,8 +13,9 @@ from shotgrid_leecher.record.commands import (
     UpdateShotgridInAvalonCommand,
     LogBatchUpdateCommand,
     CancelBatchSchedulingCommand,
+    CleanScheduleBatchLogsCommand,
 )
-from shotgrid_leecher.record.results import BatchResult
+from shotgrid_leecher.record.results import BatchResult, ScheduleResult
 from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.utils.logger import get_logger
@@ -23,6 +24,13 @@ from shotgrid_leecher.writers import schedule_writer as writer, schedule_writer
 _LOG = get_logger(__name__.split(".")[-1])
 
 _UNROLL_BATCH_SIZE = 10
+
+
+async def schedule_clean_batch_log(
+    command: CleanScheduleBatchLogsCommand,
+) -> ScheduleResult:
+    writer.clean_schedule_batch_logs(command)
+    return ScheduleResult.OK
 
 
 async def schedule_batch(command: ScheduleShotgridBatchCommand) -> BatchResult:

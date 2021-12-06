@@ -81,6 +81,11 @@ class UpdateShotgridInAvalonCommand:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class CleanScheduleBatchLogsCommand:
+    datetime_gt: dt
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class ScheduleShotgridBatchCommand:
     project_id: int
     project_name: str

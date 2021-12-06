@@ -9,6 +9,7 @@ from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
     LogBatchUpdateCommand,
     CancelBatchSchedulingCommand,
+    CleanScheduleBatchLogsCommand,
 )
 from shotgrid_leecher.record.enums import DbName, DbCollection
 from shotgrid_leecher.utils.logger import get_logger
@@ -84,3 +85,14 @@ def remove_scheduled_project(
     return {
         "deleted_count": result.deleted_count,
     }
+
+
+def clean_schedule_batch_logs(
+    command: CleanScheduleBatchLogsCommand,
+) -> Dict[str, Any]:
+    logs_table = _collection(DbCollection.SCHEDULE_LOGS)
+    result = logs_table.delete_many(
+        {"datetime": {"$lte": command.datetime_gt}}
+    )
+    _LOG.debug(f"Clean batch logs result: {result.raw_result}")
+    return result

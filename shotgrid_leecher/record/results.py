@@ -26,6 +26,12 @@ class GroupAndCountResult:
 
 
 @unique
+class ScheduleResult(Enum):
+    FAILURE = "Failure"
+    OK = "Ok"
+
+
+@unique
 class BatchResult(Enum):
     FAILURE = "Failure"
     NO_SHOTGRID_HIERARCHY = "No_Shotgrid_Hierarchy"
