@@ -18,6 +18,61 @@ class GenericFieldsMapping:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class ShotToShotLinkMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.SHOT_TO_SHOT_LINK
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "ShotToShotLinkMapping":
+        def_parent_shot = ShotgridField.PARENT_SHOT.value
+        def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        return ShotToShotLinkMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.SHOT.value: ShotgridField.SHOT.value,
+                def_parent_shot: def_parent_shot,
+                def_cached_name: def_cached_name,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class AssetToShotLinkMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.ASSET_TO_SHOT_LINK
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "AssetToShotLinkMapping":
+        def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        return AssetToShotLinkMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.SHOT.value: ShotgridField.SHOT.value,
+                ShotgridField.ASSET.value: ShotgridField.ASSET.value,
+                def_cached_name: def_cached_name,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class AssetToAssetLinkMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.ASSET_TO_ASSET_LINK
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "AssetToAssetLinkMapping":
+        def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        return AssetToAssetLinkMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.PARENT.value: ShotgridField.PARENT.value,
+                ShotgridField.ASSET.value: ShotgridField.ASSET.value,
+                def_cached_name: def_cached_name,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class StepFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = ShotgridType.STEP
 
@@ -107,6 +162,7 @@ class AssetFieldsMapping(GenericFieldsMapping):
                 ShotgridField.ID.value: ShotgridField.ID.value,
                 ShotgridField.TYPE.value: ShotgridField.TYPE.value,
                 ShotgridField.TASKS.value: ShotgridField.TASKS.value,
+                ShotgridField.PARENTS.value: ShotgridField.PARENTS.value,
                 ShotgridField.ASSET_TYPE.value: "sg_asset_type",
                 ShotgridField.CODE.value: ShotgridField.CODE.value,
                 **dic,
