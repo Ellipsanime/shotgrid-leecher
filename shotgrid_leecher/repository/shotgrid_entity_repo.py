@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Dict, Any
+
+from toolz import pipe
 
 import shotgrid_leecher.mapper.entity_mapper as mapper
 import shotgrid_leecher.utils.connectivity as conn
@@ -9,12 +11,14 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
     ShotgridFindAllStepsQuery,
+    ShotgridLinkedEntitiesQuery,
 )
 from shotgrid_leecher.record.shotgrid_filters import (
     CompositeFilter,
     IdFilter,
     IsFilter,
     IsNotFilter,
+    NameIsFilter,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -24,9 +28,11 @@ from shotgrid_leecher.record.shotgrid_structures import (
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
+Map = Dict[str, Any]
 _F = CompositeFilter
 _ID = IdFilter
 _IS = IsFilter
+_NAMED = NameIsFilter
 _NOT = IsNotFilter
 
 
@@ -39,6 +45,45 @@ def find_project_by_id(query: ShotgridFindProjectByIdQuery) -> ShotgridProject:
         fields,
     )
     return mapper.to_shotgrid_project(query.project_mapping, raw)
+
+
+def find_assets_linked_to_shots(
+    query: ShotgridLinkedEntitiesQuery,
+) -> List[Map]:
+    client = conn.get_shotgrid_client()
+    fields = list(query.fields_mapping.mapping_table.values())
+    raw = client.find(
+        ShotgridType.PROJECT.value,
+        _F.filter_by(_NAMED("asset.Asset.project", query.project.name)),
+        fields,
+    )
+    return raw
+
+
+def find_shots_linked_to_shots(
+    query: ShotgridLinkedEntitiesQuery,
+) -> List[Map]:
+    client = conn.get_shotgrid_client()
+    fields = list(query.fields_mapping.mapping_table.values())
+    raw = client.find(
+        ShotgridType.PROJECT.value,
+        _F.filter_by(_NAMED("shot.Shot.project", query.project.name)),
+        fields,
+    )
+    return raw
+
+
+def find_assets_linked_to_assets(
+    query: ShotgridLinkedEntitiesQuery,
+) -> List[Map]:
+    client = conn.get_shotgrid_client()
+    fields = list(query.fields_mapping.mapping_table.values())
+    raw = client.find(
+        ShotgridType.PROJECT.value,
+        _F.filter_by(_NAMED("asset.Asset.project", query.project.name)),
+        fields,
+    )
+    return raw
 
 
 def find_assets_for_project(
@@ -70,7 +115,11 @@ def find_shots_for_project(
         ),
         list(query.shot_mapping.mapping_table.values()),
     )
-    return [mapper.to_shotgrid_shot(query.shot_mapping, x) for x in shots]
+    return pipe(
+        shots,
+        mapper.to_shotgrid_shot(query.shot_mapping),
+        list,
+    )
 
 
 def find_tasks_for_project(

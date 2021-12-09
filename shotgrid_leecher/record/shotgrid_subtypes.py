@@ -23,12 +23,12 @@ class ShotToShotLinkMapping(GenericFieldsMapping):
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "ShotToShotLinkMapping":
-        def_parent_shot = ShotgridField.PARENT_SHOT.value
+        def_parent_shot = ShotgridField.LINK_PARENT_SHOT_ID.value
         def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
         return ShotToShotLinkMapping(
             {
                 ShotgridField.ID.value: ShotgridField.ID.value,
-                ShotgridField.SHOT.value: ShotgridField.SHOT.value,
+                ShotgridField.LINK_SHOT_ID.value: ShotgridField.LINK_SHOT_ID.value,
                 def_parent_shot: def_parent_shot,
                 def_cached_name: def_cached_name,
                 **dic,
@@ -46,8 +46,8 @@ class AssetToShotLinkMapping(GenericFieldsMapping):
         return AssetToShotLinkMapping(
             {
                 ShotgridField.ID.value: ShotgridField.ID.value,
-                ShotgridField.SHOT.value: ShotgridField.SHOT.value,
-                ShotgridField.ASSET.value: ShotgridField.ASSET.value,
+                ShotgridField.LINK_SHOT_ID.value: ShotgridField.LINK_SHOT_ID.value,
+                ShotgridField.LINK_ASSET_ID.value: ShotgridField.LINK_ASSET_ID.value,
                 def_cached_name: def_cached_name,
                 **dic,
             }
@@ -64,8 +64,8 @@ class AssetToAssetLinkMapping(GenericFieldsMapping):
         return AssetToAssetLinkMapping(
             {
                 ShotgridField.ID.value: ShotgridField.ID.value,
-                ShotgridField.PARENT.value: ShotgridField.PARENT.value,
-                ShotgridField.ASSET.value: ShotgridField.ASSET.value,
+                ShotgridField.LINK_PARENT_ID.value: ShotgridField.LINK_PARENT_ID.value,
+                ShotgridField.LINK_ASSET_ID.value: ShotgridField.LINK_ASSET_ID.value,
                 def_cached_name: def_cached_name,
                 **dic,
             }
