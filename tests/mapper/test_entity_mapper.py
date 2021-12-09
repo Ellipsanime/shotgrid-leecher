@@ -11,6 +11,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridAsset,
     ShotgridShot,
     ShotgridTask,
+    ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ProjectFieldsMapping,
@@ -19,6 +20,9 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetFieldsMapping,
     ShotFieldsMapping,
     TaskFieldsMapping,
+    ShotToShotLinkMapping,
+    AssetToShotLinkMapping,
+    AssetToAssetLinkMapping,
 )
 
 T = TypeVar("T", bound=GenericFieldsMapping, covariant=True)
@@ -32,6 +36,9 @@ _ASSET_TASK_MAPPING = {
     ShotgridField.NAME.value: ShotgridField.NAME.value,
     ShotgridField.TYPE.value: ShotgridField.TYPE.value,
 }
+_SHOT_TO_SHOT_MAPPING = ShotToShotLinkMapping.from_dict({})
+_ASSET_TO_SHOT_MAPPING = AssetToShotLinkMapping.from_dict({})
+_ASSET_TO_ASSET_MAPPING = AssetToAssetLinkMapping.from_dict({})
 
 
 _VALUES = {
@@ -125,3 +132,15 @@ def test_to_shotgrid_asset():
     assert_that(actual.type).is_not_none()
     assert_that(actual.asset_type).is_not_none()
     assert_that(actual.tasks).is_length(tasks_n)
+
+
+def test_to_shot_to_shot_link():
+    # Arrange
+    mapping = _randomize_mapping(
+        _SHOT_TO_SHOT_MAPPING, ShotToShotLinkMapping.from_dict
+    )
+    data = {k: str(uuid.uuid4()) for k in mapping.mapping_values()}
+    # Act
+    actual = entity_mapper.to_shot_to_shot_link(mapping, data)
+    # Assert
+    assert_that(actual).is_type_of(ShotgridEntityToEntityLink)

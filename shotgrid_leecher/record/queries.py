@@ -11,7 +11,8 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetFieldsMapping,
     ShotFieldsMapping,
     TaskFieldsMapping,
-    StepFieldsMapping, GenericFieldsMapping,
+    StepFieldsMapping,
+    GenericFieldsMapping,
 )
 
 

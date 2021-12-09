@@ -63,6 +63,20 @@ class ShotgridShotParams:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class ShotgridEntityToEntityLink(ShotgridEntity):
+    type: str
+    parent_id: int
+    child_id: int
+    quantity: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            **{k: v for k, v in attr.asdict(self).items() if k != "id"},
+            "_id": self.id,
+        }
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class ShotgridShot(ShotgridEntity):
     code: str
     type: str

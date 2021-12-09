@@ -25,10 +25,12 @@ class ShotToShotLinkMapping(GenericFieldsMapping):
     def from_dict(dic: Dict[str, str]) -> "ShotToShotLinkMapping":
         def_parent_shot = ShotgridField.LINK_PARENT_SHOT_ID.value
         def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        shot_id = ShotgridField.LINK_SHOT_ID.value
         return ShotToShotLinkMapping(
             {
                 ShotgridField.ID.value: ShotgridField.ID.value,
-                ShotgridField.LINK_SHOT_ID.value: ShotgridField.LINK_SHOT_ID.value,
+                shot_id: shot_id,
+                ShotgridField.LINK_QUANTITY.value: "sg_instance",
                 def_parent_shot: def_parent_shot,
                 def_cached_name: def_cached_name,
                 **dic,
@@ -43,11 +45,14 @@ class AssetToShotLinkMapping(GenericFieldsMapping):
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "AssetToShotLinkMapping":
         def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        shot_id = ShotgridField.LINK_SHOT_ID.value
+        asset_id = ShotgridField.LINK_ASSET_ID.value
         return AssetToShotLinkMapping(
             {
                 ShotgridField.ID.value: ShotgridField.ID.value,
-                ShotgridField.LINK_SHOT_ID.value: ShotgridField.LINK_SHOT_ID.value,
-                ShotgridField.LINK_ASSET_ID.value: ShotgridField.LINK_ASSET_ID.value,
+                shot_id: shot_id,
+                asset_id: asset_id,
+                ShotgridField.LINK_QUANTITY.value: "sg_instance",
                 def_cached_name: def_cached_name,
                 **dic,
             }
@@ -61,11 +66,14 @@ class AssetToAssetLinkMapping(GenericFieldsMapping):
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "AssetToAssetLinkMapping":
         def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        parent_id = ShotgridField.LINK_PARENT_ID.value
+        asset_id = ShotgridField.LINK_ASSET_ID.value
         return AssetToAssetLinkMapping(
             {
                 ShotgridField.ID.value: ShotgridField.ID.value,
-                ShotgridField.LINK_PARENT_ID.value: ShotgridField.LINK_PARENT_ID.value,
-                ShotgridField.LINK_ASSET_ID.value: ShotgridField.LINK_ASSET_ID.value,
+                parent_id: parent_id,
+                asset_id: asset_id,
+                ShotgridField.LINK_QUANTITY.value: "sg_instance",
                 def_cached_name: def_cached_name,
                 **dic,
             }

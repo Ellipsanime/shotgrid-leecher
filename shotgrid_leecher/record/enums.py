@@ -119,6 +119,7 @@ class ShotgridField(Enum):
     ASSETS = "assets"
     PARENTS = "parents"
     CACHED_DISPLAY_NAME = "cached_display_name"
+    LINK_QUANTITY = "quantity"
     LINK_SHOT_ID = "shot.Shot.id"
     LINK_ASSET_ID = "asset.Asset.id"
     LINK_PARENT_ID = "parent.Asset.id"

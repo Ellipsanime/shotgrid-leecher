@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional, Callable, TypeVar, List
+from typing import Dict, Any, Optional, Callable, TypeVar
 
 import attr
 import cattr
@@ -17,6 +17,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridAssetTask,
     ShotgridStep,
     ShotgridLinkedAsset,
+    ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
@@ -24,7 +25,8 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetFieldsMapping,
     ProjectFieldsMapping,
     ShotgridProject,
-    StepFieldsMapping, ShotToShotLinkMapping,
+    StepFieldsMapping,
+    ShotToShotLinkMapping,
 )
 from shotgrid_leecher.utils.collections import swap_mapping_keys_values
 
@@ -60,11 +62,18 @@ def to_shotgrid_asset(
 
 
 @curry
-def to_shot_to_shot_links(
+def to_shot_to_shot_link(
     link_mapping: ShotToShotLinkMapping,
     target: Map,
-) -> List[ShotgridShot]:
-    pass
+) -> ShotgridEntityToEntityLink:
+    data = swap_mapping_keys_values(link_mapping.mapping_table, target)
+    return ShotgridEntityToEntityLink(
+        id=data[ShotgridField.ID.value],
+        type=data[ShotgridField.TYPE.value],
+        parent_id=data[ShotgridField.LINK_PARENT_SHOT_ID.value],
+        child_id=data[ShotgridField.LINK_SHOT_ID.value],
+        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
+    )
 
 
 @curry
