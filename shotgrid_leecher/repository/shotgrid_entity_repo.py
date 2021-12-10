@@ -32,7 +32,6 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
-from shotgrid_leecher.utils.timer import timed
 
 Map = Dict[str, Any]
 _F = CompositeFilter
@@ -53,8 +52,7 @@ def find_project_by_id(query: ShotgridFindProjectByIdQuery) -> ShotgridProject:
     return mapper.to_shotgrid_project(query.project_mapping, raw)
 
 
-@timed
-# @cached(cache=TTLCache(maxsize=24, ttl=60))
+@cached(cache=TTLCache(maxsize=24, ttl=60), key=lambda x: x.project)
 def find_assets_linked_to_shots(
     query: ShotgridLinkedEntitiesQuery,
 ) -> List[ShotgridEntityToEntityLink]:
@@ -72,7 +70,7 @@ def find_assets_linked_to_shots(
     )
 
 
-@cached(cache=TTLCache(maxsize=24, ttl=60))
+@cached(cache=TTLCache(maxsize=24, ttl=60), key=lambda x: x.project)
 def find_shots_linked_to_shots(
     query: ShotgridLinkedEntitiesQuery,
 ) -> List[ShotgridEntityToEntityLink]:
@@ -90,7 +88,7 @@ def find_shots_linked_to_shots(
     )
 
 
-@cached(cache=TTLCache(maxsize=24, ttl=60))
+@cached(cache=TTLCache(maxsize=24, ttl=60), key=lambda x: x.project)
 def find_assets_linked_to_assets(
     query: ShotgridLinkedEntitiesQuery,
 ) -> List[ShotgridEntityToEntityLink]:
