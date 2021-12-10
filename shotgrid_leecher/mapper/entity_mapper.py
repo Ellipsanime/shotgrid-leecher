@@ -27,6 +27,8 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     StepFieldsMapping,
     ShotToShotLinkMapping,
+    AssetToShotLinkMapping,
+    AssetToAssetLinkMapping,
 )
 from shotgrid_leecher.utils.collections import swap_mapping_keys_values
 
@@ -69,9 +71,39 @@ def to_shot_to_shot_link(
     data = swap_mapping_keys_values(link_mapping.mapping_table, target)
     return ShotgridEntityToEntityLink(
         id=data[ShotgridField.ID.value],
-        type=data[ShotgridField.TYPE.value],
+        type=data[ShotgridField.ENTITY_TYPE.value],
         parent_id=data[ShotgridField.LINK_PARENT_SHOT_ID.value],
         child_id=data[ShotgridField.LINK_SHOT_ID.value],
+        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
+    )
+
+
+@curry
+def to_asset_to_shot_link(
+    link_mapping: AssetToShotLinkMapping,
+    target: Map,
+) -> ShotgridEntityToEntityLink:
+    data = swap_mapping_keys_values(link_mapping.mapping_table, target)
+    return ShotgridEntityToEntityLink(
+        id=data[ShotgridField.ID.value],
+        type=data[ShotgridField.ENTITY_TYPE.value],
+        parent_id=data[ShotgridField.LINK_ASSET_ID.value],
+        child_id=data[ShotgridField.LINK_SHOT_ID.value],
+        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
+    )
+
+
+@curry
+def to_asset_to_asset_link(
+    link_mapping: AssetToAssetLinkMapping,
+    target: Map,
+) -> ShotgridEntityToEntityLink:
+    data = swap_mapping_keys_values(link_mapping.mapping_table, target)
+    return ShotgridEntityToEntityLink(
+        id=data[ShotgridField.ID.value],
+        type=data[ShotgridField.ENTITY_TYPE.value],
+        parent_id=data[ShotgridField.LINK_PARENT_ID.value],
+        child_id=data[ShotgridField.LINK_ASSET_ID.value],
         quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
     )
 

@@ -1,6 +1,9 @@
 from typing import List, Dict, Any
 
 from toolz import pipe
+from toolz.curried import (
+    map as select,
+)
 
 import shotgrid_leecher.mapper.entity_mapper as mapper
 import shotgrid_leecher.utils.connectivity as conn
@@ -117,7 +120,7 @@ def find_shots_for_project(
     )
     return pipe(
         shots,
-        mapper.to_shotgrid_shot(query.shot_mapping),
+        select(mapper.to_shotgrid_shot(query.shot_mapping)),
         list,
     )
 

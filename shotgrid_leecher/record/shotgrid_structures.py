@@ -75,6 +75,15 @@ class ShotgridEntityToEntityLink(ShotgridEntity):
             "_id": self.id,
         }
 
+    @staticmethod
+    def from_dict(raw_dic: Dict[str, Any]) -> "ShotgridEntityToEntityLink":
+        dic = {
+            **{k: v for k, v in raw_dic.items() if k != "_id"},
+            "id": raw_dic.get("_id", raw_dic.get("id")),
+        }
+        ctor = ShotgridEntityToEntityLink
+        return ctor(**dic)
+
 
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridShot(ShotgridEntity):

@@ -113,6 +113,7 @@ class ShotgridField(Enum):
     TAIL_OUT = "tail_out"
     CODE = "code"
     TYPE = "type"
+    ENTITY_TYPE = "entity_type"
     TASKS = "tasks"
     ASSET_TYPE = "asset_type"
     SHORT_NAME = "short_name"
