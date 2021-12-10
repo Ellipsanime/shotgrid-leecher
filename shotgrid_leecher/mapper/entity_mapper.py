@@ -44,6 +44,7 @@ def to_shotgrid_project(
     return ShotgridProject.from_dict(data)
 
 
+@curry
 def to_shotgrid_asset(
     asset_mapping: AssetFieldsMapping,
     task_mapping: TaskFieldsMapping,
@@ -137,6 +138,7 @@ def to_shotgrid_shot(
     )
 
 
+@curry
 def to_shotgrid_step(
     step_mapping: StepFieldsMapping,
     target: Map,

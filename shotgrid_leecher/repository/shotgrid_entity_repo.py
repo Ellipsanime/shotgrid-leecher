@@ -60,6 +60,11 @@ def find_assets_linked_to_shots(
         _F.filter_by(_NAMED("asset.Asset.project", query.project.name)),
         fields,
     )
+    pipe(
+        raw,
+        select(mapper.to_asset_to_shot_link(query.fields_mapping)),
+        list,
+    )
     return raw
 
 
@@ -101,10 +106,13 @@ def find_assets_for_project(
         ),
         list(query.asset_mapping.mapping_table.values()),
     )
-    return [
-        mapper.to_shotgrid_asset(query.asset_mapping, query.task_mapping, x)
-        for x in assets
-    ]
+    return pipe(
+        assets,
+        select(
+            mapper.to_shotgrid_asset(query.asset_mapping, query.task_mapping)
+        ),
+        list,
+    )
 
 
 def find_shots_for_project(
@@ -137,7 +145,11 @@ def find_tasks_for_project(
         ),
         list(query.task_mapping.mapping_table.values()),
     )
-    return [mapper.to_shotgrid_task(query.task_mapping, x) for x in data]
+    return pipe(
+        data,
+        select(mapper.to_shotgrid_task(query.task_mapping)),
+        list,
+    )
 
 
 def find_steps(query: ShotgridFindAllStepsQuery) -> List[ShotgridStep]:
@@ -147,4 +159,8 @@ def find_steps(query: ShotgridFindAllStepsQuery) -> List[ShotgridStep]:
         [],
         list(query.step_mapping.mapping_table.values()),
     )
-    return [mapper.to_shotgrid_step(query.step_mapping, x) for x in data]
+    return pipe(
+        data,
+        select(mapper.to_shotgrid_step(query.step_mapping)),
+        list,
+    )
