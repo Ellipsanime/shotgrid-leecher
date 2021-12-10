@@ -19,12 +19,14 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindAssetsByProjectQuery,
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
+    ShotgridLinkedEntitiesQuery,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
+    AssetToShotLinkMapping,
 )
 from shotgrid_leecher.utils.logger import get_logger
 from shotgrid_leecher.utils.timer import timed
@@ -62,9 +64,15 @@ def _patch_up_shot(shot: ShotgridShot) -> ShotgridShot:
 def _fetch_project_shots(
     query: ShotgridFindShotsByProjectQuery,
 ) -> Iterator[IntermediateRow]:
-    # TODO: Fields should be configurable
     project = query.project
     raw_shots = entity_repo.find_shots_for_project(query)
+    entity_repo.find_assets_linked_to_shots(
+        ShotgridLinkedEntitiesQuery(
+            query.project,
+            query.credentials,
+            AssetToShotLinkMapping.from_dict({}),
+        )
+    )
 
     if raw_shots:
         yield mapper.to_top_shot(project, query.project_data)

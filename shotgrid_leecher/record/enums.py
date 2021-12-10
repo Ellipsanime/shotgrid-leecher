@@ -51,9 +51,9 @@ class ShotgridType(Enum):
     GROUP = "Group"
     TASK = "Task"
     STEP = "Step"
-    ASSET_TO_SHOT_LINK = "AssetToShotLink"
-    SHOT_TO_SHOT_LINK = "ShotToShotLink"
-    ASSET_TO_ASSET_LINK = "AssetToAssetLink"
+    ASSET_TO_SHOT_LINK = "AssetShotConnection"
+    SHOT_TO_SHOT_LINK = "ShotShotConnection"
+    ASSET_TO_ASSET_LINK = "AssetAssetConnection"
 
     @staticmethod
     def middle_types() -> List["ShotgridType"]:
@@ -113,7 +113,6 @@ class ShotgridField(Enum):
     TAIL_OUT = "tail_out"
     CODE = "code"
     TYPE = "type"
-    ENTITY_TYPE = "entity_type"
     TASKS = "tasks"
     ASSET_TYPE = "asset_type"
     SHORT_NAME = "short_name"

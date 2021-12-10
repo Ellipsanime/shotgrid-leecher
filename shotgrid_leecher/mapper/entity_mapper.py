@@ -72,7 +72,7 @@ def to_shot_to_shot_link(
     data = swap_mapping_keys_values(link_mapping.mapping_table, target)
     return ShotgridEntityToEntityLink(
         id=data[ShotgridField.ID.value],
-        type=data[ShotgridField.ENTITY_TYPE.value],
+        type=ShotgridType.SHOT_TO_SHOT_LINK.value,
         parent_id=data[ShotgridField.LINK_PARENT_SHOT_ID.value],
         child_id=data[ShotgridField.LINK_SHOT_ID.value],
         quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
@@ -87,7 +87,7 @@ def to_asset_to_shot_link(
     data = swap_mapping_keys_values(link_mapping.mapping_table, target)
     return ShotgridEntityToEntityLink(
         id=data[ShotgridField.ID.value],
-        type=data[ShotgridField.ENTITY_TYPE.value],
+        type=ShotgridType.ASSET_TO_SHOT_LINK.value,
         parent_id=data[ShotgridField.LINK_ASSET_ID.value],
         child_id=data[ShotgridField.LINK_SHOT_ID.value],
         quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
@@ -102,7 +102,7 @@ def to_asset_to_asset_link(
     data = swap_mapping_keys_values(link_mapping.mapping_table, target)
     return ShotgridEntityToEntityLink(
         id=data[ShotgridField.ID.value],
-        type=data[ShotgridField.ENTITY_TYPE.value],
+        type=ShotgridType.ASSET_TO_ASSET_LINK.value,
         parent_id=data[ShotgridField.LINK_PARENT_ID.value],
         child_id=data[ShotgridField.LINK_ASSET_ID.value],
         quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),

@@ -6,7 +6,7 @@ import attr
 from assertpy import assert_that
 
 from shotgrid_leecher.mapper import entity_mapper
-from shotgrid_leecher.record.enums import ShotgridField
+from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridAsset,
     ShotgridShot,
@@ -154,7 +154,7 @@ def test_to_shot_to_shot_link():
     assert_that(actual.parent_id).is_equal_to(
         data[ShotgridField.LINK_PARENT_SHOT_ID.value]
     )
-    assert_that(actual.type).is_equal_to(data[ShotgridField.TYPE.value])
+    assert_that(actual.type).is_equal_to(ShotgridType.SHOT_TO_SHOT_LINK.value)
     assert_that(actual.quantity).is_equal_to(data["sg_instance"])
 
 
@@ -197,7 +197,7 @@ def test_to_asset_to_shot_link():
     assert_that(actual.parent_id).is_equal_to(
         data[ShotgridField.LINK_ASSET_ID.value]
     )
-    assert_that(actual.type).is_equal_to(data[ShotgridField.TYPE.value])
+    assert_that(actual.type).is_equal_to(ShotgridType.ASSET_TO_SHOT_LINK.value)
     assert_that(actual.quantity).is_equal_to(data["sg_instance"])
 
 
@@ -240,7 +240,9 @@ def test_to_asset_to_asset_link():
     assert_that(actual.parent_id).is_equal_to(
         data[ShotgridField.LINK_PARENT_ID.value]
     )
-    assert_that(actual.type).is_equal_to(data[ShotgridField.TYPE.value])
+    assert_that(actual.type).is_equal_to(
+        ShotgridType.ASSET_TO_ASSET_LINK.value
+    )
     assert_that(actual.quantity).is_equal_to(data["sg_instance"])
 
 

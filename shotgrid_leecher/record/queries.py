@@ -60,6 +60,7 @@ class ShotgridBoundEntityQuery:
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridLinkedEntitiesQuery:
     project: ShotgridProject
+    credentials: ShotgridCredentials
     fields_mapping: GenericFieldsMapping
 
 

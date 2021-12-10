@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 
+from cachetools import cached, TTLCache
 from toolz import pipe
 from toolz.curried import (
     map as select,
@@ -28,8 +29,10 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
     ShotgridAsset,
     ShotgridStep,
+    ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.utils.timer import timed
 
 Map = Dict[str, Any]
 _F = CompositeFilter
@@ -50,48 +53,59 @@ def find_project_by_id(query: ShotgridFindProjectByIdQuery) -> ShotgridProject:
     return mapper.to_shotgrid_project(query.project_mapping, raw)
 
 
+@timed
+# @cached(cache=TTLCache(maxsize=24, ttl=60))
 def find_assets_linked_to_shots(
     query: ShotgridLinkedEntitiesQuery,
-) -> List[Map]:
-    client = conn.get_shotgrid_client()
+) -> List[ShotgridEntityToEntityLink]:
+    client = conn.get_shotgrid_client(query.credentials)
     fields = list(query.fields_mapping.mapping_table.values())
     raw = client.find(
-        ShotgridType.PROJECT.value,
+        ShotgridType.ASSET_TO_SHOT_LINK.value,
         _F.filter_by(_NAMED("asset.Asset.project", query.project.name)),
         fields,
     )
-    pipe(
+    return pipe(
         raw,
         select(mapper.to_asset_to_shot_link(query.fields_mapping)),
         list,
     )
-    return raw
 
 
+@cached(cache=TTLCache(maxsize=24, ttl=60))
 def find_shots_linked_to_shots(
     query: ShotgridLinkedEntitiesQuery,
-) -> List[Map]:
-    client = conn.get_shotgrid_client()
+) -> List[ShotgridEntityToEntityLink]:
+    client = conn.get_shotgrid_client(query.credentials)
     fields = list(query.fields_mapping.mapping_table.values())
     raw = client.find(
-        ShotgridType.PROJECT.value,
+        ShotgridType.SHOT_TO_SHOT_LINK.value,
         _F.filter_by(_NAMED("shot.Shot.project", query.project.name)),
         fields,
     )
-    return raw
+    return pipe(
+        raw,
+        select(mapper.to_shot_to_shot_link(query.fields_mapping)),
+        list,
+    )
 
 
+@cached(cache=TTLCache(maxsize=24, ttl=60))
 def find_assets_linked_to_assets(
     query: ShotgridLinkedEntitiesQuery,
-) -> List[Map]:
-    client = conn.get_shotgrid_client()
+) -> List[ShotgridEntityToEntityLink]:
+    client = conn.get_shotgrid_client(query.credentials)
     fields = list(query.fields_mapping.mapping_table.values())
     raw = client.find(
-        ShotgridType.PROJECT.value,
+        ShotgridType.ASSET_TO_ASSET_LINK.value,
         _F.filter_by(_NAMED("asset.Asset.project", query.project.name)),
         fields,
     )
-    return raw
+    return pipe(
+        raw,
+        select(mapper.to_asset_to_asset_link(query.fields_mapping)),
+        list,
+    )
 
 
 def find_assets_for_project(
