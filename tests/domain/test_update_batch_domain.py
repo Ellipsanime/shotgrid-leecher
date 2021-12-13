@@ -34,6 +34,9 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotFieldsMapping,
     TaskFieldsMapping,
     StepFieldsMapping,
+    AssetToShotLinkMapping,
+    ShotToShotLinkMapping,
+    AssetToAssetLinkMapping,
 )
 from shotgrid_leecher.repository import intermediate_hierarchy_repo
 from shotgrid_leecher.writers import db_writer
@@ -68,6 +71,9 @@ def _default_fields_mapping() -> FieldsMapping:
         ShotFieldsMapping.from_dict({}),
         TaskFieldsMapping.from_dict({}),
         StepFieldsMapping.from_dict({}),
+        AssetToShotLinkMapping.from_dict({}),
+        ShotToShotLinkMapping.from_dict({}),
+        AssetToAssetLinkMapping.from_dict({}),
     )
 
 

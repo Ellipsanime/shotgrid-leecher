@@ -37,6 +37,9 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotFieldsMapping,
     TaskFieldsMapping,
     StepFieldsMapping,
+    ShotToShotLinkMapping,
+    AssetToShotLinkMapping,
+    AssetToAssetLinkMapping,
 )
 
 _RAND = random.randint
@@ -272,6 +275,9 @@ def _default_fields_mapping() -> FieldsMapping:
         ShotFieldsMapping.from_dict({}),
         TaskFieldsMapping.from_dict({}),
         StepFieldsMapping.from_dict({}),
+        AssetToShotLinkMapping.from_dict({}),
+        ShotToShotLinkMapping.from_dict({}),
+        AssetToAssetLinkMapping.from_dict({}),
     )
 
 

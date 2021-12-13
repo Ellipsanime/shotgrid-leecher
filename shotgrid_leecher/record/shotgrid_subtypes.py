@@ -185,6 +185,9 @@ class FieldsMapping:
     shot: ShotFieldsMapping
     task: TaskFieldsMapping
     step: StepFieldsMapping
+    asset_to_shot: AssetToShotLinkMapping
+    shot_to_shot: ShotToShotLinkMapping
+    asset_to_asset: AssetToAssetLinkMapping
 
     @staticmethod
     def from_dict(dic: Dict[str, Dict[str, str]]) -> "FieldsMapping":
@@ -206,6 +209,15 @@ class FieldsMapping:
             ),
             step=StepFieldsMapping.from_dict(
                 dic.get(ShotgridType.STEP.value.lower(), {})
+            ),
+            shot_to_shot=ShotToShotLinkMapping.from_dict(
+                dic.get(ShotgridType.SHOT_TO_SHOT_LINK.value.lower(), {}),
+            ),
+            asset_to_shot=AssetToShotLinkMapping.from_dict(
+                dic.get(ShotgridType.ASSET_TO_SHOT_LINK.value.lower(), {}),
+            ),
+            asset_to_asset=AssetToAssetLinkMapping.from_dict(
+                dic.get(ShotgridType.ASSET_TO_ASSET_LINK.value.lower(), {}),
             ),
         )
 
