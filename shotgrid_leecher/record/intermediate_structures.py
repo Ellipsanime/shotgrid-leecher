@@ -67,10 +67,29 @@ class IntermediateGroup(IntermediateRow):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class IntermediateLinkedEntity:
+    id: int
+    link_type: str
+    quantity: int
+    type = ShotgridType.LINKED_ENTITY
+    object_id: Optional[ObjectId] = attr.attrib(default=None)
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IntermediateAsset(IntermediateRow):
     src_id: int
+    linked_entities: List[IntermediateLinkedEntity]
     type = ShotgridType.ASSET
     object_id: Optional[ObjectId] = attr.attrib(default=None)
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateAsset":
+        type_ = IntermediateAsset
+        dic = {
+            **raw_dic,
+            "linked_entities": raw_dic.get("linked_entities", []),
+        }
+        return type_(**dic)
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -82,17 +101,9 @@ class IntermediateTask(IntermediateRow):
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class IntermediateLinkedAsset:
-    id: int
-    name: str
-    type = ShotgridType.LINKED_ASSET
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
-
-
-@attr.s(auto_attribs=True, frozen=True)
 class IntermediateShot(IntermediateRow):
     src_id: int
-    linked_assets: List[IntermediateLinkedAsset]
+    linked_entities: List[IntermediateLinkedEntity]
     type = ShotgridType.SHOT
     object_id: Optional[ObjectId] = attr.attrib(default=None)
 
@@ -101,7 +112,7 @@ class IntermediateShot(IntermediateRow):
         type_ = IntermediateShot
         dic = {
             **raw_dic,
-            "linked_assets": raw_dic.get("linked_assets", []),
+            "linked_entities": raw_dic.get("linked_entities", []),
         }
         return type_(**dic)
 

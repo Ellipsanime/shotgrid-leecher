@@ -179,7 +179,7 @@ def _inputs(row: IntermediateRow) -> Map:
     if row.type != ShotgridType.SHOT:
         return {}
     shot = cast(IntermediateShot, row)
-    linked_assets = [x for x in shot.linked_assets if x.object_id]
+    linked_assets = [x for x in shot.linked_entities if x.object_id]
     if not linked_assets:
         return {}
     return {

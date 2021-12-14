@@ -122,6 +122,7 @@ def _get_prp_assets(
             parent=f"{parent.parent}{parent.id},PRP,",
             src_id=uuid.uuid4().int,
             params=_params(),
+            linked_entities=[],
         ),
     ]
 

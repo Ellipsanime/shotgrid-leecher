@@ -147,6 +147,7 @@ SHOTGRID_DATA = [
         src_id=50711,
         parent=f",{PROJECT_ID},Asset,PRP,",
         params=_PROJ_DATA,
+        linked_entities=[],
     ),
 ]
 INTERMEDIATE_DB_DATA = [
@@ -198,3 +199,6 @@ INTERMEDIATE_DB_DATA = [
         "params": _PROJ_DATA.to_dict(),
     },
 ]
+SHOTGRID_ASSET_TO_ASSET_LINKS = []
+SHOTGRID_SHOT_TO_SHOT_LINKS = []
+SHOTGRID_ASSET_TO_SHOT_LINKS = []

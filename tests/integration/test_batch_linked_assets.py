@@ -86,7 +86,7 @@ async def test_batch_with_linked_assets_propagation_with_history(
             if x["name"] == "SHOT10"
         ][0][0]["id"]
     ).is_equal_to(
-        linked_assets_data.INTERMEDIATE_DB_DATA[5]["linked_assets"][0][
+        linked_assets_data.INTERMEDIATE_DB_DATA[5]["linked_entities"][0][
             "object_id"
         ]
     )

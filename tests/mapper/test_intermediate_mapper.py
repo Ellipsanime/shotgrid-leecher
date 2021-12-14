@@ -34,7 +34,7 @@ def test_to_shot_row_without_params():
             "params",
             "object_id",
             "code",
-            "linked_assets",
+            "linked_entities",
         }
     )
 

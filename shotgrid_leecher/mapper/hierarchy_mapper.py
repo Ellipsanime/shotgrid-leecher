@@ -2,6 +2,7 @@ from typing import Dict, Any, cast, List
 
 import attr
 import cattr
+from toolz import curry
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
@@ -17,7 +18,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateProjectConfig,
     IntermediateProjectStep,
-    IntermediateLinkedAsset,
+    IntermediateLinkedEntity,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -28,6 +29,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotParams,
     ShotgridStep,
     ShotgridLinkedAsset,
+    ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.collections import keep_keys
@@ -67,8 +69,8 @@ def to_params(project_data: AvalonProjectData) -> IntermediateParams:
 
 def _to_linked_assets(
     linked_assets: List[ShotgridLinkedAsset],
-) -> List[IntermediateLinkedAsset]:
-    return [IntermediateLinkedAsset(x.id, x.name) for x in linked_assets]
+) -> List[IntermediateLinkedEntity]:
+    return [IntermediateLinkedEntity(x.id, x.name) for x in linked_assets]
 
 
 def _dict_to_params(raw_dic: Map) -> IntermediateParams:
@@ -141,6 +143,7 @@ def to_asset(
         src_id=asset.id,
         parent=parent_path,
         params=to_params(project_data),
+        linked_entities=[],
     )
 
 
@@ -154,7 +157,7 @@ def to_shot(
         src_id=shot.id,
         parent=parent_path,
         params=to_params(project_data),
-        linked_assets=_to_linked_assets(shot.linked_assets),
+        linked_entities=[],
     )
     if not shot.has_params():
         return result
@@ -165,6 +168,34 @@ def to_shot(
         clip_out=raw_params.cut_out or project_data.clip_out,
     )
     return attr.evolve(result, params=params)
+
+
+@curry
+def to_linked_shot(
+    links_hash: Dict[int, List[ShotgridEntityToEntityLink]],
+    shot: IntermediateShot,
+) -> IntermediateShot:
+    if shot.type != ShotgridType.SHOT:
+        return shot
+    links = [
+        IntermediateLinkedEntity(x.parent_id, x.type, x.quantity)
+        for x in links_hash.get(shot.src_id, [])
+    ]
+    return attr.evolve(shot, linked_entities=links)
+
+
+@curry
+def to_linked_asset(
+    links_hash: Dict[int, List[ShotgridEntityToEntityLink]],
+    asset: IntermediateAsset,
+) -> IntermediateAsset:
+    if asset.type != ShotgridType.ASSET:
+        return asset
+    links = [
+        IntermediateLinkedEntity(x.parent_id, x.type, x.quantity)
+        for x in links_hash.get(asset.src_id, [])
+    ]
+    return attr.evolve(asset, linked_entities=links)
 
 
 def to_asset_group(

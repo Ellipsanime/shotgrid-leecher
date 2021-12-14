@@ -1,7 +1,6 @@
 from typing import Dict, Any, Optional, Callable, TypeVar
 
 import attr
-import cattr
 from toolz import curry, get_in
 
 from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
@@ -16,7 +15,6 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotParams,
     ShotgridAssetTask,
     ShotgridStep,
-    ShotgridLinkedAsset,
     ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
@@ -115,10 +113,6 @@ def to_shotgrid_shot(
     target: Map,
 ) -> ShotgridShot:
     data = swap_mapping_keys_values(shot_mapping.mapping_table, target)
-    linked_assets = [
-        cattr.structure(x, ShotgridLinkedAsset)
-        for x in data.get(ShotgridField.ASSETS.value, [])
-    ]
     sequence = _sub_entity(ShotgridField.SEQUENCE, ShotgridShotSequence, data)
     episode = _sub_entity(ShotgridField.EPISODE, ShotgridShotEpisode, data)
     sequence_episode = _sub_entity(
@@ -134,7 +128,6 @@ def to_shotgrid_shot(
         sequence=sequence,
         episode=episode,
         sequence_episode=sequence_episode,
-        linked_assets=linked_assets,
     )
 
 

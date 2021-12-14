@@ -193,7 +193,7 @@ INTERMEDIATE_DB_DATA = [
         "type": "Shot",
         "params": _PROJ_DATA.to_dict(),
         "src_id": 110,
-        "linked_assets": [
+        "linked_entities": [
             {
                 "id": 11001,
                 "name": "Fork1",
@@ -207,5 +207,27 @@ INTERMEDIATE_DB_DATA = [
         ],
         "object_id": ObjectId("6193de6d421ac9b689655154"),
         "_id": "SHOT10",
+    },
+]
+SHOTGRID_ASSET_TO_ASSET_LINKS = []
+SHOTGRID_SHOT_TO_SHOT_LINKS = []
+SHOTGRID_ASSET_TO_SHOT_LINKS = [
+    {
+        "id": 11000,
+        "asset.Asset.id": -1,
+        "shot.Shot.id": -1,
+        "type": "AssetToShotConnection",
+    },
+    {
+        "id": 11001,
+        "asset.Asset.id": -2,
+        "shot.Shot.id": -1,
+        "type": "AssetToShotConnection",
+    },
+    {
+        "id": 11002,
+        "asset.Asset.id": 11001,
+        "shot.Shot.id": 110,
+        "type": "AssetToShotConnection",
     },
 ]

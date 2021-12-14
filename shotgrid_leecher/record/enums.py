@@ -44,7 +44,7 @@ class AvalonType(Enum):
 class ShotgridType(Enum):
     PROJECT = "Project"
     ASSET = "Asset"
-    LINKED_ASSET = "LinkedAsset"
+    LINKED_ENTITY = "LinkedEntity"
     SHOT = "Shot"
     EPISODE = "Episode"
     SEQUENCE = "Sequence"

@@ -35,6 +35,12 @@ def sg_query(
         return data.SHOTGRID_DATA_TASKS
     if type_ == ShotgridType.STEP.value:
         return data.SHOTGRID_DATA_STEPS
+    if type_ == ShotgridType.ASSET_TO_ASSET_LINK.value:
+        return data.SHOTGRID_ASSET_TO_ASSET_LINKS
+    if type_ == ShotgridType.ASSET_TO_SHOT_LINK.value:
+        return data.SHOTGRID_ASSET_TO_SHOT_LINKS
+    if type_ == ShotgridType.SHOT_TO_SHOT_LINK.value:
+        return data.SHOTGRID_SHOT_TO_SHOT_LINKS
     raise RuntimeError(f"Unknown type {type_}")
 
 

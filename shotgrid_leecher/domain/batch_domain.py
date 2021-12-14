@@ -114,12 +114,12 @@ def _assign_linked_assets_ids(
             yield row
             continue
         shot = cast(IntermediateShot, row)
-        linked_assets = [
+        linked_entities = [
             with_(x, object_id=ids_hash[x.id])
-            for x in shot.linked_assets
+            for x in shot.linked_entities
             if ids_hash.get(x.id)
         ]
-        yield with_(shot, linked_assets=linked_assets)
+        yield with_(shot, linked_entities=linked_entities)
 
 
 @curry

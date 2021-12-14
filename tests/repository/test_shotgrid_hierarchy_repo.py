@@ -293,6 +293,9 @@ def _patch_repo(
     monkeypatch.setattr(entity_repo, "find_assets_for_project", _fun(assets))
     monkeypatch.setattr(entity_repo, "find_shots_for_project", _fun(shots))
     monkeypatch.setattr(entity_repo, "find_tasks_for_project", _fun(tasks))
+    monkeypatch.setattr(entity_repo, "find_assets_linked_to_assets", _fun([]))
+    monkeypatch.setattr(entity_repo, "find_assets_linked_to_shots", _fun([]))
+    monkeypatch.setattr(entity_repo, "find_shots_linked_to_shots", _fun([]))
 
 
 def _to_query(project_id: int) -> ShotgridHierarchyByProjectQuery:

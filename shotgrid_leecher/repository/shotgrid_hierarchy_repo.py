@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import Dict, Any, List, Iterator
 
 from toolz import pipe, curry
@@ -22,6 +23,7 @@ from shotgrid_leecher.record.queries import (
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
+    ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -64,13 +66,6 @@ def _fetch_project_shots(
 ) -> Iterator[IntermediateRow]:
     project = query.project
     raw_shots = entity_repo.find_shots_for_project(query)
-    # entity_repo.find_assets_linked_to_shots(
-    #     ShotgridLinkedEntitiesQuery(
-    #         query.project,
-    #         query.credentials,
-    #         AssetToShotLinkMapping.from_dict({}),
-    #     )
-    # )
 
     if raw_shots:
         yield mapper.to_top_shot(project, query.project_data)
@@ -204,23 +199,49 @@ def _fetch_identified(
 def _fetch_and_link_assets(
     project: ShotgridProject, query: ShotgridHierarchyByProjectQuery
 ) -> List[IntermediateRow]:
-    assets = pipe(
+    asset_to_asset_query = (
+        query_mapper.hierarchy_to_linked_asset_to_asset_query(project, query)
+    )
+    links = _reduce_linked_entities(
+        entity_repo.find_assets_linked_to_assets(asset_to_asset_query)
+    )
+    return pipe(
         query_mapper.hierarchy_to_assets_query(project, query),
         _fetch_project_assets,
+        select(mapper.to_linked_asset(links)),
         list,
     )
-    return assets
 
 
 def _fetch_and_link_shots(
     project: ShotgridProject, query: ShotgridHierarchyByProjectQuery
 ) -> List[IntermediateRow]:
-    shots = pipe(
+    asset_to_shot_query = query_mapper.hierarchy_to_linked_asset_to_shot_query(
+        project, query
+    )
+    shot_to_shot_query = query_mapper.hierarchy_to_linked_shot_to_shot_query(
+        project, query
+    )
+    links = _reduce_linked_entities(
+        entity_repo.find_assets_linked_to_shots(asset_to_shot_query)
+        + entity_repo.find_shots_linked_to_shots(shot_to_shot_query)
+    )
+    return pipe(
         query_mapper.hierarchy_to_shots_query(project, query),
         _fetch_project_shots,
+        select(mapper.to_linked_shot(links)),
         list,
     )
-    return shots
+
+
+def _reduce_linked_entities(
+    linked_entities: List[ShotgridEntityToEntityLink],
+) -> Dict[int, List[ShotgridEntityToEntityLink]]:
+    return reduce(
+        lambda agg, x: {**agg, x.child_id: agg.get(x.child_id, []) + [x]},
+        linked_entities,
+        dict(),
+    )
 
 
 @timed
