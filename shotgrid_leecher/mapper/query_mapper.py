@@ -99,10 +99,36 @@ def hierarchy_to_tasks_query(
 
 
 @curry
-def hierarchy_to_linked_entity_query(
+def hierarchy_to_linked_asset_to_asset_query(
     project: ShotgridProject,
     query: ShotgridHierarchyByProjectQuery,
 ) -> ShotgridLinkedEntitiesQuery:
     return ShotgridLinkedEntitiesQuery(
-        project, query.credentials, query.fields_mapping.asset
+        project,
+        query.credentials,
+        query.fields_mapping.asset_to_asset,
+    )
+
+
+@curry
+def hierarchy_to_linked_asset_to_shot_query(
+    project: ShotgridProject,
+    query: ShotgridHierarchyByProjectQuery,
+) -> ShotgridLinkedEntitiesQuery:
+    return ShotgridLinkedEntitiesQuery(
+        project,
+        query.credentials,
+        query.fields_mapping.asset_to_shot,
+    )
+
+
+@curry
+def hierarchy_to_linked_shot_to_shot_query(
+    project: ShotgridProject,
+    query: ShotgridHierarchyByProjectQuery,
+) -> ShotgridLinkedEntitiesQuery:
+    return ShotgridLinkedEntitiesQuery(
+        project,
+        query.credentials,
+        query.fields_mapping.shot_to_shot,
     )

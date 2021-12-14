@@ -201,6 +201,28 @@ def _fetch_identified(
     return rows_dict
 
 
+def _fetch_and_link_assets(
+    project: ShotgridProject, query: ShotgridHierarchyByProjectQuery
+) -> List[IntermediateRow]:
+    assets = pipe(
+        query_mapper.hierarchy_to_assets_query(project, query),
+        _fetch_project_assets,
+        list,
+    )
+    return assets
+
+
+def _fetch_and_link_shots(
+    project: ShotgridProject, query: ShotgridHierarchyByProjectQuery
+) -> List[IntermediateRow]:
+    shots = pipe(
+        query_mapper.hierarchy_to_shots_query(project, query),
+        _fetch_project_shots,
+        list,
+    )
+    return shots
+
+
 @timed
 def get_hierarchy_by_project(
     query: ShotgridHierarchyByProjectQuery,
@@ -211,16 +233,8 @@ def get_hierarchy_by_project(
     project = entity_repo.find_project_by_id(
         query_mapper.hierarchy_to_project_query(query)
     )
-    assets = pipe(
-        query_mapper.hierarchy_to_assets_query(project, query),
-        _fetch_project_assets,
-        list,
-    )
-    shots = pipe(
-        query_mapper.hierarchy_to_shots_query(project, query),
-        _fetch_project_shots,
-        list,
-    )
+    assets = _fetch_and_link_assets(project, query)
+    shots = _fetch_and_link_shots(project, query)
     tasks = pipe(
         query_mapper.hierarchy_to_tasks_query(project, query),
         _fetch_project_tasks(_fetch_identified(assets, shots)),
