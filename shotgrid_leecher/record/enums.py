@@ -120,7 +120,10 @@ class ShotgridField(Enum):
     PARENTS = "parents"
     CACHED_DISPLAY_NAME = "cached_display_name"
     LINK_QUANTITY = "quantity"
-    LINK_SHOT_ID = "shot.Shot.id"
-    LINK_ASSET_ID = "asset.Asset.id"
-    LINK_PARENT_ID = "parent.Asset.id"
-    LINK_PARENT_SHOT_ID = "parent_shot.Shot.id"
+    LINK_SHOT_ID = "link_shot_id"
+    LINK_ASSET_ID = "link_asset_id"
+    LINK_PARENT_ID = "link_parent_id"
+    LINK_PARENT_SHOT_ID = "link_parent_shot_id"
+
+    def to_db_key(self) -> str:
+        return str(self.value).replace(".", "_")
