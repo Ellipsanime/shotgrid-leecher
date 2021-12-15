@@ -33,6 +33,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.collections import keep_keys
 from shotgrid_leecher.utils.functional import try_or
+from shotgrid_leecher.utils.ids import to_object_id
 from shotgrid_leecher.utils.logger import get_logger
 
 Map = Dict[str, Any]
@@ -100,7 +101,10 @@ def to_top_shot(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.SHOT.value, f",{project.name},", to_params(project_data)
+        ShotgridType.SHOT.value,
+        f",{project.name},",
+        to_params(project_data),
+        object_id=to_object_id(ShotgridType.SHOT.value),
     )
 
 
@@ -108,7 +112,10 @@ def to_top_asset(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.ASSET.value, f",{project.name},", to_params(project_data)
+        ShotgridType.ASSET.value,
+        f",{project.name},",
+        to_params(project_data),
+        object_id=to_object_id(ShotgridType.ASSET.value),
     )
 
 
@@ -123,6 +130,7 @@ def to_task(
         task_type=str(task.step_name()),
         src_id=task.id,
         params=to_params(project_data),
+        object_id=to_object_id(task.id),
     )
 
 
@@ -137,6 +145,7 @@ def to_asset(
         parent=parent_path,
         params=to_params(project_data),
         linked_entities=[],
+        object_id=to_object_id(asset.id),
     )
 
 
@@ -151,6 +160,7 @@ def to_shot(
         parent=parent_path,
         params=to_params(project_data),
         linked_entities=[],
+        object_id=to_object_id(shot.id),
     )
     if not shot.has_params():
         return result
@@ -171,7 +181,12 @@ def to_linked_shot(
     if shot.type != ShotgridType.SHOT:
         return shot
     links = [
-        IntermediateLinkedEntity(x.parent_id, x.type, x.quantity)
+        IntermediateLinkedEntity(
+            x.parent_id,
+            x.type,
+            x.quantity,
+            to_object_id(x.id),
+        )
         for x in links_hash.get(shot.src_id, [])
     ]
     return attr.evolve(shot, linked_entities=links)
@@ -185,7 +200,12 @@ def to_linked_asset(
     if asset.type != ShotgridType.ASSET:
         return asset
     links = [
-        IntermediateLinkedEntity(x.parent_id, x.type, x.quantity)
+        IntermediateLinkedEntity(
+            x.parent_id,
+            x.type,
+            x.quantity,
+            to_object_id(x.id),
+        )
         for x in links_hash.get(asset.src_id, [])
     ]
     return attr.evolve(asset, linked_entities=links)
@@ -200,6 +220,7 @@ def to_asset_group(
         id=asset_type,
         parent=f",{project.name},{ShotgridType.ASSET.value},",
         params=to_params(project_data),
+        object_id=to_object_id(asset_type),
     )
 
 
@@ -213,6 +234,7 @@ def to_episode_shot_group(
         src_id=episode.id,
         parent=f",{project.name},{ShotgridType.SHOT.value},",
         params=to_params(project_data),
+        object_id=to_object_id(episode.id),
     )
 
 
@@ -226,6 +248,7 @@ def to_sequence_shot_group(
         src_id=sequence.id,
         parent=parent_path,
         params=to_params(project_data),
+        object_id=to_object_id(sequence.id),
     )
 
 
@@ -243,4 +266,5 @@ def to_project(
         code=project.code,
         config=project_config,
         params=to_params(project_data),
+        object_id=to_object_id(project.id),
     )

@@ -12,8 +12,10 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProjectConfig,
 )
 from shotgrid_leecher.utils.collections import drop_keys
+from shotgrid_leecher.utils.ids import to_object_id
 
 PROJECT_ID = "Project_2ffc00ab4"
+_SRC_ID = 111
 
 _DEF_DATA: Dict[str, Any] = {
     "clipIn": 1,
@@ -40,7 +42,7 @@ _PROJ_DATA = IntermediateParams(
 
 AVALON_DATA = [
     {
-        "_id": ObjectId("614b46d27f4b49b1ae47eed6"),
+        "_id": to_object_id(_SRC_ID),
         "type": "project",
         "name": PROJECT_ID,
         "data": {
@@ -64,64 +66,64 @@ AVALON_DATA = [
         "parent": None,
     },
     {
-        "_id": ObjectId("614b46d27f4b49b1ae47eed7"),
+        "_id": to_object_id(ShotgridType.ASSET.value),
         "type": "asset",
-        "name": "Asset",
+        "name": ShotgridType.ASSET.value,
         "data": {
             **_DEF_DATA,
             "visualParent": None,
             "parents": [],
         },
         "schema": "openpype:project-3.0",
-        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
+        "parent": to_object_id(_SRC_ID),
     },
     {
-        "_id": ObjectId("614b46d27f4b49b1ae47eed8"),
+        "_id": to_object_id("PRP"),
         "type": "asset",
         "name": "PRP",
         "data": {
             **_DEF_DATA,
             "visualParent": "614b46d27f4b49b1ae47eed7",
-            "parents": ["Asset"],
+            "parents": [ShotgridType.ASSET.value],
         },
         "schema": "openpype:project-3.0",
-        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
+        "parent": to_object_id(_SRC_ID),
     },
     {
-        "_id": ObjectId("614b46d27f4b49b1ae47eed9"),
+        "_id": to_object_id(50711),
         "type": "asset",
         "name": "Fork",
         "data": {
             **_DEF_DATA,
             "visualParent": "614b46d27f4b49b1ae47eed8",
-            "parents": ["Asset", "PRP"],
+            "parents": [ShotgridType.ASSET.value, "PRP"],
         },
         "schema": "openpype:project-3.0",
-        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
+        "parent": to_object_id(_SRC_ID),
     },
     {
-        "_id": ObjectId("614b46d27f4b49b1ae47ee10"),
+        "_id": to_object_id(50712),
         "type": "asset",
         "name": "Knife",
         "data": {
             **_DEF_DATA,
             "visualParent": "614b46d27f4b49b1ae47eed8",
-            "parents": ["Asset", "PRP"],
+            "parents": [ShotgridType.ASSET.value, "PRP"],
         },
         "schema": "openpype:project-3.0",
-        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
+        "parent": to_object_id(_SRC_ID),
     },
     {
-        "_id": ObjectId("614b46d27f4b49b1ae47ee11"),
+        "_id": to_object_id(50713),
         "type": "asset",
         "name": "Dagger",
         "data": {
             **_DEF_DATA,
             "visualParent": "614b46d27f4b49b1ae47ee10",
-            "parents": ["Asset", "PRP"],
+            "parents": [ShotgridType.ASSET.value, "PRP"],
         },
         "schema": "openpype:project-3.0",
-        "parent": ObjectId("614b46d27f4b49b1ae47eed6"),
+        "parent": to_object_id(_SRC_ID),
     },
 ]
 SHOTGRID_DATA = [
@@ -131,16 +133,19 @@ SHOTGRID_DATA = [
         params=_PROJ_DATA,
         code="",
         config=IntermediateProjectConfig(),
+        object_id=to_object_id(_SRC_ID),
     ),
     IntermediateGroup(
         id=ShotgridType.ASSET.value,
         parent=f",{PROJECT_ID},",
         params=_PROJ_DATA,
+        object_id=to_object_id(ShotgridType.ASSET.value),
     ),
     IntermediateGroup(
         id="PRP",
         parent=f",{PROJECT_ID},Asset,",
         params=_PROJ_DATA,
+        object_id=to_object_id("PRP"),
     ),
     IntermediateAsset(
         id="Fork",
@@ -148,6 +153,7 @@ SHOTGRID_DATA = [
         parent=f",{PROJECT_ID},Asset,PRP,",
         params=_PROJ_DATA,
         linked_entities=[],
+        object_id=to_object_id(50711),
     ),
 ]
 INTERMEDIATE_DB_DATA = [
@@ -157,45 +163,45 @@ INTERMEDIATE_DB_DATA = [
         "code": "Project",
         "type": "Project",
         "parent": None,
-        "object_id": ObjectId("614b46d27f4b49b1ae47eed6"),
+        "object_id": to_object_id(_SRC_ID),
         "params": _PROJ_DATA.to_dict(),
     },
     {
-        "_id": "Asset",
+        "_id": ShotgridType.ASSET.value,
         "type": "Group",
         "parent": f",{PROJECT_ID},",
-        "object_id": ObjectId("614b46d27f4b49b1ae47eed7"),
+        "object_id": to_object_id(ShotgridType.ASSET.value),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
         "parent": f",{PROJECT_ID},Asset,",
-        "object_id": ObjectId("614b46d27f4b49b1ae47eed8"),
+        "object_id": to_object_id("PRP"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Fork",
         "src_id": 50711,
-        "type": "Asset",
+        "type": ShotgridType.ASSET.value,
         "parent": f",{PROJECT_ID},Asset,PRP,",
-        "object_id": ObjectId("614b46d27f4b49b1ae47eed9"),
+        "object_id": to_object_id(50711),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Knife",
         "src_id": 50712,
-        "type": "Asset",
+        "type": ShotgridType.ASSET.value,
         "parent": f",{PROJECT_ID},Asset,PRP,",
-        "object_id": ObjectId("614b46d27f4b49b1ae47ee10"),
+        "object_id": to_object_id(50712),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Dagger",
         "src_id": 50713,
-        "type": "Asset",
+        "type": ShotgridType.ASSET.value,
         "parent": f",{PROJECT_ID},Asset,PRP,Knife,",
-        "object_id": ObjectId("614b46d27f4b49b1ae47ee11"),
+        "object_id": to_object_id(50713),
         "params": _PROJ_DATA.to_dict(),
     },
 ]

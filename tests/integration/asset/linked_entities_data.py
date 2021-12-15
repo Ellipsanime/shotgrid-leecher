@@ -209,25 +209,52 @@ INTERMEDIATE_DB_DATA = [
         "_id": "SHOT10",
     },
 ]
-SHOTGRID_ASSET_TO_ASSET_LINKS = []
-SHOTGRID_SHOT_TO_SHOT_LINKS = []
+SHOTGRID_ASSET_TO_ASSET_LINKS = [
+    {
+        "type": "AssetShotConnection",
+        "id": 11010,
+        "parent.Asset.id": 11001,
+        "asset.Asset.id": 11001,
+        "cached_display_name": "Asset 11001 Asset 11001",
+        "sg_instance": 15,
+    },
+]
+SHOTGRID_SHOT_TO_SHOT_LINKS = [
+    {
+        "type": "ShotShotConnection",
+        "id": 11004,
+        "shot.Shot.id": -1,
+        "parent_shot.Shot.id": -1,
+        "cached_display_name": "Asset -1 Shot -1",
+        "sg_instance": 2,
+    },
+    {
+        "type": "ShotShotConnection",
+        "id": 11005,
+        "shot.Shot.id": 110,
+        "parent_shot.Shot.id": 110,
+        "cached_display_name": "Shot 110 Shot 110",
+        "sg_instance": 2,
+    },
+]
 SHOTGRID_ASSET_TO_SHOT_LINKS = [
     {
+        "type": "AssetShotConnection",
         "id": 11000,
+        "shot.Shot.id": -1,
         "asset.Asset.id": -1,
-        "shot.Shot.id": -1,
-        "type": "AssetToShotConnection",
+        "cached_display_name": "Asset -1 Shot -1",
+        "sg_locked_version": None,
+        "sg_hard_locked": False,
     },
     {
-        "id": 11001,
-        "asset.Asset.id": -2,
-        "shot.Shot.id": -1,
-        "type": "AssetToShotConnection",
-    },
-    {
+        "type": "AssetShotConnection",
         "id": 11002,
-        "asset.Asset.id": 11001,
         "shot.Shot.id": 110,
-        "type": "AssetToShotConnection",
+        "asset.Asset.id": 11001,
+        "cached_display_name": "Asset 11001 Shot 110",
+        "sg_instance": 5,
+        "sg_locked_version": None,
+        "sg_hard_locked": False,
     },
 ]
