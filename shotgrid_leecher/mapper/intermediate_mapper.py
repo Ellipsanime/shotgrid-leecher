@@ -28,7 +28,6 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotSequence,
     ShotgridShotParams,
     ShotgridStep,
-    ShotgridLinkedAsset,
     ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
@@ -65,12 +64,6 @@ def to_params(project_data: AvalonProjectData) -> IntermediateParams:
         resolution_width=project_data.resolution_width,
         tools_env=project_data.tools_env,
     )
-
-
-def _to_linked_assets(
-    linked_assets: List[ShotgridLinkedAsset],
-) -> List[IntermediateLinkedEntity]:
-    return [IntermediateLinkedEntity(x.id, x.name) for x in linked_assets]
 
 
 def _dict_to_params(raw_dic: Map) -> IntermediateParams:
