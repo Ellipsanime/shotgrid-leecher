@@ -6,7 +6,7 @@ from toolz import curry, pipe
 
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
-from shotgrid_leecher.mapper import avalon_mapper, hierarchy_mapper
+from shotgrid_leecher.mapper import avalon_mapper, intermediate_mapper
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.commands import (
     UpdateShotgridInAvalonCommand,
@@ -180,7 +180,7 @@ def _fetch_previous_hierarchy(
     project_data: AvalonProjectData,
     current_hierarchy: List[IntermediateRow],
 ) -> List[IntermediateRow]:
-    project_params = hierarchy_mapper.to_params(project_data)
+    project_params = intermediate_mapper.to_params(project_data)
     previous_hierarchy = list(
         intermediate_hierarchy_repo.fetch_by_project(
             project_name, project_params

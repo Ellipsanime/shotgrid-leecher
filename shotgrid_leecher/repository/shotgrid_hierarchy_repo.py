@@ -9,7 +9,7 @@ from toolz.curried import (
 )
 from toolz.curried import groupby
 
-import shotgrid_leecher.mapper.hierarchy_mapper as mapper
+import shotgrid_leecher.mapper.intermediate_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 from shotgrid_leecher.mapper import query_mapper
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData

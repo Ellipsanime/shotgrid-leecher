@@ -18,7 +18,7 @@ from asset import (
     delete_asset_data,
 )
 from shotgrid_leecher.controller import batch_controller
-from shotgrid_leecher.mapper import hierarchy_mapper
+from shotgrid_leecher.mapper import intermediate_mapper
 from shotgrid_leecher.record.avalon_structures import (
     AvalonProject,
     AvalonProjectData,
@@ -48,7 +48,7 @@ def _generate_shotgrid_id() -> int:
 
 
 def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
-    return hierarchy_mapper.to_row(
+    return intermediate_mapper.to_row(
         {
             "_id": project_id,
             "src_id": 111,
@@ -65,7 +65,7 @@ def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
 
 def _get_asset_group(project_id: str):
 
-    return hierarchy_mapper.to_row(
+    return intermediate_mapper.to_row(
         {
             "_id": ShotgridType.ASSET.value,
             "type": ShotgridType.GROUP.value,
@@ -77,7 +77,7 @@ def _get_asset_group(project_id: str):
 
 def _get_shot_group(project):
 
-    return hierarchy_mapper.to_row(
+    return intermediate_mapper.to_row(
         {
             "_id": ShotgridType.SHOT.value,
             "type": ShotgridType.GROUP.value,
@@ -90,7 +90,7 @@ def _get_shot_group(project):
 def _get_prp_asset(parent):
 
     return [
-        hierarchy_mapper.to_row(x)
+        intermediate_mapper.to_row(x)
         for x in [
             {
                 "_id": "PRP",
@@ -112,7 +112,7 @@ def _get_prp_asset(parent):
 def _get_prp_asset_with_tasks(parent, task_num):
     asset = _get_prp_asset(parent)
     tasks = [
-        hierarchy_mapper.to_row(
+        intermediate_mapper.to_row(
             {
                 "_id": f"{random.choice(TASK_NAMES)}_{uuid.uuid4().int}",
                 "src_id": _generate_shotgrid_id(),
@@ -352,7 +352,7 @@ async def test_update_shotgrid_to_avalon_overwrite(monkeypatch: MonkeyPatch):
         "get_hierarchy_by_project",
         Mock(
             return_value=[
-                hierarchy_mapper.to_row(x)
+                intermediate_mapper.to_row(x)
                 for x in overwrite_data.OVERWRITE_SHOTGRID_DATA
             ]
         ),
@@ -393,7 +393,7 @@ async def test_update_shotgrid_to_avalon_update_values(
         "get_hierarchy_by_project",
         Mock(
             return_value=[
-                hierarchy_mapper.to_row(x)
+                intermediate_mapper.to_row(x)
                 for x in update_values_data.SHOTGRID_DATA
             ]
         ),
@@ -445,7 +445,7 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
         "get_hierarchy_by_project",
         Mock(
             return_value=[
-                hierarchy_mapper.to_row(x)
+                intermediate_mapper.to_row(x)
                 for x in update_asset_data.SHOTGRID_DATA
             ]
         ),
