@@ -8,6 +8,7 @@ from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridField
 from shotgrid_leecher.record.intermediate_structures import IntermediateParams
 from shotgrid_leecher.utils.collections import drop_keys
+from shotgrid_leecher.utils.ids import to_object_id
 
 _RAND = random.randint
 
@@ -175,7 +176,7 @@ INTERMEDIATE_DB_DATA = [
         "type": "Asset",
         "src_id": 11001,
         "params": _PROJ_DATA.to_dict(),
-        "object_id": ObjectId("6193de6d421ac9b689655152"),
+        "object_id": to_object_id(11001),
         "_id": "Fork1",
     },
     {
@@ -197,7 +198,7 @@ INTERMEDIATE_DB_DATA = [
             {
                 "id": 11001,
                 "name": "Fork1",
-                "object_id": ObjectId("6193de6d421ac9b689655152"),
+                "object_id": to_object_id(11001),
             },
             {
                 "id": 11002,
@@ -211,18 +212,25 @@ INTERMEDIATE_DB_DATA = [
 ]
 SHOTGRID_ASSET_TO_ASSET_LINKS = [
     {
-        "type": "AssetShotConnection",
-        "id": 11010,
-        "parent.Asset.id": 11001,
+        "type": "AssetAssetConnection",
+        "id": 911010,
+        "parent.Asset.id": 11001000,
         "asset.Asset.id": 11001,
-        "cached_display_name": "Asset 11001 Asset 11001",
+        "cached_display_name": "Asset 11001000 Asset 11001",
         "sg_instance": 15,
+    },
+    {
+        "type": "AssetAssetConnection",
+        "id": 911010,
+        "parent.Asset.id": -11001000,
+        "asset.Asset.id": 11001,
+        "cached_display_name": "Asset -11001000 Asset 11001",
     },
 ]
 SHOTGRID_SHOT_TO_SHOT_LINKS = [
     {
         "type": "ShotShotConnection",
-        "id": 11004,
+        "id": 911004,
         "shot.Shot.id": -1,
         "parent_shot.Shot.id": -1,
         "cached_display_name": "Asset -1 Shot -1",
@@ -230,17 +238,24 @@ SHOTGRID_SHOT_TO_SHOT_LINKS = [
     },
     {
         "type": "ShotShotConnection",
-        "id": 11005,
+        "id": 911005,
         "shot.Shot.id": 110,
-        "parent_shot.Shot.id": 110,
-        "cached_display_name": "Shot 110 Shot 110",
+        "parent_shot.Shot.id": 99999,
+        "cached_display_name": "Shot 99999 Shot 110",
         "sg_instance": 2,
+    },
+    {
+        "type": "ShotShotConnection",
+        "id": 911005,
+        "shot.Shot.id": 110,
+        "parent_shot.Shot.id": -99999,
+        "cached_display_name": "Shot -99999 Shot 110",
     },
 ]
 SHOTGRID_ASSET_TO_SHOT_LINKS = [
     {
         "type": "AssetShotConnection",
-        "id": 11000,
+        "id": 911000,
         "shot.Shot.id": -1,
         "asset.Asset.id": -1,
         "cached_display_name": "Asset -1 Shot -1",
@@ -249,11 +264,20 @@ SHOTGRID_ASSET_TO_SHOT_LINKS = [
     },
     {
         "type": "AssetShotConnection",
-        "id": 11002,
+        "id": 911002,
         "shot.Shot.id": 110,
-        "asset.Asset.id": 11001,
-        "cached_display_name": "Asset 11001 Shot 110",
+        "asset.Asset.id": 88_888,
+        "cached_display_name": "Asset 88_888 Shot 110",
         "sg_instance": 5,
+        "sg_locked_version": None,
+        "sg_hard_locked": False,
+    },
+    {
+        "type": "AssetShotConnection",
+        "id": 911002,
+        "shot.Shot.id": 110,
+        "asset.Asset.id": -88_888,
+        "cached_display_name": "Asset -88_888 Shot 110",
         "sg_locked_version": None,
         "sg_hard_locked": False,
     },

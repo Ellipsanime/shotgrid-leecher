@@ -22,6 +22,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProjectConfig,
     IntermediateProjectStep,
 )
+from shotgrid_leecher.utils.ids import to_object_id
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
@@ -37,6 +38,7 @@ def _get_project() -> IntermediateProject:
         config=IntermediateProjectConfig(
             steps=[IntermediateProjectStep(x, x[:1]) for x in STEP_NAMES]
         ),
+        object_id=to_object_id(111),
     )
 
 
@@ -55,6 +57,7 @@ def _get_asset_group(project: IntermediateProject) -> IntermediateGroup:
         id=ShotgridType.ASSET.value,
         parent=f",{project.id},",
         params=_params(),
+        object_id=to_object_id(ShotgridType.ASSET.value),
     )
 
 
@@ -63,6 +66,7 @@ def _get_shot_group(project: IntermediateProject) -> IntermediateGroup:
         id=ShotgridType.GROUP.value,
         parent=f",{project.id},",
         params=_params(),
+        object_id=to_object_id(ShotgridType.GROUP.value),
     )
 
 
@@ -74,6 +78,7 @@ def _get_prp_assets(
             id="PRP",
             parent=f"{parent.parent}{parent.id},",
             params=_params(),
+            object_id=to_object_id("PRP"),
         ),
         IntermediateAsset(
             id="Fork",
@@ -81,6 +86,7 @@ def _get_prp_assets(
             src_id=uuid.uuid4().int,
             params=_params(),
             linked_entities=[],
+            object_id=to_object_id("Fork"),
         ),
     ]
 
@@ -96,6 +102,7 @@ def _get_prp_asset_with_tasks(
             task_type=random.choice(STEP_NAMES),
             parent=f"{asset[1].parent}{asset[1].id},",
             params=_params(),
+            object_id=to_object_id(uuid.uuid4().int),
         )
         for _ in range(task_num)
     ]
@@ -111,6 +118,7 @@ def _get_ep_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             src_id=uuid.uuid4().int,
             parent=f"{parent.parent}{parent.id},",
             params=_params(),
+            object_id=to_object_id(ep_name),
         ),
         IntermediateShot(
             id=sh_name,
@@ -118,6 +126,7 @@ def _get_ep_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             parent=f"{parent.parent}{parent.id},{ep_name},",
             params=_params(),
             linked_entities=[],
+            object_id=to_object_id(sh_name),
         ),
     ]
 
@@ -131,6 +140,7 @@ def _get_seq_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             src_id=uuid.uuid4().int,
             parent=f"{parent.parent}{parent.id},",
             params=_params(),
+            object_id=to_object_id(seq_name),
         ),
         IntermediateShot(
             id=sh_name,
@@ -138,6 +148,7 @@ def _get_seq_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             parent=f"{parent.parent}{parent.id},{seq_name},",
             params=_params(),
             linked_entities=[],
+            object_id=to_object_id(sh_name),
         ),
     ]
 
@@ -154,12 +165,14 @@ def _get_ep_with_seq_with_shot(
             src_id=uuid.uuid4().int,
             parent=f"{parent.parent}{parent.id},",
             params=_params(),
+            object_id=to_object_id(ep_name),
         ),
         IntermediateSequence(
             id=seq_name,
             src_id=uuid.uuid4().int,
             parent=f"{parent.parent}{parent.id},{ep_name},",
             params=_params(),
+            object_id=to_object_id(seq_name),
         ),
         IntermediateShot(
             id=sh_name,
@@ -167,6 +180,7 @@ def _get_ep_with_seq_with_shot(
             parent=f"{parent.parent}{parent.id},{ep_name},{seq_name},",
             params=_params(),
             linked_entities=[],
+            object_id=to_object_id(sh_name),
         ),
     ]
 

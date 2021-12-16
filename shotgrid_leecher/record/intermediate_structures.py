@@ -6,6 +6,7 @@ import cattr
 from bson import ObjectId
 
 from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.utils.ids import to_object_id
 from shotgrid_leecher.utils.strings import avalonify_snake_case
 
 Map = Dict[str, Any]
@@ -65,6 +66,15 @@ class IntermediateGroup(IntermediateRow):
     type = ShotgridType.GROUP
     object_id: Optional[ObjectId]
 
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateGroup":
+        type_ = IntermediateGroup
+        dic = {
+            "object_id": to_object_id(raw_dic.get("id", raw_dic.get("_id"))),
+            **raw_dic,
+        }
+        return type_(**dic)
+
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateLinkedEntity:
@@ -86,6 +96,7 @@ class IntermediateAsset(IntermediateRow):
     def from_dict(raw_dic: Map) -> "IntermediateAsset":
         type_ = IntermediateAsset
         dic = {
+            "object_id": to_object_id(raw_dic["src_id"]),
             **raw_dic,
             "linked_entities": raw_dic.get("linked_entities", []),
         }
@@ -111,6 +122,7 @@ class IntermediateShot(IntermediateRow):
     def from_dict(raw_dic: Map) -> "IntermediateShot":
         type_ = IntermediateShot
         dic = {
+            "object_id": to_object_id(raw_dic["src_id"]),
             **raw_dic,
             "linked_entities": raw_dic.get("linked_entities", []),
         }
@@ -187,6 +199,7 @@ class IntermediateProject(IntermediateRow):
     def from_dict(raw_dic: Map) -> "IntermediateProject":
         config = IntermediateProjectConfig.from_dict(raw_dic.get("config"))
         dic: Map = {
+            "object_id": to_object_id(raw_dic["src_id"]),
             **raw_dic,
             "config": config,
         }

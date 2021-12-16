@@ -1,10 +1,10 @@
 import random
 import uuid
 
-from bson import ObjectId
 from toolz import compose
 
 from shotgrid_leecher.record.enums import ShotgridField
+from shotgrid_leecher.utils.ids import to_object_id
 
 _RAND = random.randint
 
@@ -15,9 +15,11 @@ _I32 = compose(
 
 
 PROJECT_ID = f"Project_{str(uuid.uuid4())[:5]}"
+_PROJ_SRC_ID = _RAND(10 ** 2, 10 ** 10)
+
 AVALON_DATA = [
     {
-        "_id": ObjectId(),
+        "_id": to_object_id(_PROJ_SRC_ID),
         "type": "project",
         "name": PROJECT_ID,
         "data": {
@@ -45,7 +47,7 @@ AVALON_DATA = [
 ]
 SHOTGRID_DATA_PROJECT = [
     {
-        "id": _RAND(10 ** 2, 10 ** 10),
+        "id": _PROJ_SRC_ID,
         "name": PROJECT_ID,
         "code": PROJECT_ID,
         "type": "Project",

@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional, Iterator, Tuple, cast
+from typing import Dict, Any, List, Optional, Iterator, Tuple, cast, Union
 
 import attr
 from bson import ObjectId
@@ -10,6 +10,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProject,
     IntermediateTask,
     IntermediateShot,
+    IntermediateAsset,
 )
 from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.utils.logger import get_logger
@@ -159,9 +160,6 @@ def _try_fortify_object_id(object_id: Any) -> ObjectId:
         else ObjectId(str(object_id)),
         object_id,
     )
-    # return (
-    #     object_id if type(object_id) == ObjectId else ObjectId(str(object_id))
-    # )
 
 
 def _project_row(project: IntermediateProject) -> Map:
@@ -176,10 +174,10 @@ def _project_row(project: IntermediateProject) -> Map:
 
 
 def _inputs(row: IntermediateRow) -> Map:
-    if row.type != ShotgridType.SHOT:
+    if row.type not in {ShotgridType.SHOT, ShotgridType.ASSET}:
         return {}
-    shot = cast(IntermediateShot, row)
-    linked_assets = [x for x in shot.linked_entities if x.object_id]
+    row = cast(Union[IntermediateShot, IntermediateAsset], row)
+    linked_assets = [x for x in row.linked_entities if x.object_id]
     if not linked_assets:
         return {}
     return {
@@ -188,6 +186,7 @@ def _inputs(row: IntermediateRow) -> Map:
                 "id": _try_fortify_object_id(x.object_id),
                 "linkedBy": "shotgrid",
                 "type": "breakdown",
+                "quantity": x.quantity,
             }
             for x in linked_assets
         ]

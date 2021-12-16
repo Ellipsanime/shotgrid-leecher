@@ -24,8 +24,9 @@ from shotgrid_leecher.record.avalon_structures import (
     AvalonProjectData,
 )
 from shotgrid_leecher.record.enums import DbName, ShotgridType
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 from shotgrid_leecher.repository import avalon_repo
-from shotgrid_leecher.utils import generator
+from shotgrid_leecher.utils.ids import to_object_id
 from utils.funcs import (
     batch_config,
     avalon_collections,
@@ -47,7 +48,9 @@ def _generate_shotgrid_id() -> int:
     return uuid.uuid4().int & (1 << 16) - 1
 
 
-def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
+def _get_project(
+    project_id=f"Project_{str(uuid.uuid4())[0:8]}",
+) -> IntermediateRow:
     return intermediate_mapper.to_row(
         {
             "_id": project_id,
@@ -56,6 +59,7 @@ def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
             "code": "code1",
             "parent": None,
             "params": params().to_dict(),
+            "object_id": to_object_id(111),
             "config": {
                 "steps": [{"code": x, "short_name": x[:1]} for x in STEP_NAMES]
             },
@@ -63,7 +67,7 @@ def _get_project(project_id=f"Project_{str(uuid.uuid4())[0:8]}"):
     )
 
 
-def _get_asset_group(project_id: str):
+def _get_asset_group(project_id: str) -> IntermediateRow:
 
     return intermediate_mapper.to_row(
         {
@@ -71,11 +75,12 @@ def _get_asset_group(project_id: str):
             "type": ShotgridType.GROUP.value,
             "parent": f",{project_id},",
             "params": params().to_dict(),
+            "object_id": to_object_id(ShotgridType.ASSET.value),
         }
     )
 
 
-def _get_shot_group(project):
+def _get_shot_group(project) -> IntermediateRow:
 
     return intermediate_mapper.to_row(
         {
@@ -83,11 +88,12 @@ def _get_shot_group(project):
             "type": ShotgridType.GROUP.value,
             "parent": f",{project['_id']},",
             "params": params().to_dict(),
+            "object_id": to_object_id(ShotgridType.SHOT.value),
         }
     )
 
 
-def _get_prp_asset(parent):
+def _get_prp_asset(parent) -> List[IntermediateRow]:
 
     return [
         intermediate_mapper.to_row(x)
@@ -97,10 +103,12 @@ def _get_prp_asset(parent):
                 "type": ShotgridType.GROUP.value,
                 "parent": f"{parent.parent}{parent.id},",
                 "params": params().to_dict(),
+                "object_id": to_object_id(ShotgridType.GROUP.value),
             },
             {
                 "_id": "Fork",
                 "src_id": _generate_shotgrid_id(),
+                "object_id": to_object_id(_generate_shotgrid_id()),
                 "type": ShotgridType.ASSET.value,
                 "parent": f"{parent.parent}{parent.id},PRP,",
                 "params": params().to_dict(),
@@ -109,13 +117,14 @@ def _get_prp_asset(parent):
     ]
 
 
-def _get_prp_asset_with_tasks(parent, task_num):
+def _get_prp_asset_with_tasks(parent, task_num) -> List[IntermediateRow]:
     asset = _get_prp_asset(parent)
     tasks = [
         intermediate_mapper.to_row(
             {
                 "_id": f"{random.choice(TASK_NAMES)}_{uuid.uuid4().int}",
                 "src_id": _generate_shotgrid_id(),
+                "object_id": to_object_id(_generate_shotgrid_id()),
                 "type": ShotgridType.TASK.value,
                 "task_type": random.choice(STEP_NAMES),
                 "params": params().to_dict(),
@@ -127,9 +136,9 @@ def _get_prp_asset_with_tasks(parent, task_num):
     return [*asset, *tasks]
 
 
-def _create_avalon_project_row(project_name: str) -> Map:
+def _create_avalon_project_row(project_name: str, id_: ObjectId) -> Map:
     return {
-        "_id": ObjectId(),
+        "_id": id_,
         "type": "project",
         "name": project_name,
         "schema": "openpype:project-3.0",
@@ -201,7 +210,9 @@ async def test_update_shotgrid_to_avalon_update_project(
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
-    project_avalon_init_data = _create_avalon_project_row(project.id)
+    project_avalon_init_data = _create_avalon_project_row(
+        project.id, project.object_id
+    )
     client.get_database(DbName.AVALON.value).get_collection(
         project.id
     ).insert_one(project_avalon_init_data)
@@ -250,7 +261,9 @@ async def test_update_batch_when_projects_with_different_source_name(
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
-    project_avalon_init_data = _create_avalon_project_row(data[0].id)
+    project_avalon_init_data = _create_avalon_project_row(
+        data[0].id, data[0].object_id
+    )
     client.get_database(DbName.AVALON.value).get_collection(
         data[0].id
     ).insert_one(project_avalon_init_data)
@@ -281,7 +294,9 @@ async def test_update_shotgrid_to_avalon_update_project_tasks(
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
-    project_avalon_init_data = _create_avalon_project_row(project.id)
+    project_avalon_init_data = _create_avalon_project_row(
+        project.id, project.object_id
+    )
     client.get_database(DbName.AVALON.value).get_collection(
         project.id
     ).insert_one(project_avalon_init_data)
@@ -375,7 +390,6 @@ async def test_update_shotgrid_to_avalon_update_values(
     monkeypatch: MonkeyPatch,
 ):
     # Arrange
-    object_ids = list(range(2))
     client = MongoClient()
     project_id = update_values_data.PROJECT_ID
     populate_db(
@@ -398,7 +412,6 @@ async def test_update_shotgrid_to_avalon_update_values(
             ]
         ),
     )
-    monkeypatch.setattr(generator, "object_id", Mock(side_effect=object_ids))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
 
     # Act
@@ -411,7 +424,7 @@ async def test_update_shotgrid_to_avalon_update_values(
     assert_that(all_avalon(client)).extracting("_id", "name").is_equal_to(
         [
             (
-                x["_id"] if not x["name"] == "Fork" else object_ids[0],
+                x["_id"] if not x["name"] == "Fork" else to_object_id(23550),
                 x["name"].replace("Fork", "Knife"),
             )
             for x in update_values_data.AVALON_DATA
@@ -439,7 +452,6 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
         ),
         update_asset_data.INTERMEDIATE_DB_DATA,
     )
-    object_ids = list(range(2))
     monkeypatch.setattr(
         repository,
         "get_hierarchy_by_project",
@@ -451,7 +463,6 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
         ),
     )
     monkeypatch.setattr(conn, "get_db_client", fun(client))
-    monkeypatch.setattr(generator, "object_id", Mock(side_effect=object_ids))
 
     # Act
     await batch_controller.batch_update(project_id, batch_config(False))
@@ -462,10 +473,10 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
     )
     assert_that(all_avalon(client)).extracting(
         "_id", filter={"name": "Fork"}
-    ).is_in(object_ids[1:])
+    ).is_equal_to([to_object_id(50712)])
     assert_that(all_avalon(client)).extracting(
         "_id", filter={"name": "PROPS"}
-    ).is_in(object_ids[0:1])
+    ).is_equal_to([to_object_id("PROPS")])
     assert_that(all_avalon(client)).extracting(
         "data", filter={"name": "Fork"}
     ).extracting("visualParent").is_equal_to(

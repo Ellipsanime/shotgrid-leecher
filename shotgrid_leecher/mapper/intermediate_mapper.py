@@ -185,7 +185,7 @@ def to_linked_shot(
             x.parent_id,
             x.type,
             x.quantity,
-            to_object_id(x.id),
+            to_object_id(x.parent_id),
         )
         for x in links_hash.get(shot.src_id, [])
     ]
@@ -204,7 +204,7 @@ def to_linked_asset(
             x.parent_id,
             x.type,
             x.quantity,
-            to_object_id(x.id),
+            to_object_id(x.parent_id),
         )
         for x in links_hash.get(asset.src_id, [])
     ]

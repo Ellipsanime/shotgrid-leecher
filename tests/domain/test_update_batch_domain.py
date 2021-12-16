@@ -7,7 +7,6 @@ import attr
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from mongomock import MongoClient
-from mongomock.object_id import ObjectId
 
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 import shotgrid_leecher.utils.connectivity as conn
@@ -39,6 +38,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     AssetToAssetLinkMapping,
 )
 from shotgrid_leecher.repository import intermediate_hierarchy_repo
+from shotgrid_leecher.utils.ids import to_object_id
 from shotgrid_leecher.writers import db_writer
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -89,6 +89,7 @@ def _get_project() -> IntermediateProject:
         config=IntermediateProjectConfig(
             steps=[IntermediateProjectStep(x, x[:1]) for x in STEP_NAMES]
         ),
+        object_id=to_object_id(111),
     )
 
 
@@ -97,6 +98,7 @@ def _get_asset_group(project: IntermediateProject) -> IntermediateGroup:
         id=ShotgridType.ASSET.value,
         parent=f",{project.id},",
         params=_params(),
+        object_id=to_object_id(ShotgridType.ASSET.value),
     )
 
 
@@ -105,6 +107,7 @@ def _get_shot_group(project: IntermediateProject) -> IntermediateGroup:
         id=ShotgridType.GROUP.value,
         parent=f",{project.id},",
         params=_params(),
+        object_id=to_object_id(ShotgridType.GROUP.value),
     )
 
 
@@ -116,12 +119,14 @@ def _get_prp_assets(
             id="PRP",
             parent=f"{parent.parent}{parent.id},",
             params=_params(),
+            object_id=to_object_id("PRP"),
         ),
         IntermediateAsset(
             id="Fork",
             parent=f"{parent.parent}{parent.id},PRP,",
             src_id=uuid.uuid4().int,
             params=_params(),
+            object_id=to_object_id("Fork"),
             linked_entities=[],
         ),
     ]
@@ -138,6 +143,7 @@ def _get_prp_asset_with_tasks(
             task_type=random.choice(STEP_NAMES),
             parent=f"{asset[1].parent}{asset[1].id},",
             params=_params(),
+            object_id=to_object_id(uuid.uuid4().int),
         )
         for _ in range(task_num)
     ]
@@ -168,13 +174,12 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Arrange
     client = Mock()
     data = [_get_project()]
-    last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data]
 
-    upsert_mock = Mock(return_value=last_batch_data[0].object_id)
+    upsert_mock = Mock(return_value=data[0].object_id)
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
@@ -195,7 +200,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     assert_that(upsert_mock.call_args).is_length(2)
     assert_that(upsert_mock.call_args_list).is_length(1)
     assert_that(upsert_mock.call_args_list[0][0][1]["_id"]).is_equal_to(
-        last_batch_data[0].object_id
+        data[0].object_id
     )
 
 
@@ -205,7 +210,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_assets(asset_grp)]
-    last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data[:2]]
+    # last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data[:2]]
     call_list = []
 
     def upsert_mock(project_name, row):
@@ -215,7 +220,7 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
@@ -234,8 +239,8 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
 
     # Assert
     assert_that(call_list).is_length(4)
-    assert_that(call_list[0]["_id"]).is_equal_to(last_batch_data[0].object_id)
-    assert_that(call_list[1]["_id"]).is_equal_to(last_batch_data[1].object_id)
+    assert_that(call_list[0]["_id"]).is_equal_to(data[0].object_id)
+    assert_that(call_list[1]["_id"]).is_equal_to(data[1].object_id)
 
 
 def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
@@ -246,9 +251,8 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_assets(asset_grp)]
-    last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data[:2]]
 
-    def upsert_mock(project_name, row):
+    def upsert_mock(_, row):
         return row["_id"]
 
     insert_intermediate = Mock()
@@ -256,7 +260,7 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", insert_intermediate)
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
@@ -278,10 +282,10 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     assert_that(insert_intermediate.call_args_list[0][0][1]).is_type_of(list)
     assert_that(
         insert_intermediate.call_args_list[0][0][1][0].object_id
-    ).is_equal_to(last_batch_data[0].object_id)
+    ).is_equal_to(data[0].object_id)
     assert_that(
         insert_intermediate.call_args_list[0][0][1][1].object_id
-    ).is_equal_to(last_batch_data[1].object_id)
+    ).is_equal_to(data[1].object_id)
     assert_that(
         insert_intermediate.call_args_list[0][0][1][2].object_id
     ).is_not_none()
@@ -307,10 +311,6 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_asset_with_tasks(asset_grp, 3)]
-    last_batch_data = [
-        *[attr.evolve(x, object_id=ObjectId()) for x in data[:4]],
-        data[4],
-    ]
     call_list = []
 
     def upsert_mock(project_name, row):
@@ -320,7 +320,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
-        intermediate_hierarchy_repo, "fetch_by_project", _fun(last_batch_data)
+        intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
     monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
@@ -339,7 +339,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
 
     # Assert
     assert_that(call_list).is_length(4)
-    assert_that(call_list[0]["_id"]).is_equal_to(last_batch_data[0].object_id)
+    assert_that(call_list[0]["_id"]).is_equal_to(data[0].object_id)
 
 
 def test_shotgrid_to_avalon_batch_update_wrong_project_name(

@@ -225,11 +225,8 @@ def _fetch_and_augment_hierarchy(
         _fetch_previous_hierarchy(command.project_name, command.project_data),
         _propagate_deletion(current_hierarchy),
     )
-    assigned_hierarchy = list(
-        _assign_object_ids(current_hierarchy, previous_hierarchy)
-    )
     return (
-        list(_assign_linked_assets_ids(assigned_hierarchy)),
+        current_hierarchy,
         dropped_ids,
     )
 
