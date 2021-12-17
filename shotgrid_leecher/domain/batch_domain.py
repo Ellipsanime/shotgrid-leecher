@@ -1,6 +1,5 @@
-from typing import Dict, Any, List, Iterator, Set, Tuple, Optional, cast
+from typing import Dict, Any, List, Set, Tuple, Optional
 
-import attr
 from bson.objectid import ObjectId
 from toolz import curry, pipe
 
@@ -13,10 +12,8 @@ from shotgrid_leecher.record.commands import (
     ShotgridCheckCommand,
     CreateShotgridInAvalonCommand,
 )
-from shotgrid_leecher.record.enums import ShotgridType
 from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
-    IntermediateShot,
 )
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
@@ -28,8 +25,7 @@ from shotgrid_leecher.repository import (
     avalon_repo,
     intermediate_hierarchy_repo,
 )
-from shotgrid_leecher.utils import generator
-from shotgrid_leecher.utils.functional import try_or, try_or_call
+from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
@@ -100,49 +96,6 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
             command.project_name, _rearrange_parents(avalon_tree, row)
         )
         avalon_tree[row["name"]]["_id"] = object_id
-
-
-def _assign_linked_assets_ids(
-    rows: List[IntermediateRow],
-) -> Iterator[IntermediateRow]:
-    ids_hash = {
-        x.src_id: x.object_id for x in rows if x.type == ShotgridType.ASSET
-    }
-    with_ = attr.evolve
-    for row in rows:
-        if row.type != ShotgridType.SHOT:
-            yield row
-            continue
-        shot = cast(IntermediateShot, row)
-        linked_entities = [
-            with_(x, object_id=ids_hash[x.id])
-            for x in shot.linked_entities
-            if ids_hash.get(x.id)
-        ]
-        yield with_(shot, linked_entities=linked_entities)
-
-
-@curry
-def _assign_object_ids(
-    current_hierarchy: List[IntermediateRow],
-    previous_hierarchy: List[IntermediateRow],
-) -> Iterator[IntermediateRow]:
-    src_ids_hash, ids_hash = _get_hashes(previous_hierarchy)
-    for row in current_hierarchy:
-        if row.has_field("src_id") and row.src_id:
-            src_id = cast(int, row.src_id)
-            object_id = try_or_call(
-                lambda: src_ids_hash[src_id].object_id,
-                lambda: generator.object_id(),
-            )
-            yield attr.evolve(row, object_id=object_id)
-            continue
-
-        object_id = try_or_call(
-            lambda: ids_hash[row.id].object_id,
-            lambda: generator.object_id(),
-        )
-        yield attr.evolve(row, object_id=object_id)
 
 
 def _get_hashes(

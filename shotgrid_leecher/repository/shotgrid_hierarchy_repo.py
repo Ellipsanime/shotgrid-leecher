@@ -1,6 +1,8 @@
 from functools import reduce
-from typing import Dict, Any, List, Iterator
+from typing import Dict, Any, List, Iterator, Optional
 
+import attr
+from bson import ObjectId
 from toolz import pipe, curry
 from toolz.curried import (
     filter as where,
@@ -14,7 +16,9 @@ import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 from shotgrid_leecher.mapper import query_mapper
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
-from shotgrid_leecher.record.intermediate_structures import IntermediateRow
+from shotgrid_leecher.record.intermediate_structures import (
+    IntermediateRow,
+)
 from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
     ShotgridFindAssetsByProjectQuery,
@@ -244,6 +248,26 @@ def _reduce_linked_entities(
     )
 
 
+def _get_parent_id(
+    hash_table: Dict[str, IntermediateRow], x: IntermediateRow
+) -> Optional[ObjectId]:
+    parent = hash_table.get(x.parent)
+    if parent:
+        return parent.object_id
+    return None
+
+
+def _set_direct_parents(rows: List[IntermediateRow]) -> List[IntermediateRow]:
+    tree = {f"{x.parent or ','}{x.id},": x for x in rows}
+    result = [attr.evolve(x, parent_id=_get_parent_id(tree, x)) for x in rows]
+    orphans = [
+        x for x in result if not x.parent and x.type != ShotgridType.PROJECT
+    ]
+    if orphans:
+        raise RuntimeError(f"Not all rows have parents {orphans}")
+    return result
+
+
 @timed
 def get_hierarchy_by_project(
     query: ShotgridHierarchyByProjectQuery,
@@ -251,23 +275,16 @@ def get_hierarchy_by_project(
     steps = entity_repo.find_steps(
         query_mapper.hierarchy_to_steps_query(query)
     )
-    project = entity_repo.find_project_by_id(
+    sg_project = entity_repo.find_project_by_id(
         query_mapper.hierarchy_to_project_query(query)
     )
-    assets = _fetch_and_link_assets(project, query)
-    shots = _fetch_and_link_shots(project, query)
+    assets = _fetch_and_link_assets(sg_project, query)
+    shots = _fetch_and_link_shots(sg_project, query)
     tasks = pipe(
-        query_mapper.hierarchy_to_tasks_query(project, query),
+        query_mapper.hierarchy_to_tasks_query(sg_project, query),
         _fetch_project_tasks(_fetch_identified(assets, shots)),
         list,
     )
+    project = mapper.to_project(sg_project, steps, query.project_data)
 
-    return [
-        x
-        for x in [
-            mapper.to_project(project, steps, query.project_data),
-            *assets,
-            *shots,
-            *tasks,
-        ]
-    ]
+    return _set_direct_parents([project, *assets, *shots, *tasks])

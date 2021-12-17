@@ -45,6 +45,7 @@ class IntermediateRow:
     parent: str
     params: IntermediateParams
     object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId]
     src_id: Optional[int] = attr.attrib(None, init=False)
     code: Optional[str] = attr.attrib(None, init=False)
     type: ShotgridType = attr.attrib(init=False)
@@ -63,8 +64,9 @@ class IntermediateRow:
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateGroup(IntermediateRow):
-    type = ShotgridType.GROUP
     object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
+    type = ShotgridType.GROUP
 
     @staticmethod
     def from_dict(raw_dic: Map) -> "IntermediateGroup":
@@ -89,8 +91,9 @@ class IntermediateLinkedEntity:
 class IntermediateAsset(IntermediateRow):
     src_id: int
     linked_entities: List[IntermediateLinkedEntity]
-    type = ShotgridType.ASSET
     object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
+    type = ShotgridType.ASSET
 
     @staticmethod
     def from_dict(raw_dic: Map) -> "IntermediateAsset":
@@ -108,6 +111,7 @@ class IntermediateTask(IntermediateRow):
     task_type: str
     src_id: int
     object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.TASK
 
 
@@ -116,6 +120,7 @@ class IntermediateShot(IntermediateRow):
     src_id: int
     linked_entities: List[IntermediateLinkedEntity]
     object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.SHOT
 
     @staticmethod
@@ -132,15 +137,17 @@ class IntermediateShot(IntermediateRow):
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateEpisode(IntermediateRow):
     src_id: int
-    type = ShotgridType.EPISODE
     object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
+    type = ShotgridType.EPISODE
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateSequence(IntermediateRow):
     src_id: int
-    type = ShotgridType.SEQUENCE
     object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
+    type = ShotgridType.SEQUENCE
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -193,6 +200,7 @@ class IntermediateProject(IntermediateRow):
     config: IntermediateProjectConfig
     object_id: Optional[ObjectId]
     parent: str = attr.attrib(init=False, default=None)
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.PROJECT
 
     @staticmethod

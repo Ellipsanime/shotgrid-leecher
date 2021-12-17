@@ -31,6 +31,7 @@ def test_to_shot_row_without_params():
             "src_id",
             "type",
             "parent",
+            "parent_id",
             "params",
             "object_id",
             "code",
