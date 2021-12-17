@@ -1,6 +1,10 @@
 ## Shotgrid Leecher change Log
 
-
+### [0.0.6] Unique but not random object ids
+#### Dec 17 - 2021
+ - Make avalon object ids be unique and stable, based on shotgrid ids
+ - Ingest more entities connection types
+ - Add quantity field for all supported connection types
 ### [0.0.5] Project data propagation
 #### Nov 17 - 2021
  - Add support of linked assets at the APIs end
