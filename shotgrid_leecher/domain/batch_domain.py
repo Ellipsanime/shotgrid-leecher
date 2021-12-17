@@ -52,8 +52,7 @@ def update_shotgrid_in_avalon(
     if not current_hierarchy:
         return BatchResult.NO_SHOTGRID_HIERARCHY
     # TODO get rid of mutability and avalon_tree
-    avalon_tree = avalon_mapper.shotgrid_to_avalon(current_hierarchy)
-    avalon_rows = list(avalon_tree.values())
+    avalon_rows = avalon_mapper.shotgrid_to_avalon(current_hierarchy)
 
     if command.project_name != avalon_rows[0]["name"]:
         return BatchResult.WRONG_PROJECT_NAME
@@ -61,15 +60,9 @@ def update_shotgrid_in_avalon(
     if command.overwrite:
         db_writer.drop_avalon_assets(command.project_name)
 
-    for row in avalon_rows:
-        object_id = db_writer.upsert_avalon_row(
-            command.project_name,
-            _rearrange_parents(avalon_tree, row),
-        )
-        avalon_tree[row["name"]]["_id"] = object_id
-
+    db_writer.upsert_avalon_rows(command.project_name, avalon_rows)
     db_writer.delete_avalon_rows(command.project_name, dropped_ids)
-    db_writer.overwrite_hierarchy(command.project_name, current_hierarchy)
+    db_writer.overwrite_intermediate(command.project_name, current_hierarchy)
 
     return BatchResult.OK
 
@@ -84,18 +77,12 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
     )
     current_hierarchy = repository.get_hierarchy_by_project(query)
     # TODO get rid of mutability and avalon_tree
-    avalon_tree = avalon_mapper.shotgrid_to_avalon(current_hierarchy)
+    avalon_rows = avalon_mapper.shotgrid_to_avalon(current_hierarchy)
 
-    if not avalon_tree:
+    if not avalon_rows:
         return
 
-    avalon_rows = list(avalon_tree.values())
-
-    for row in avalon_rows:
-        object_id = db_writer.insert_avalon_row(
-            command.project_name, _rearrange_parents(avalon_tree, row)
-        )
-        avalon_tree[row["name"]]["_id"] = object_id
+    db_writer.insert_avalon_rows(command.project_name, avalon_rows)
 
 
 def _get_hashes(

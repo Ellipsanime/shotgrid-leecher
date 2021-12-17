@@ -1,8 +1,9 @@
 from typing import Dict, Any, List, Set
 
 from bson import ObjectId
+from pymongo import UpdateOne, InsertOne
 from pymongo.collection import Collection
-from pymongo.results import DeleteResult
+from pymongo.results import DeleteResult, BulkWriteResult
 
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.enums import DbName, AvalonType
@@ -29,7 +30,7 @@ def _hierarchy_collection(project_name: str) -> Collection:
     )
 
 
-def overwrite_hierarchy(
+def overwrite_intermediate(
     project_name: str,
     hierarchy_rows: List[IntermediateRow],
 ) -> None:
@@ -50,6 +51,18 @@ def upsert_avalon_row(project_name: str, avalon_row: Map) -> ObjectId:
     return avalon_row["_id"]
 
 
+def upsert_avalon_rows(project_name: str, rows: List[Map]) -> BulkWriteResult:
+    bulks = [
+        UpdateOne(
+            {"_id": x["_id"]},
+            {"$set": flatten_dict(x, _ROW_FLATTEN_EXCEPTIONS)},
+            upsert=True,
+        )
+        for x in rows
+    ]
+    return _avalon_collection(project_name).bulk_write(bulks)
+
+
 def delete_avalon_rows(project_name: str, ids: Set[ObjectId]) -> int:
     return (
         _avalon_collection(project_name)
@@ -60,6 +73,11 @@ def delete_avalon_rows(project_name: str, ids: Set[ObjectId]) -> int:
 
 def insert_avalon_row(project_name: str, avalon_row: Map) -> ObjectId:
     return _avalon_collection(project_name).insert_one(avalon_row).inserted_id
+
+
+def insert_avalon_rows(project_name: str, rows: List[Map]) -> BulkWriteResult:
+    bulks = [InsertOne(flatten_dict(x, _ROW_FLATTEN_EXCEPTIONS)) for x in rows]
+    return _avalon_collection(project_name).bulk_write(bulks)
 
 
 def drop_avalon_project(project_name: str):

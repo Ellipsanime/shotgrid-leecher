@@ -6,6 +6,7 @@ from typing import List
 import attr
 from assertpy import assert_that
 
+from shotgrid_leecher.mapper import intermediate_mapper
 from shotgrid_leecher.mapper.avalon_mapper import shotgrid_to_avalon
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
@@ -193,7 +194,7 @@ def test_shotgrid_to_avalon_empty_list():
     actual = shotgrid_to_avalon(data)
 
     # Assert
-    assert_that(actual).is_equal_to({})
+    assert_that(actual).is_equal_to([])
 
 
 def test_shotgrid_to_avalon_project():
@@ -205,7 +206,7 @@ def test_shotgrid_to_avalon_project():
 
     # Assert
     assert_that(actual).is_length(1)
-    assert_that(actual).contains_key(data[0].id)
+    assert_that(actual[0]["name"]).is_equal_to(data[0].id)
 
 
 def test_shotgrid_to_avalon_assets():
@@ -225,22 +226,25 @@ def test_shotgrid_to_avalon_assets_hierarchy():
     # Arrange
     project = _get_project()
     asset_grp = _get_asset_group(project)
-    data = [project, asset_grp, *_get_prp_assets(asset_grp)]
+    data = intermediate_mapper.map_parent_ids(
+        [project, asset_grp, *_get_prp_assets(asset_grp)]
+    )
 
     # Act
     actual = shotgrid_to_avalon(data)
 
     # Assert
-    assert_that(actual).contains_only(*[x.id for x in data])
-    assert_that(actual[asset_grp.id]["parent"]).is_equal_to(project.id)
-    assert_that(actual[data[2].id]["parent"]).is_equal_to(project.id)
-    assert_that(actual[data[3].id]["parent"]).is_equal_to(project.id)
-    assert_that(actual[asset_grp.id]["data"]["visualParent"]).is_equal_to(None)
-    assert_that(actual[data[2].id]["data"]["visualParent"]).is_equal_to(
-        asset_grp.id
+    assert_that(actual[1]["parent"]).is_equal_to(project.object_id)
+    assert_that(actual[2]["parent"]).is_equal_to(project.object_id)
+    assert_that(actual[3]["parent"]).is_equal_to(project.object_id)
+    assert_that(actual[1]["data"]["visualParent"]).is_equal_to(
+        project.object_id
     )
-    assert_that(actual[data[3].id]["data"]["visualParent"]).is_equal_to(
-        data[2].id
+    assert_that(actual[2]["data"]["visualParent"]).is_equal_to(
+        asset_grp.object_id
+    )
+    assert_that(actual[3]["data"]["visualParent"]).is_equal_to(
+        data[2].object_id
     )
 
 
@@ -256,7 +260,7 @@ def test_shotgrid_to_avalon_assets_with_tasks():
 
     # Assert
     assert_that(actual).is_length(4)
-    assert_that(match(actual["Fork"]["data"]["tasks"].keys())).is_subset_of(
+    assert_that(match(actual[-1]["data"]["tasks"].keys())).is_subset_of(
         set(TASK_NAMES)
     )
 
@@ -277,10 +281,8 @@ def test_shotgrid_to_avalon_assets_with_tasks_values():
     actual = shotgrid_to_avalon(data)
 
     # Assert
-    assert_that(actual[project.id]["config"]["tasks"].keys()).is_length(
-        len(steps)
-    )
-    assert_that(actual[data[3].id]["data"]["tasks"]).is_length(task_num)
+    assert_that(actual[0]["config"]["tasks"].keys()).is_length(len(steps))
+    assert_that(actual[-1]["data"]["tasks"]).is_length(task_num)
 
 
 def test_shotgrid_to_avalon_shots():
@@ -306,41 +308,45 @@ def test_shotgrid_to_avalon_shots_hierarchy():
     # Arrange
     project = _get_project()
     shot_grp = _get_shot_group(project)
-    data = [
-        project,
-        shot_grp,
-        *_get_ep_with_shot(shot_grp),
-        *_get_seq_with_shot(shot_grp),
-        *_get_ep_with_seq_with_shot(shot_grp),
-    ]
+    data = intermediate_mapper.map_parent_ids(
+        [
+            project,
+            shot_grp,
+            *_get_ep_with_shot(shot_grp),
+            *_get_seq_with_shot(shot_grp),
+            *_get_ep_with_seq_with_shot(shot_grp),
+        ]
+    )
 
     # Act
     actual = shotgrid_to_avalon(data)
 
     # Assert
-    assert_that(actual).contains_only(*[x.id for x in data])
-    assert_that(
-        [actual[k]["parent"] for k in actual.keys() if "parent" in actual[k]]
-    ).contains_only(project.id)
-    assert_that(actual[shot_grp.id]["data"]["visualParent"]).is_equal_to(None)
-    assert_that(actual[data[2].id]["data"]["visualParent"]).is_equal_to(
-        shot_grp.id
+    assert_that(actual).is_length(len(data))
+    assert_that([k["parent"] for k in actual if "parent" in k]).contains_only(
+        project.object_id
     )
-    assert_that(actual[data[3].id]["data"]["visualParent"]).is_equal_to(
-        data[2].id
+    assert_that(actual[1]["data"]["visualParent"]).is_equal_to(
+        project.object_id
     )
-    assert_that(actual[data[4].id]["data"]["visualParent"]).is_equal_to(
-        shot_grp.id
+    assert_that(actual[2]["data"]["visualParent"]).is_equal_to(
+        shot_grp.object_id
     )
-    assert_that(actual[data[5].id]["data"]["visualParent"]).is_equal_to(
-        data[4].id
+    assert_that(actual[3]["data"]["visualParent"]).is_equal_to(
+        data[2].object_id
     )
-    assert_that(actual[data[6].id]["data"]["visualParent"]).is_equal_to(
-        shot_grp.id
+    assert_that(actual[4]["data"]["visualParent"]).is_equal_to(
+        shot_grp.object_id
     )
-    assert_that(actual[data[7].id]["data"]["visualParent"]).is_equal_to(
-        data[6].id
+    assert_that(actual[5]["data"]["visualParent"]).is_equal_to(
+        data[4].object_id
     )
-    assert_that(actual[data[8].id]["data"]["visualParent"]).is_equal_to(
-        data[7].id
+    assert_that(actual[6]["data"]["visualParent"]).is_equal_to(
+        shot_grp.object_id
+    )
+    assert_that(actual[7]["data"]["visualParent"]).is_equal_to(
+        data[6].object_id
+    )
+    assert_that(actual[8]["data"]["visualParent"]).is_equal_to(
+        data[7].object_id
     )

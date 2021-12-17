@@ -1,8 +1,6 @@
 from functools import reduce
-from typing import Dict, Any, List, Iterator, Optional
+from typing import Dict, Any, List, Iterator
 
-import attr
-from bson import ObjectId
 from toolz import pipe, curry
 from toolz.curried import (
     filter as where,
@@ -248,26 +246,6 @@ def _reduce_linked_entities(
     )
 
 
-def _get_parent_id(
-    hash_table: Dict[str, IntermediateRow], x: IntermediateRow
-) -> Optional[ObjectId]:
-    parent = hash_table.get(x.parent)
-    if parent:
-        return parent.object_id
-    return None
-
-
-def _set_direct_parents(rows: List[IntermediateRow]) -> List[IntermediateRow]:
-    tree = {f"{x.parent or ','}{x.id},": x for x in rows}
-    result = [attr.evolve(x, parent_id=_get_parent_id(tree, x)) for x in rows]
-    orphans = [
-        x for x in result if not x.parent and x.type != ShotgridType.PROJECT
-    ]
-    if orphans:
-        raise RuntimeError(f"Not all rows have parents {orphans}")
-    return result
-
-
 @timed
 def get_hierarchy_by_project(
     query: ShotgridHierarchyByProjectQuery,
@@ -287,4 +265,4 @@ def get_hierarchy_by_project(
     )
     project = mapper.to_project(sg_project, steps, query.project_data)
 
-    return _set_direct_parents([project, *assets, *shots, *tasks])
+    return mapper.map_parent_ids([project, *assets, *shots, *tasks])

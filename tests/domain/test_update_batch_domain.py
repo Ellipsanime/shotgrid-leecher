@@ -181,8 +181,8 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
-    monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
-    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
+    monkeypatch.setattr(db_writer, "overwrite_intermediate", _fun(None))
+    monkeypatch.setattr(db_writer, "upsert_avalon_rows", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
         123,
@@ -199,7 +199,7 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     # Assert
     assert_that(upsert_mock.call_args).is_length(2)
     assert_that(upsert_mock.call_args_list).is_length(1)
-    assert_that(upsert_mock.call_args_list[0][0][1]["_id"]).is_equal_to(
+    assert_that(upsert_mock.call_args_list[0][0][1][0]["_id"]).is_equal_to(
         data[0].object_id
     )
 
@@ -213,17 +213,17 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     # last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data[:2]]
     call_list = []
 
-    def upsert_mock(project_name, row):
-        call_list.append(row)
-        return row["_id"]
+    def upsert_mock(project_name, rows):
+        for x in rows:
+            call_list.append(x["_id"])
 
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
-    monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
-    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
+    monkeypatch.setattr(db_writer, "overwrite_intermediate", _fun(None))
+    monkeypatch.setattr(db_writer, "upsert_avalon_rows", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
         123,
@@ -239,8 +239,8 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
 
     # Assert
     assert_that(call_list).is_length(4)
-    assert_that(call_list[0]["_id"]).is_equal_to(data[0].object_id)
-    assert_that(call_list[1]["_id"]).is_equal_to(data[1].object_id)
+    assert_that(call_list[0]).is_equal_to(data[0].object_id)
+    assert_that(call_list[1]).is_equal_to(data[1].object_id)
 
 
 def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
@@ -262,7 +262,9 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     monkeypatch.setattr(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
-    monkeypatch.setattr(db_writer, "overwrite_hierarchy", insert_intermediate)
+    monkeypatch.setattr(
+        db_writer, "overwrite_intermediate", insert_intermediate
+    )
     monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
@@ -294,15 +296,6 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
     ).is_not_none()
 
 
-def test_shotgrid_to_avalon_batch_update_workfile_upserted_values(
-    monkeypatch: MonkeyPatch,
-):
-    # Arrange
-    # Act
-    # Assert
-    pass
-
-
 def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch: MonkeyPatch,
 ):
@@ -313,17 +306,17 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     data = [project, asset_grp, *_get_prp_asset_with_tasks(asset_grp, 3)]
     call_list = []
 
-    def upsert_mock(project_name, row):
-        call_list.append(row)
-        return row["_id"]
+    def upsert_mock(project_name, rows):
+        for x in rows:
+            call_list.append(x["_id"])
 
     monkeypatch.setattr(conn, "get_db_client", _fun(client))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", _fun(data))
     monkeypatch.setattr(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
-    monkeypatch.setattr(db_writer, "overwrite_hierarchy", _fun(None))
-    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
+    monkeypatch.setattr(db_writer, "overwrite_intermediate", _fun(None))
+    monkeypatch.setattr(db_writer, "upsert_avalon_rows", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
         123,
@@ -339,7 +332,7 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
 
     # Assert
     assert_that(call_list).is_length(4)
-    assert_that(call_list[0]["_id"]).is_equal_to(data[0].object_id)
+    assert_that(call_list[0]).is_equal_to(data[0].object_id)
 
 
 def test_shotgrid_to_avalon_batch_update_wrong_project_name(

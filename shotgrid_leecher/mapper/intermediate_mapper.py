@@ -1,7 +1,8 @@
-from typing import Dict, Any, cast, List
+from typing import Dict, Any, cast, List, Optional
 
 import attr
 import cattr
+from bson import ObjectId
 from toolz import curry
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
@@ -268,3 +269,23 @@ def to_project(
         params=to_params(project_data),
         object_id=to_object_id(project.id),
     )
+
+
+def _get_parent_id(
+    hash_table: Dict[str, IntermediateRow], x: IntermediateRow
+) -> Optional[ObjectId]:
+    parent = hash_table.get(x.parent)
+    if parent:
+        return parent.object_id
+    return None
+
+
+def map_parent_ids(rows: List[IntermediateRow]) -> List[IntermediateRow]:
+    tree = {f"{x.parent or ','}{x.id},": x for x in rows}
+    result = [attr.evolve(x, parent_id=_get_parent_id(tree, x)) for x in rows]
+    orphans = [
+        x for x in result if not x.parent and x.type != ShotgridType.PROJECT
+    ]
+    if orphans:
+        raise RuntimeError(f"Not all rows have parents {orphans}")
+    return result

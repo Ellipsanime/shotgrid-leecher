@@ -456,10 +456,12 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
         repository,
         "get_hierarchy_by_project",
         Mock(
-            return_value=[
-                intermediate_mapper.to_row(x)
-                for x in update_asset_data.SHOTGRID_DATA
-            ]
+            return_value=intermediate_mapper.map_parent_ids(
+                [
+                    intermediate_mapper.to_row(x)
+                    for x in update_asset_data.SHOTGRID_DATA
+                ]
+            )
         ),
     )
     monkeypatch.setattr(conn, "get_db_client", fun(client))
