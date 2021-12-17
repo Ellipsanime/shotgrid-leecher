@@ -6,6 +6,7 @@ import cattr
 from bson import ObjectId
 
 from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.utils.ids import to_object_id
 from shotgrid_leecher.utils.strings import avalonify_snake_case
 
 Map = Dict[str, Any]
@@ -43,10 +44,11 @@ class IntermediateRow:
     id: str
     parent: str
     params: IntermediateParams
+    object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId]
     src_id: Optional[int] = attr.attrib(None, init=False)
     code: Optional[str] = attr.attrib(None, init=False)
     type: ShotgridType = attr.attrib(init=False)
-    object_id: Optional[ObjectId] = attr.attrib(init=False)
 
     def has_field(self, field: str):
         return field in attr.asdict(self, recurse=False).keys()
@@ -62,46 +64,72 @@ class IntermediateRow:
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateGroup(IntermediateRow):
+    object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.GROUP
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateGroup":
+        type_ = IntermediateGroup
+        dic = {
+            "object_id": to_object_id(raw_dic.get("id", raw_dic.get("_id"))),
+            **raw_dic,
+        }
+        return type_(**dic)
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class IntermediateLinkedEntity:
+    id: int
+    link_type: str
+    quantity: int
+    object_id: Optional[ObjectId]
+    type = ShotgridType.LINKED_ENTITY
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateAsset(IntermediateRow):
     src_id: int
+    linked_entities: List[IntermediateLinkedEntity]
+    object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.ASSET
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateAsset":
+        type_ = IntermediateAsset
+        dic = {
+            "object_id": to_object_id(raw_dic["src_id"]),
+            **raw_dic,
+            "linked_entities": raw_dic.get("linked_entities", []),
+        }
+        return type_(**dic)
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateTask(IntermediateRow):
     task_type: str
     src_id: int
+    object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.TASK
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
-
-
-@attr.s(auto_attribs=True, frozen=True)
-class IntermediateLinkedAsset:
-    id: int
-    name: str
-    type = ShotgridType.LINKED_ASSET
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateShot(IntermediateRow):
     src_id: int
-    linked_assets: List[IntermediateLinkedAsset]
+    linked_entities: List[IntermediateLinkedEntity]
+    object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.SHOT
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
 
     @staticmethod
     def from_dict(raw_dic: Map) -> "IntermediateShot":
         type_ = IntermediateShot
         dic = {
+            "object_id": to_object_id(raw_dic["src_id"]),
             **raw_dic,
-            "linked_assets": raw_dic.get("linked_assets", []),
+            "linked_entities": raw_dic.get("linked_entities", []),
         }
         return type_(**dic)
 
@@ -109,15 +137,17 @@ class IntermediateShot(IntermediateRow):
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateEpisode(IntermediateRow):
     src_id: int
+    object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.EPISODE
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class IntermediateSequence(IntermediateRow):
     src_id: int
+    object_id: Optional[ObjectId]
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.SEQUENCE
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -168,14 +198,16 @@ class IntermediateProject(IntermediateRow):
     src_id: int
     code: Optional[str]
     config: IntermediateProjectConfig
-    object_id: Optional[ObjectId] = attr.attrib(default=None)
+    object_id: Optional[ObjectId]
     parent: str = attr.attrib(init=False, default=None)
+    parent_id: Optional[ObjectId] = None
     type = ShotgridType.PROJECT
 
     @staticmethod
     def from_dict(raw_dic: Map) -> "IntermediateProject":
         config = IntermediateProjectConfig.from_dict(raw_dic.get("config"))
         dic: Map = {
+            "object_id": to_object_id(raw_dic["src_id"]),
             **raw_dic,
             "config": config,
         }

@@ -1,7 +1,9 @@
-from typing import Dict, Any, cast, List
+from typing import Dict, Any, cast, List, Optional
 
 import attr
 import cattr
+from bson import ObjectId
+from toolz import curry
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
@@ -17,7 +19,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateProjectConfig,
     IntermediateProjectStep,
-    IntermediateLinkedAsset,
+    IntermediateLinkedEntity,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -27,11 +29,12 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShotSequence,
     ShotgridShotParams,
     ShotgridStep,
-    ShotgridLinkedAsset,
+    ShotgridEntityToEntityLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 from shotgrid_leecher.utils.collections import keep_keys
 from shotgrid_leecher.utils.functional import try_or
+from shotgrid_leecher.utils.ids import to_object_id
 from shotgrid_leecher.utils.logger import get_logger
 
 Map = Dict[str, Any]
@@ -63,12 +66,6 @@ def to_params(project_data: AvalonProjectData) -> IntermediateParams:
         resolution_width=project_data.resolution_width,
         tools_env=project_data.tools_env,
     )
-
-
-def _to_linked_assets(
-    linked_assets: List[ShotgridLinkedAsset],
-) -> List[IntermediateLinkedAsset]:
-    return [IntermediateLinkedAsset(x.id, x.name) for x in linked_assets]
 
 
 def _dict_to_params(raw_dic: Map) -> IntermediateParams:
@@ -105,7 +102,10 @@ def to_top_shot(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.SHOT.value, f",{project.name},", to_params(project_data)
+        ShotgridType.SHOT.value,
+        f",{project.name},",
+        to_params(project_data),
+        object_id=to_object_id(ShotgridType.SHOT.value),
     )
 
 
@@ -113,7 +113,10 @@ def to_top_asset(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.ASSET.value, f",{project.name},", to_params(project_data)
+        ShotgridType.ASSET.value,
+        f",{project.name},",
+        to_params(project_data),
+        object_id=to_object_id(ShotgridType.ASSET.value),
     )
 
 
@@ -128,6 +131,7 @@ def to_task(
         task_type=str(task.step_name()),
         src_id=task.id,
         params=to_params(project_data),
+        object_id=to_object_id(task.id),
     )
 
 
@@ -141,6 +145,8 @@ def to_asset(
         src_id=asset.id,
         parent=parent_path,
         params=to_params(project_data),
+        linked_entities=[],
+        object_id=to_object_id(asset.id),
     )
 
 
@@ -154,7 +160,8 @@ def to_shot(
         src_id=shot.id,
         parent=parent_path,
         params=to_params(project_data),
-        linked_assets=_to_linked_assets(shot.linked_assets),
+        linked_entities=[],
+        object_id=to_object_id(shot.id),
     )
     if not shot.has_params():
         return result
@@ -167,6 +174,44 @@ def to_shot(
     return attr.evolve(result, params=params)
 
 
+@curry
+def to_linked_shot(
+    links_hash: Dict[int, List[ShotgridEntityToEntityLink]],
+    shot: IntermediateShot,
+) -> IntermediateShot:
+    if shot.type != ShotgridType.SHOT:
+        return shot
+    links = [
+        IntermediateLinkedEntity(
+            x.parent_id,
+            x.type,
+            x.quantity,
+            to_object_id(x.parent_id),
+        )
+        for x in links_hash.get(shot.src_id, [])
+    ]
+    return attr.evolve(shot, linked_entities=links)
+
+
+@curry
+def to_linked_asset(
+    links_hash: Dict[int, List[ShotgridEntityToEntityLink]],
+    asset: IntermediateAsset,
+) -> IntermediateAsset:
+    if asset.type != ShotgridType.ASSET:
+        return asset
+    links = [
+        IntermediateLinkedEntity(
+            x.parent_id,
+            x.type,
+            x.quantity,
+            to_object_id(x.parent_id),
+        )
+        for x in links_hash.get(asset.src_id, [])
+    ]
+    return attr.evolve(asset, linked_entities=links)
+
+
 def to_asset_group(
     asset_type: str,
     project: ShotgridProject,
@@ -176,6 +221,7 @@ def to_asset_group(
         id=asset_type,
         parent=f",{project.name},{ShotgridType.ASSET.value},",
         params=to_params(project_data),
+        object_id=to_object_id(asset_type),
     )
 
 
@@ -189,6 +235,7 @@ def to_episode_shot_group(
         src_id=episode.id,
         parent=f",{project.name},{ShotgridType.SHOT.value},",
         params=to_params(project_data),
+        object_id=to_object_id(episode.id),
     )
 
 
@@ -202,6 +249,7 @@ def to_sequence_shot_group(
         src_id=sequence.id,
         parent=parent_path,
         params=to_params(project_data),
+        object_id=to_object_id(sequence.id),
     )
 
 
@@ -219,4 +267,25 @@ def to_project(
         code=project.code,
         config=project_config,
         params=to_params(project_data),
+        object_id=to_object_id(project.id),
     )
+
+
+def _get_parent_id(
+    hash_table: Dict[str, IntermediateRow], x: IntermediateRow
+) -> Optional[ObjectId]:
+    parent = hash_table.get(x.parent)
+    if parent:
+        return parent.object_id
+    return None
+
+
+def map_parent_ids(rows: List[IntermediateRow]) -> List[IntermediateRow]:
+    tree = {f"{x.parent or ','}{x.id},": x for x in rows}
+    result = [attr.evolve(x, parent_id=_get_parent_id(tree, x)) for x in rows]
+    orphans = [
+        x for x in result if not x.parent and x.type != ShotgridType.PROJECT
+    ]
+    if orphans:
+        raise RuntimeError(f"Not all rows have parents {orphans}")
+    return result

@@ -20,6 +20,9 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotFieldsMapping,
     TaskFieldsMapping,
     StepFieldsMapping,
+    AssetToShotLinkMapping,
+    ShotToShotLinkMapping,
+    AssetToAssetLinkMapping,
 )
 from shotgrid_leecher.writers import db_writer
 
@@ -40,6 +43,9 @@ def _default_fields_mapping() -> FieldsMapping:
         ShotFieldsMapping.from_dict({}),
         TaskFieldsMapping.from_dict({}),
         StepFieldsMapping.from_dict({}),
+        AssetToShotLinkMapping.from_dict({}),
+        ShotToShotLinkMapping.from_dict({}),
+        AssetToAssetLinkMapping.from_dict({}),
     )
 
 
@@ -90,7 +96,7 @@ def _get_project_mapped_rows() -> Dict[str, Any]:
     }
 
 
-def _get_simple_asset_mapped_rows(task_num: int) -> Dict[str, Map]:
+def _get_simple_asset_mapped_rows(task_num: int) -> List[Map]:
     project = _get_project_mapped_rows()
     asset_grp = {
         "type": "asset",
@@ -116,15 +122,15 @@ def _get_simple_asset_mapped_rows(task_num: int) -> Dict[str, Map]:
         if step not in project["config"]["tasks"]:
             project["config"]["tasks"][step] = {}
 
-    return {
-        project["name"]: project,
-        asset_grp["name"]: asset_grp,
-        asset["name"]: asset,
-    }
+    return [
+        project,
+        asset_grp,
+        asset,
+    ]
 
 
 def _patch_adjacent(
-    patcher: MonkeyPatch, mapped: Dict, hierarchy: List
+    patcher: MonkeyPatch, mapped: List, hierarchy: List
 ) -> None:
     patcher.setattr(mapper, "shotgrid_to_avalon", _fun(mapped))
     patcher.setattr(repository, "get_hierarchy_by_project", _fun(hierarchy))
@@ -162,7 +168,7 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
     project_name = project["name"]
     _patch_adjacent(
         monkeypatch,
-        {project["name"]: project},
+        [project],
         [{"_id": project["name"]}],
     )
     command = CreateShotgridInAvalonCommand(
@@ -172,14 +178,14 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
         _default_fields_mapping(),
     )
     insert_avalon = Mock(return_value=1)
-    monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
+    monkeypatch.setattr(db_writer, "insert_avalon_rows", insert_avalon)
     # Act
     sut.create_shotgrid_in_avalon(command)
     # Assert
     assert_that([x[0][0] for x in insert_avalon.call_args_list]).is_equal_to(
         [project_name]
     )
-    assert_that(insert_avalon.call_args_list[0][0][1]).is_equal_to(
+    assert_that(insert_avalon.call_args_list[0][0][1][0]).is_equal_to(
         project,
         ignore=["_id", "data", "parent"],
     )
@@ -189,13 +195,11 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     # Arrange
     task_num = 3
     data = _get_simple_asset_mapped_rows(task_num)
-    project_name = list(data.keys())[0]
-    asset_grp = list(data.keys())[1]
-    asset = list(data.keys())[2]
+    project_name = data[0]["name"]
     ids = [project_name, 1, 2]
     _patch_adjacent(monkeypatch, data, [{"_id": project_name}])
     insert_avalon = Mock(side_effect=ids)
-    monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
+    monkeypatch.setattr(db_writer, "insert_avalon_rows", insert_avalon)
     command = CreateShotgridInAvalonCommand(
         123,
         project_name,
@@ -205,29 +209,36 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     # Act
     sut.create_shotgrid_in_avalon(command)
     # Assert
-    assert_that([x[0][0] for x in insert_avalon.call_args_list]).is_equal_to(
-        [project_name for _ in range(task_num)]
+    assert_that(insert_avalon.call_args_list).is_length(1)
+    assert_that(insert_avalon.call_args_list[0][0][0]).is_equal_to(
+        project_name
     )
-    assert_that(insert_avalon.call_args_list[0][0][1].get("parent")).is_none()
     assert_that(
-        insert_avalon.call_args_list[1][0][1].get("parent")
+        insert_avalon.call_args_list[0][0][1][0].get("parent")
+    ).is_none()
+    assert_that(
+        insert_avalon.call_args_list[0][0][1][1].get("parent")
     ).is_equal_to(project_name)
     assert_that(
-        insert_avalon.call_args_list[2][0][1].get("parent")
+        insert_avalon.call_args_list[0][0][1][2].get("parent")
     ).is_equal_to(project_name)
-    assert_that(insert_avalon.call_args_list[1][0][1]).is_equal_to(
-        data[asset_grp],
+    assert_that(insert_avalon.call_args_list[0][0][1][1]).is_equal_to(
+        data[1],
         ignore=["_id", "data"],
     )
-    assert_that(insert_avalon.call_args_list[1][0][1].get("data")).is_equal_to(
-        data[asset_grp]["data"],
+    assert_that(
+        insert_avalon.call_args_list[0][0][1][1].get("data")
+    ).is_equal_to(
+        data[1]["data"],
         ignore=["visualParent"],
     )
-    assert_that(insert_avalon.call_args_list[2][0][1]).is_equal_to(
-        data[asset],
+    assert_that(insert_avalon.call_args_list[0][0][1][2]).is_equal_to(
+        data[2],
         ignore=["_id", "data"],
     )
-    assert_that(insert_avalon.call_args_list[2][0][1].get("data")).is_equal_to(
-        data[asset]["data"],
+    assert_that(
+        insert_avalon.call_args_list[0][0][1][2].get("data")
+    ).is_equal_to(
+        data[2]["data"],
         ignore=["visualParent"],
     )

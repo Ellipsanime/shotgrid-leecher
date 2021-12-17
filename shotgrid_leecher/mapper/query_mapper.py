@@ -12,6 +12,7 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindShotsByProjectQuery,
     FindEntityQuery,
     ShotgridFindAllStepsQuery,
+    ShotgridLinkedEntitiesQuery,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
@@ -94,4 +95,40 @@ def hierarchy_to_tasks_query(
         credentials=query.credentials,
         task_mapping=query.fields_mapping.task,
         project_data=query.project_data,
+    )
+
+
+@curry
+def hierarchy_to_linked_asset_to_asset_query(
+    project: ShotgridProject,
+    query: ShotgridHierarchyByProjectQuery,
+) -> ShotgridLinkedEntitiesQuery:
+    return ShotgridLinkedEntitiesQuery(
+        project,
+        query.credentials,
+        query.fields_mapping.asset_to_asset,
+    )
+
+
+@curry
+def hierarchy_to_linked_asset_to_shot_query(
+    project: ShotgridProject,
+    query: ShotgridHierarchyByProjectQuery,
+) -> ShotgridLinkedEntitiesQuery:
+    return ShotgridLinkedEntitiesQuery(
+        project,
+        query.credentials,
+        query.fields_mapping.asset_to_shot,
+    )
+
+
+@curry
+def hierarchy_to_linked_shot_to_shot_query(
+    project: ShotgridProject,
+    query: ShotgridHierarchyByProjectQuery,
+) -> ShotgridLinkedEntitiesQuery:
+    return ShotgridLinkedEntitiesQuery(
+        project,
+        query.credentials,
+        query.fields_mapping.shot_to_shot,
     )

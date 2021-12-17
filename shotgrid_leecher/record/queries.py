@@ -12,6 +12,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotFieldsMapping,
     TaskFieldsMapping,
     StepFieldsMapping,
+    GenericFieldsMapping,
 )
 
 
@@ -54,6 +55,13 @@ class ShotgridBoundEntityQuery:
     project: ShotgridProject
     credentials: ShotgridCredentials
     project_data: AvalonProjectData
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridLinkedEntitiesQuery:
+    project: ShotgridProject
+    credentials: ShotgridCredentials
+    fields_mapping: GenericFieldsMapping
 
 
 @attr.s(auto_attribs=True, frozen=True)

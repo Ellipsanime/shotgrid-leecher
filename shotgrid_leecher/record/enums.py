@@ -44,13 +44,16 @@ class AvalonType(Enum):
 class ShotgridType(Enum):
     PROJECT = "Project"
     ASSET = "Asset"
-    LINKED_ASSET = "LinkedAsset"
+    LINKED_ENTITY = "LinkedEntity"
     SHOT = "Shot"
     EPISODE = "Episode"
     SEQUENCE = "Sequence"
     GROUP = "Group"
     TASK = "Task"
     STEP = "Step"
+    ASSET_TO_SHOT_LINK = "AssetShotConnection"
+    SHOT_TO_SHOT_LINK = "ShotShotConnection"
+    ASSET_TO_ASSET_LINK = "AssetAssetConnection"
 
     @staticmethod
     def middle_types() -> List["ShotgridType"]:
@@ -114,3 +117,13 @@ class ShotgridField(Enum):
     ASSET_TYPE = "asset_type"
     SHORT_NAME = "short_name"
     ASSETS = "assets"
+    PARENTS = "parents"
+    CACHED_DISPLAY_NAME = "cached_display_name"
+    LINK_QUANTITY = "quantity"
+    LINK_SHOT_ID = "link_shot_id"
+    LINK_ASSET_ID = "link_asset_id"
+    LINK_PARENT_ID = "link_parent_id"
+    LINK_PARENT_SHOT_ID = "link_parent_shot_id"
+
+    def to_db_key(self) -> str:
+        return str(self.value).replace(".", "_")

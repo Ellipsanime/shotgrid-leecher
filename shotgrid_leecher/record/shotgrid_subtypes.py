@@ -18,6 +18,63 @@ class GenericFieldsMapping:
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class ShotToShotLinkMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.SHOT_TO_SHOT_LINK
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "ShotToShotLinkMapping":
+        def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        return ShotToShotLinkMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.LINK_SHOT_ID.value: "shot.Shot.id",
+                ShotgridField.LINK_QUANTITY.value: "sg_instance",
+                ShotgridField.LINK_PARENT_SHOT_ID.value: "parent_shot.Shot.id",
+                def_cached_name: def_cached_name,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class AssetToShotLinkMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.ASSET_TO_SHOT_LINK
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "AssetToShotLinkMapping":
+        def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        return AssetToShotLinkMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.LINK_SHOT_ID.value: "shot.Shot.id",
+                ShotgridField.LINK_ASSET_ID.value: "asset.Asset.id",
+                ShotgridField.LINK_QUANTITY.value: "sg_instance",
+                def_cached_name: def_cached_name,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class AssetToAssetLinkMapping(GenericFieldsMapping):
+    type: ShotgridType = ShotgridType.ASSET_TO_ASSET_LINK
+
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -> "AssetToAssetLinkMapping":
+        def_cached_name = ShotgridField.CACHED_DISPLAY_NAME.value
+        return AssetToAssetLinkMapping(
+            {
+                ShotgridField.ID.value: ShotgridField.ID.value,
+                ShotgridField.LINK_PARENT_ID.value: "parent.Asset.id",
+                ShotgridField.LINK_ASSET_ID.value: "asset.Asset.id",
+                ShotgridField.LINK_QUANTITY.value: "sg_instance",
+                def_cached_name: def_cached_name,
+                **dic,
+            }
+        )
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class StepFieldsMapping(GenericFieldsMapping):
     type: ShotgridType = ShotgridType.STEP
 
@@ -107,6 +164,7 @@ class AssetFieldsMapping(GenericFieldsMapping):
                 ShotgridField.ID.value: ShotgridField.ID.value,
                 ShotgridField.TYPE.value: ShotgridField.TYPE.value,
                 ShotgridField.TASKS.value: ShotgridField.TASKS.value,
+                ShotgridField.PARENTS.value: ShotgridField.PARENTS.value,
                 ShotgridField.ASSET_TYPE.value: "sg_asset_type",
                 ShotgridField.CODE.value: ShotgridField.CODE.value,
                 **dic,
@@ -121,6 +179,9 @@ class FieldsMapping:
     shot: ShotFieldsMapping
     task: TaskFieldsMapping
     step: StepFieldsMapping
+    asset_to_shot: AssetToShotLinkMapping
+    shot_to_shot: ShotToShotLinkMapping
+    asset_to_asset: AssetToAssetLinkMapping
 
     @staticmethod
     def from_dict(dic: Dict[str, Dict[str, str]]) -> "FieldsMapping":
@@ -142,6 +203,15 @@ class FieldsMapping:
             ),
             step=StepFieldsMapping.from_dict(
                 dic.get(ShotgridType.STEP.value.lower(), {})
+            ),
+            shot_to_shot=ShotToShotLinkMapping.from_dict(
+                dic.get(ShotgridType.SHOT_TO_SHOT_LINK.value.lower(), {}),
+            ),
+            asset_to_shot=AssetToShotLinkMapping.from_dict(
+                dic.get(ShotgridType.ASSET_TO_SHOT_LINK.value.lower(), {}),
+            ),
+            asset_to_asset=AssetToAssetLinkMapping.from_dict(
+                dic.get(ShotgridType.ASSET_TO_ASSET_LINK.value.lower(), {}),
             ),
         )
 

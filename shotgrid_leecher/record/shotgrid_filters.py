@@ -21,6 +21,15 @@ class IsFilter(BaseFilter):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class NameIsFilter(BaseFilter):
+    key: str
+    value: Any
+
+    def to_sublist(self) -> List[Any]:
+        return [self.key, "name_is", self.value]
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IsNotFilter(BaseFilter):
     key: str
     value: Any
