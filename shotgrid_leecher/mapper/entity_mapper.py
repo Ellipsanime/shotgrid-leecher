@@ -73,7 +73,7 @@ def to_shot_to_shot_link(
         type=ShotgridType.SHOT_TO_SHOT_LINK.value,
         parent_id=data[ShotgridField.LINK_PARENT_SHOT_ID.value],
         child_id=data[ShotgridField.LINK_SHOT_ID.value],
-        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
+        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1) or 1,
     )
 
 
@@ -88,7 +88,7 @@ def to_asset_to_shot_link(
         type=ShotgridType.ASSET_TO_SHOT_LINK.value,
         parent_id=data[ShotgridField.LINK_ASSET_ID.value],
         child_id=data[ShotgridField.LINK_SHOT_ID.value],
-        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
+        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1) or 1,
     )
 
 
@@ -103,7 +103,7 @@ def to_asset_to_asset_link(
         type=ShotgridType.ASSET_TO_ASSET_LINK.value,
         parent_id=data[ShotgridField.LINK_PARENT_ID.value],
         child_id=data[ShotgridField.LINK_ASSET_ID.value],
-        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1),
+        quantity=data.get(ShotgridField.LINK_QUANTITY.value, 1) or 1,
     )
 
 
