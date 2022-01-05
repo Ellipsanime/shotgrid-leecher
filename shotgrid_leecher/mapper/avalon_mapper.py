@@ -220,7 +220,7 @@ def _create_avalon_asset_row(
         "type": AvalonType.ASSET.value,
         "name": intermediate_row.id,
         "data": data,
-        "schema": "openpype:project-3.0",  # TODO check it
+        "schema": "openpype:asset-3.0",
         "parent": project["_id"],
     }
 
