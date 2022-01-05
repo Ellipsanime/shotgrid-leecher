@@ -147,7 +147,7 @@ def _assert_db(
 
 def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     # Arrange
-    _patch_adjacent(monkeypatch, {}, [])
+    _patch_adjacent(monkeypatch, [], [])
     insert_avalon = Mock(return_value=1)
     monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
     command = CreateShotgridInAvalonCommand(

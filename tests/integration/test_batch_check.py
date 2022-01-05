@@ -7,13 +7,19 @@ from assertpy import assert_that
 from mongomock.mongo_client import MongoClient
 from toolz import curry
 
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from asset import fields_mapping_data
+from asset import update_values_data
 from shotgrid_leecher.controller import batch_controller
-from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.mapper import intermediate_mapper
+from shotgrid_leecher.record.enums import ShotgridType, DbName
 from shotgrid_leecher.record.results import BatchCheckResult
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     fun,
+    all_avalon,
+    populate_db,
+    batch_config,
 )
 
 Map = Dict[str, Any]
@@ -29,6 +35,50 @@ def _sg_query(
     if type_ == ShotgridType.PROJECT.value:
         return data[0]
     raise RuntimeError(f"Unknown type {type_}")
+
+
+@pytest.mark.asyncio
+async def test_batch_first_level_virtual_orphans(monkeypatch: MonkeyPatch):
+    # Arrange
+    client = MongoClient()
+    project_id = update_values_data.PROJECT_ID
+    populate_db(
+        client.get_database(DbName.AVALON.value).get_collection(project_id),
+        update_values_data.AVALON_DATA,
+    )
+    populate_db(
+        client.get_database(DbName.INTERMEDIATE.value).get_collection(
+            project_id
+        ),
+        update_values_data.INTERMEDIATE_DB_DATA,
+    )
+    monkeypatch.setattr(
+        repository,
+        "get_hierarchy_by_project",
+        Mock(
+            return_value=intermediate_mapper.map_parent_ids(
+                [
+                    intermediate_mapper.to_row(x)
+                    for x in update_values_data.SHOTGRID_DATA
+                ]
+            )
+        ),
+    )
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
+
+    # Act
+    await batch_controller.batch_update(project_id, batch_config())
+
+    # Assert
+    assert_that(all_avalon(client)).is_length(
+        len(update_values_data.AVALON_DATA)
+    )
+    assert_that(all_avalon(client)).extracting(
+        "data", filter={"name": "Asset"}
+    ).extracting("visualParent").is_equal_to([None])
+    assert_that(all_avalon(client)).extracting("data").extracting(
+        "visualParent", filter=lambda x: x["visualParent"]
+    ).is_length(len(update_values_data.AVALON_DATA) - 2)
 
 
 @pytest.mark.asyncio

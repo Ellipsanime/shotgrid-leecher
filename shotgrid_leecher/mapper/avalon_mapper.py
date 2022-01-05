@@ -1,7 +1,14 @@
-from typing import Dict, Any, List, Optional, Iterator, Tuple, cast, Union
+from itertools import chain
+from typing import Dict, Any, List, Optional, Iterator, cast, Union
 
 import attr
 from bson import ObjectId
+from toolz import pipe, curry
+from toolz.curried import (
+    filter as where,
+    map as select,
+    reduce,
+)
 
 from shotgrid_leecher.record.avalon_structures import AvalonProject
 from shotgrid_leecher.record.enums import ShotgridType, AvalonType
@@ -57,12 +64,21 @@ def shotgrid_to_avalon(
     """
     if not intermediate_rows:
         return []
-
     project_rows = [
         cast(IntermediateProject, x)
         for x in intermediate_rows
         if x.type == ShotgridType.PROJECT
     ]
+    _check_project_row(project_rows)
+    project = _project_row(project_rows[0])
+    tasks_hash = _find_tasks(intermediate_rows)
+    _check_task_types(project, tasks_hash)
+    avalon_rows = _asset_rows(intermediate_rows, project, tasks_hash)
+
+    return [project] + list(avalon_rows)
+
+
+def _check_project_row(project_rows: List[IntermediateProject]):
     if len(project_rows) > 1:
         msg = (
             "Could not parse shotgrid data to avalon,"
@@ -70,7 +86,6 @@ def shotgrid_to_avalon(
         )
         _LOG.error(msg)
         raise ValueError(msg)
-
     if len(project_rows) < 1:
         msg = (
             "Could not parse shotgrid data to avalon,"
@@ -79,34 +94,38 @@ def shotgrid_to_avalon(
         _LOG.error(msg)
         raise ValueError(msg)
 
-    project = _project_row(project_rows[0])
 
-    avalon_rows = {
-        project_rows[0].id: project,
-        **dict(list(_asset_rows(intermediate_rows, project))),
+def _check_task_types(
+    project: Map, task_rows: Dict[ObjectId, List[IntermediateTask]]
+):
+    project_tasks = set(project["config"]["tasks"])
+    tasks_difference = {
+        *{x.task_type for x in chain(*list(task_rows.values()))},
+        *project_tasks,
+    }.difference(project_tasks)
+    if tasks_difference:
+        raise RuntimeError(f"Task types {tasks_difference} are unknown")
+
+
+def _reduce_found_tasks(
+    acc: Dict[ObjectId, List[IntermediateTask]], x: IntermediateTask
+) -> Dict[ObjectId, List[IntermediateTask]]:
+    return {
+        **acc,
+        x.parent_id: acc.get(x.parent_id, []) + [x],
     }
-    task_rows: List[IntermediateTask] = [
-        cast(IntermediateTask, x)
-        for x in intermediate_rows
-        if x.type == ShotgridType.TASK
-    ]
-    for task_row in task_rows:
-        parent = _get_parent(task_row)
-        if not parent:
-            continue
-        raw_task_name = task_row.id.split("_")[0]
-        task_name = (
-            task_row.id
-            if avalon_rows[parent]["data"]["tasks"].get(raw_task_name)
-            else raw_task_name
-        )
-        avalon_rows[parent]["data"]["tasks"][task_name] = {
-            "type": task_row.task_type
-        }
-        if task_row.task_type not in project["config"]["tasks"]:
-            raise RuntimeError(f"Task type {task_row.task_type} is unknown")
 
-    return list(avalon_rows.values())
+
+def _find_tasks(
+    rows: List[IntermediateRow],
+) -> Dict[ObjectId, List[IntermediateTask]]:
+    tasks_hash = pipe(
+        rows,
+        where(lambda x: x.type == ShotgridType.TASK),
+        select(curry(cast)(IntermediateTask)),
+        lambda x: reduce(_reduce_found_tasks, x, dict()),
+    )
+    return tasks_hash
 
 
 def _get_parent(row: IntermediateRow) -> str:
@@ -116,17 +135,17 @@ def _get_parent(row: IntermediateRow) -> str:
 
 
 def _asset_rows(
-    intermediate_rows: List[IntermediateRow], project: Map
-) -> Iterator[Tuple[str, Map]]:
+    intermediate_rows: List[IntermediateRow],
+    project: Map,
+    tasks_hash: Dict[ObjectId, List[IntermediateTask]],
+) -> Iterator[Map]:
 
     aka_asset_types = ShotgridType.middle_types()
     asset_rows = [x for x in intermediate_rows if x.type in aka_asset_types]
 
-    for intermediate_row in asset_rows:
-        yield (
-            intermediate_row.id,
-            _create_avalon_asset_row(intermediate_row, project),
-        )
+    for row in asset_rows:
+        tasks = tasks_hash.get(row.object_id, [])
+        yield _create_avalon_asset_row(row, project, tasks)
 
 
 def _project_data(project: IntermediateProject) -> Map:
@@ -187,15 +206,15 @@ def _inputs(row: IntermediateRow) -> Map:
 
 
 def _create_avalon_asset_row(
-    intermediate_row: IntermediateRow, project: Dict[str, Any]
+    intermediate_row: IntermediateRow,
+    project: Dict[str, Any],
+    tasks: List[IntermediateTask],
 ) -> Map:
-    data = {
-        **intermediate_row.params.to_avalonish_dict(),
-        **_inputs(intermediate_row),
-        "tasks": dict(),
-        "parents": intermediate_row.parent.split(",")[2:-1],
-        "visualParent": intermediate_row.parent_id,
-    }
+    first_level_citizen = str(project["_id"]) != str(
+        intermediate_row.parent_id
+    )
+    tasks_hash = _create_task_rows(tasks)
+    data = _create_data_row(first_level_citizen, intermediate_row, tasks_hash)
     return {
         "_id": _try_fortify_object_id(intermediate_row.object_id),
         "type": AvalonType.ASSET.value,
@@ -204,3 +223,32 @@ def _create_avalon_asset_row(
         "schema": "openpype:project-3.0",  # TODO check it
         "parent": project["_id"],
     }
+
+
+def _create_data_row(
+    first_level_citizen: bool,
+    intermediate_row: IntermediateRow,
+    tasks: Map,
+) -> Map:
+    return {
+        **intermediate_row.params.to_avalonish_dict(),
+        **_inputs(intermediate_row),
+        "tasks": tasks,
+        "parents": intermediate_row.parent.split(",")[2:-1],
+        "visualParent": (
+            intermediate_row.parent_id if first_level_citizen else None
+        ),
+    }
+
+
+def _create_task_rows(tasks: List[IntermediateTask]) -> Map:
+    return reduce(
+        lambda acc, x: {
+            **acc,
+            x.id
+            if acc.get(x.id.split("_")[0])
+            else x.id.split("_")[0]: {"type": x.task_type},
+        },
+        tasks,
+        dict(),
+    )

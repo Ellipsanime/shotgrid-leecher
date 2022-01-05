@@ -146,6 +146,7 @@ INTERMEDIATE_DB_DATA = [
         "type": "Project",
         "code": "Project",
         "parent": None,
+        "parent_id": None,
         "object_id": to_object_id(111),
         "params": _PROJ_DATA.to_dict(),
     },
@@ -153,6 +154,7 @@ INTERMEDIATE_DB_DATA = [
         "_id": "Asset",
         "type": "Group",
         "parent": ",Project_564e3805,",
+        "parent_id": to_object_id(111),
         "object_id": to_object_id("Asset"),
         "params": _PROJ_DATA.to_dict(),
     },
@@ -161,6 +163,7 @@ INTERMEDIATE_DB_DATA = [
         "type": "Group",
         "parent": ",Project_564e3805,Asset,",
         "object_id": to_object_id("PRP"),
+        "parent_id": to_object_id("Asset"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
@@ -169,6 +172,7 @@ INTERMEDIATE_DB_DATA = [
         "type": "Asset",
         "parent": ",Project_564e3805,Asset,PRP,",
         "object_id": to_object_id(23549),
+        "parent_id": to_object_id("PRP"),
         "params": _PROJ_DATA.to_dict(),
     },
 ]

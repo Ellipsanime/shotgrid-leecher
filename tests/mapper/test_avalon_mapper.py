@@ -68,6 +68,7 @@ def _get_shot_group(project: IntermediateProject) -> IntermediateGroup:
         parent=f",{project.id},",
         params=_params(),
         object_id=to_object_id(ShotgridType.GROUP.value),
+        parent_id=to_object_id(project.src_id),
     )
 
 
@@ -104,6 +105,7 @@ def _get_prp_asset_with_tasks(
             parent=f"{asset[1].parent}{asset[1].id},",
             params=_params(),
             object_id=to_object_id(uuid.uuid4().int),
+            parent_id=asset[1].object_id,
         )
         for _ in range(task_num)
     ]
@@ -237,9 +239,7 @@ def test_shotgrid_to_avalon_assets_hierarchy():
     assert_that(actual[1]["parent"]).is_equal_to(project.object_id)
     assert_that(actual[2]["parent"]).is_equal_to(project.object_id)
     assert_that(actual[3]["parent"]).is_equal_to(project.object_id)
-    assert_that(actual[1]["data"]["visualParent"]).is_equal_to(
-        project.object_id
-    )
+    assert_that(actual[1]["data"]["visualParent"]).is_none()
     assert_that(actual[2]["data"]["visualParent"]).is_equal_to(
         asset_grp.object_id
     )
@@ -326,9 +326,8 @@ def test_shotgrid_to_avalon_shots_hierarchy():
     assert_that([k["parent"] for k in actual if "parent" in k]).contains_only(
         project.object_id
     )
-    assert_that(actual[1]["data"]["visualParent"]).is_equal_to(
-        project.object_id
-    )
+    assert_that(actual[0]["data"]["visualParent"]).is_none()
+    assert_that(actual[1]["data"]["visualParent"]).is_none()
     assert_that(actual[2]["data"]["visualParent"]).is_equal_to(
         shot_grp.object_id
     )
