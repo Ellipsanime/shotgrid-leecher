@@ -1,6 +1,7 @@
 ## Shotgrid Leecher change Log
 
 ### [0.0.7] Manage Assets without types
+#### Jan ?? - 2022
   - Attach asset without types to the project
 ### [0.0.6] Improve input links/linked assets
 #### Dec 17 - 2021
