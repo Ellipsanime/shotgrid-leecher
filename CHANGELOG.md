@@ -1,5 +1,7 @@
 ## Shotgrid Leecher change Log
 
+### [0.0.7] Manage Assets without types
+  - Attach asset without types to the project
 ### [0.0.6] Improve input links/linked assets
 #### Dec 17 - 2021
  - Make avalon object ids be unique and stable, based on shotgrid ids
