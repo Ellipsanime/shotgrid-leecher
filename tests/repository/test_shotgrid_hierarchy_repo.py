@@ -85,7 +85,7 @@ def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
 
 
 def _get_random_assets_with_tasks(
-    groups_n: int, num: int
+    groups_n: int, num: int, non_type_mod=10_000
 ) -> Tuple[List[ShotgridAsset], List[ShotgridTask]]:
     names = ["lines", "color", "look", "dev"]
     steps = ["modeling", "shading", "rigging"]
@@ -93,8 +93,10 @@ def _get_random_assets_with_tasks(
         {
             "type": "Asset",
             "code": f"Fork{n+1}",
-            "sg_asset_type": "".join(
-                (random.choice(ascii_uppercase) for _ in range(3))
+            "sg_asset_type": (
+                "".join((random.choice(ascii_uppercase) for _ in range(3)))
+                if n == 0 or (n % non_type_mod) != 0
+                else None
             ),
             "id": int(f"{n+1}1001"),
             "tasks": [
@@ -346,7 +348,7 @@ def test_random_assets_traversal_without_sg_type(
 ):
     # Arrange
     n_group = int(size / 10)
-    assets, tasks = _get_random_assets_with_tasks(n_group, size)
+    assets, tasks = _get_random_assets_with_tasks(n_group, size, 10)
     assets = [
         attr.evolve(x, asset_type=random.choice([None, x.asset_type]))
         for x in assets
@@ -364,6 +366,7 @@ def test_random_assets_traversal_without_sg_type(
     assert_that(actual).path_counts_types(
         f",{project.name},",
         group=1 if len([x for x in assets if x.asset_type]) else 0,
+        asset=len([x for x in assets if not x.asset_type]),
     )
     assert_that(actual).path_counts_types(
         f",{project.name},Asset,",

@@ -82,7 +82,7 @@ def path_counts_types(
 
     if len(actual_asset) != asset:
         return self.error(
-            f"Expected shot count {shot} is not "
+            f"Expected asset count {asset} is not "
             f"equal to actual {len(actual_asset)} in {actual_asset}"
         )
     if len(actual_shot) != shot:
