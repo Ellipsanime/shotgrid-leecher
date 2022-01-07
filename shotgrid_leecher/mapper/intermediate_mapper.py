@@ -3,7 +3,7 @@ from typing import Dict, Any, cast, List, Optional
 import attr
 import cattr
 from bson import ObjectId
-from toolz import curry
+from toolz import curry, memoize
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
@@ -20,6 +20,7 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProjectConfig,
     IntermediateProjectStep,
     IntermediateLinkedEntity,
+    IntermediateUser,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
@@ -31,7 +32,10 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridStep,
     ShotgridEntityToEntityLink,
 )
-from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.record.shotgrid_subtypes import (
+    ShotgridProject,
+    ShotgridUser,
+)
 from shotgrid_leecher.utils.collections import keep_keys
 from shotgrid_leecher.utils.functional import try_or
 from shotgrid_leecher.utils.ids import to_object_id
@@ -93,7 +97,7 @@ def to_row(
     }
     type_: Any = _TYPES_MAP[ShotgridType(raw_dic["type"])]
     keep = set(attr.fields_dict(type_).keys()).intersection(set(dic.keys()))
-    if "from_dict" in dir(type_):
+    if _has_from_dict(type_):
         return type_.from_dict(keep_keys(keep, dic))
     return type_(**keep_keys(keep, dic))
 
@@ -125,13 +129,16 @@ def to_task(
     parent_task_path: str,
     project_data: AvalonProjectData,
 ) -> IntermediateTask:
+
     return IntermediateTask(
         id=f"{task.content}_{task.id}",
         parent=parent_task_path,
         task_type=str(task.step_name()),
         src_id=task.id,
+        status=task.status,
         params=to_params(project_data),
         object_id=to_object_id(task.id),
+        assigned_users=_to_assigned_users(task.assigned_users),
     )
 
 
@@ -271,6 +278,15 @@ def to_project(
     )
 
 
+def _to_assigned_users(
+    users: List[ShotgridUser],
+) -> List[IntermediateUser]:
+    return [
+        IntermediateUser(x.id, to_object_id(x.id), x.type, x.name)
+        for x in users
+    ]
+
+
 def _get_parent_id(
     hash_table: Dict[str, IntermediateRow], x: IntermediateRow
 ) -> Optional[ObjectId]:
@@ -278,6 +294,11 @@ def _get_parent_id(
     if parent:
         return parent.object_id
     return None
+
+
+@memoize
+def _has_from_dict(type_: Any) -> bool:
+    return "from_dict" in dir(type_)
 
 
 def map_parent_ids(rows: List[IntermediateRow]) -> List[IntermediateRow]:

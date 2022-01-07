@@ -107,12 +107,51 @@ class IntermediateAsset(IntermediateRow):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class IntermediateUser:
+    src_id: int
+    object_id: ObjectId
+    type: str
+    name: str
+
+    def to_dict(self) -> Map:
+        base_dict = {
+            k: v for k, v in attr.asdict(self).items() if k != "object_id"
+        }
+        return {
+            **base_dict,
+            "_id": self.object_id,
+        }
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateUser":
+        type_ = IntermediateUser
+        dic = {
+            "object_id": to_object_id(raw_dic["src_id"]),
+            **raw_dic,
+        }
+        return type_(**dic)
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IntermediateTask(IntermediateRow):
     task_type: str
     src_id: int
+    status: str
     object_id: Optional[ObjectId]
+    assigned_users: List[IntermediateUser]
     parent_id: Optional[ObjectId] = None
     type = ShotgridType.TASK
+
+    @staticmethod
+    def from_dict(raw_dic: Map) -> "IntermediateTask":
+        type_ = IntermediateTask
+        dic = {
+            "object_id": to_object_id(raw_dic["src_id"]),
+            "status": "wtg",
+            "assigned_users": [],
+            **raw_dic,
+        }
+        return type_(**dic)
 
 
 @attr.s(auto_attribs=True, frozen=True)

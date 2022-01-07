@@ -37,6 +37,7 @@ SHOTGRID_DATA_ASSETS = [
         "tasks": [
             {
                 "id": _RAND(10 ** 2, 10 ** 10),
+                "sg_status_list": str(uuid.uuid4()),
                 "name": "look",
                 "type": "Task",
                 "step": {"name": "modeling"},
@@ -55,6 +56,7 @@ SHOTGRID_DATA_TASKS = [
         "id": _RAND(10 ** 2, 10 ** 10),
         "content": "look",
         "step": {"name": "modeling"},
+        "sg_status_list": str(uuid.uuid4()),
         ShotgridField.ENTITY.value: {
             "type": "Asset",
             "name": "Orphan",
@@ -65,6 +67,7 @@ SHOTGRID_DATA_TASKS = [
         "id": _RAND(10 ** 2, 10 ** 10),
         "content": "dev",
         "step": {"name": "rigging"},
+        "sg_status_list": str(uuid.uuid4()),
         ShotgridField.ENTITY.value: {
             "type": "Asset",
             "name": "Orphan",

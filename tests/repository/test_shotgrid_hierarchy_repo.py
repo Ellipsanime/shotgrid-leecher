@@ -64,6 +64,7 @@ def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
             "id": uuid.uuid4().int,
             "content": str(uuid.uuid4()),
             "name": str(uuid.uuid4()),
+            "sg_status_list": "some",
             "step": (
                 {"name": str(uuid.uuid4()), "id": -1}
                 if _RAND(1, 10) % 2 == 0
@@ -104,6 +105,7 @@ def _get_random_assets_with_tasks(
                     "id": uuid.uuid4().int,
                     "name": str(uuid.uuid4()),
                     "type": "Task",
+                    "sg_status_list": "some",
                     "content": random.choice(names),
                     "step": {"name": random.choice(steps), "id": -1},
                     "entity": {
@@ -145,6 +147,7 @@ def _get_shut_tasks(shots: List[ShotgridShot], num: int) -> List[ShotgridTask]:
                 "id": uuid.uuid4().int,
                 "content": random.choice(names),
                 "name": str(uuid.uuid4()),
+                "sg_status_list": "some",
                 "step": {"name": random.choice(steps), "id": -1},
                 "entity": {
                     "type": "Shot",

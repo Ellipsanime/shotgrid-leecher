@@ -95,7 +95,10 @@ def test_to_shotgrid_shot():
 def test_to_shotgrid_task():
     # Arrange
     mapping = _randomize_mapping(_TASK_MAPPING, TaskFieldsMapping.from_dict)
-    data = {k: str(uuid.uuid4()) for k in mapping.mapping_values()}
+    data = {
+        **{k: str(uuid.uuid4()) for k in mapping.mapping_values()},
+        "task_assignees": [],
+    }
     # Act
     actual: ShotgridTask = entity_mapper.to_shotgrid_task(mapping, data)
     # Assert
