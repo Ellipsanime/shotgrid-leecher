@@ -163,7 +163,7 @@ def to_shotgrid_task(
     task = ShotgridTask(
         id=data[ShotgridField.ID.value],
         content=data[ShotgridField.CONTENT.value],
-        status=data[ShotgridField.TASK_STATUS.value],
+        status=data.get(ShotgridField.TASK_STATUS.value, ""),
         assigned_users=_to_task_users(data),
         entity=entity,
         step=None,

@@ -91,7 +91,7 @@ def _batch_and_log(_: Any) -> None:
             time.time() - start,
             {
                 "exception": try_or(lambda x: x[0], ex.args, ex.args),
-                "traceback": str(ex_traceback),
+                "traceback": traceback.format_tb(ex_traceback, 100),
             },
             datetime.now(),
         )
