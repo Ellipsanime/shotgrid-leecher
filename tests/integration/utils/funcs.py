@@ -55,6 +55,15 @@ def batch_config(overwrite=True) -> BatchConfig:
     )
 
 
+def all_avalon_by_type(client: MongoClient, type_: str) -> List[Map]:
+    col = client.get_database(DbName.AVALON.value).list_collection_names()[0]
+    return list(
+        client.get_database(DbName.AVALON.value)
+        .get_collection(col)
+        .find({"type": type_})
+    )
+
+
 def avalon_collections(client: MongoClient) -> List[str]:
     return client.get_database(DbName.AVALON.value).list_collection_names()
 

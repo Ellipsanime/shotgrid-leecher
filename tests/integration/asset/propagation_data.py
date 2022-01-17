@@ -77,6 +77,7 @@ SHOTGRID_DATA_ASSETS = [
                     "name": "Fork1",
                     "id": 11001,
                 },
+                "sg_status_list": str(uuid.uuid4()),
             },
         ],
     }
@@ -107,6 +108,7 @@ SHOTGRID_DATA_TASKS = [
             "name": "SHOT10",
             "id": 110,
         },
+        "sg_status_list": str(uuid.uuid4()),
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
@@ -117,6 +119,7 @@ SHOTGRID_DATA_TASKS = [
             "name": "SHOT10",
             "id": 110,
         },
+        "sg_status_list": str(uuid.uuid4()),
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
@@ -127,6 +130,7 @@ SHOTGRID_DATA_TASKS = [
             "name": "SHOT10",
             "id": 110,
         },
+        "sg_status_list": str(uuid.uuid4()),
     },
 ]
 SHOTGRID_ASSET_TO_ASSET_LINKS = []

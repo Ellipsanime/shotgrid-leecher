@@ -41,6 +41,7 @@ SHOTGRID_DATA_ASSETS = [
                 "name": "look",
                 "type": "Task",
                 "step": {"name": "modeling"},
+                "sg_status_list": str(uuid.uuid4()),
                 ShotgridField.ENTITY.value: {
                     "type": "Asset",
                     "name": "Fork1",
@@ -50,6 +51,7 @@ SHOTGRID_DATA_ASSETS = [
             {
                 "id": _RAND(10 ** 2, 10 ** 10),
                 "name": "dev",
+                "sg_status_list": str(uuid.uuid4()),
                 "type": "Task",
                 "step": {"name": "rigging"},
                 ShotgridField.ENTITY.value: {
@@ -180,6 +182,7 @@ SHOTGRID_DATA_SHOTS = [
 SHOTGRID_DATA_TASKS = [
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "color",
         "step": {"name": "render"},
         ShotgridField.ENTITY.value: {
@@ -190,6 +193,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "dev",
         "step": {"name": "layout"},
         ShotgridField.ENTITY.value: {
@@ -200,6 +204,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "color",
         "step": {"name": "layout"},
         ShotgridField.ENTITY.value: {
@@ -210,6 +215,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "look",
         "step": {"name": "layout"},
         ShotgridField.ENTITY.value: {
@@ -220,6 +226,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "lines",
         "step": {"name": "layout"},
         ShotgridField.ENTITY.value: {
@@ -230,6 +237,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "look",
         "step": {"name": "render"},
         ShotgridField.ENTITY.value: {
@@ -240,6 +248,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "look",
         "step": {"name": "layout"},
         ShotgridField.ENTITY.value: {
@@ -250,6 +259,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "look",
         "step": {"name": "animation"},
         ShotgridField.ENTITY.value: {
@@ -260,6 +270,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "color",
         "step": {"name": "layout"},
         ShotgridField.ENTITY.value: {
@@ -270,6 +281,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "dev",
         "step": {"name": "animation"},
         ShotgridField.ENTITY.value: {
@@ -280,6 +292,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "dev",
         "step": {"name": "render"},
         ShotgridField.ENTITY.value: {
@@ -290,6 +303,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "look",
         "step": {"name": "render"},
         ShotgridField.ENTITY.value: {
@@ -300,6 +314,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "look",
         "step": {"name": "modeling"},
         ShotgridField.ENTITY.value: {
@@ -310,6 +325,7 @@ SHOTGRID_DATA_TASKS = [
     },
     {
         "id": _RAND(10 ** 2, 10 ** 10),
+        "sg_status_list": str(uuid.uuid4()),
         "content": "dev",
         "step": {"name": "rigging"},
         ShotgridField.ENTITY.value: {

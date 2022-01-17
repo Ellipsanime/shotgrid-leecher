@@ -26,6 +26,7 @@ from shotgrid_leecher.record.queries import (
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
     ShotgridEntityToEntityLink,
+    ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
@@ -166,23 +167,36 @@ def _tackle_partial_shots(
 def _fetch_project_assets(
     query: ShotgridFindAssetsByProjectQuery,
 ) -> Iterator[IntermediateRow]:
-    # TODO: Fields should be configurable
-    project = query.project
-    assets = [
-        x for x in entity_repo.find_assets_for_project(query) if x.asset_type
-    ]
+    raw_assets = entity_repo.find_assets_for_project(query)
+    yield from _fetch_untyped_project_assets(query, raw_assets)
+    yield from _fetch_typed_project_assets(query, raw_assets)
+
+
+def _fetch_untyped_project_assets(
+    query: ShotgridFindAssetsByProjectQuery,
+    raw_assets: List[ShotgridAsset],
+) -> Iterator[IntermediateRow]:
+    assets = [x for x in raw_assets if not x.asset_type]
+    for asset in assets:
+        parent_path = f",{query.project.name},"
+        yield mapper.to_asset(asset, parent_path, query.project_data)
+
+
+def _fetch_typed_project_assets(
+    query: ShotgridFindAssetsByProjectQuery,
+    raw_assets: List[ShotgridAsset],
+) -> Iterator[IntermediateRow]:
+    assets = [x for x in raw_assets if x.asset_type]
     archetype = ShotgridType.ASSET.value
-
     if assets:
-        yield mapper.to_top_asset(project, query.project_data)
-
+        yield mapper.to_top_asset(query.project, query.project_data)
     for g, g_assets in groupby(lambda x: x.asset_type, assets).items():
         yield mapper.to_asset_group(
-            g_assets[0].asset_type, project, query.project_data
+            g_assets[0].asset_type, query.project, query.project_data
         )
         for asset in g_assets:
             asset_type = asset.asset_type
-            parent_path = f",{project.name},{archetype},{asset_type},"
+            parent_path = f",{query.project.name},{archetype},{asset_type},"
             yield mapper.to_asset(asset, parent_path, query.project_data)
 
 

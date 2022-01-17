@@ -164,6 +164,7 @@ def test_find_tasks_for_project(monkeypatch: MonkeyPatch):
             "id": uuid.uuid4().int,
             "name": str(uuid.uuid4()),
             "content": str(uuid.uuid4()),
+            "sg_status_list": str(uuid.uuid4()),
             "entity": {"name": str(uuid.uuid4()), "id": -1},
         }
     ]

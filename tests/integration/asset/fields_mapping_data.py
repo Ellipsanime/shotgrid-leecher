@@ -66,6 +66,7 @@ SHOTGRID_DATA_ASSETS = [
                 "name": "look",
                 "type": "Task",
                 FIELD_TASK_STEP: {"name": "modeling"},
+                "sg_status_list": str(uuid.uuid4()),
                 FIELD_TASK_ENTITY: {
                     "type": "Asset",
                     "name": "Fork1",
@@ -77,6 +78,7 @@ SHOTGRID_DATA_ASSETS = [
                 "name": "dev",
                 "type": "Task",
                 FIELD_TASK_STEP: {"name": "rigging"},
+                "sg_status_list": str(uuid.uuid4()),
                 FIELD_TASK_ENTITY: {
                     "type": "Asset",
                     "name": "Fork1",
@@ -165,6 +167,7 @@ SHOTGRID_DATA_TASKS = [
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "color",
         FIELD_TASK_STEP: {"name": "render"},
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_ENTITY: {
             "type": "Shot",
             "name": "SHOT10",
@@ -175,6 +178,7 @@ SHOTGRID_DATA_TASKS = [
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "dev",
         FIELD_TASK_STEP: {"name": "layout"},
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_ENTITY: {
             "type": "Shot",
             "name": "SHOT10",
@@ -185,6 +189,7 @@ SHOTGRID_DATA_TASKS = [
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "color",
         FIELD_TASK_STEP: {"name": "layout"},
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_ENTITY: {
             "type": "Shot",
             "name": "SHOT11",
@@ -195,6 +200,7 @@ SHOTGRID_DATA_TASKS = [
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "look",
         FIELD_TASK_STEP: {"name": "layout"},
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_ENTITY: {
             "type": "Shot",
             "name": "SHOT11",
@@ -204,6 +210,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "lines",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "layout"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -214,6 +221,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "look",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "render"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -224,6 +232,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "look",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "layout"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -234,6 +243,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "look",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "animation"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -244,6 +254,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "color",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "layout"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -254,6 +265,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "dev",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "animation"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -264,6 +276,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "dev",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "render"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -274,6 +287,7 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "look",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "render"},
         FIELD_TASK_ENTITY: {
             "type": "Shot",
@@ -284,12 +298,14 @@ SHOTGRID_DATA_TASKS = [
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "look",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "modeling"},
         FIELD_TASK_ENTITY: {"type": "Asset", "name": "Fork1", "id": 11001},
     },
     {
         FIELD_TASK_ID: _RAND(10 ** 2, 10 ** 10),
         "content": "dev",
+        "sg_status_list": str(uuid.uuid4()),
         FIELD_TASK_STEP: {"name": "rigging"},
         FIELD_TASK_ENTITY: {"type": "Asset", "name": "Fork1", "id": 11001},
     },

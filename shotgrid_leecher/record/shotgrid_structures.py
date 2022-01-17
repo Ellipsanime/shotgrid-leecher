@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any, Iterator
 
 import attr
 
+from shotgrid_leecher.record.shotgrid_subtypes import ShotgridUser
 from shotgrid_leecher.utils.strings import format_path
 
 
@@ -134,7 +135,9 @@ class ShotgridStep(ShotgridEntity):
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridTask(ShotgridEntity):
     content: str
+    status: str
     entity: ShotgridTaskEntity
+    assigned_users: List[ShotgridUser]
     step: Optional[ShotgridTaskStep]
 
     def step_name(self) -> Optional[str]:

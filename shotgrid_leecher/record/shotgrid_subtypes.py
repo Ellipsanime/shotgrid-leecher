@@ -96,12 +96,16 @@ class TaskFieldsMapping(GenericFieldsMapping):
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "TaskFieldsMapping":
+        status = ShotgridField.TASK_STATUS
+        assignees = ShotgridField.TASK_ASSIGNEES
         return TaskFieldsMapping(
             {
                 ShotgridField.CONTENT.value: ShotgridField.CONTENT.value,
                 ShotgridField.ID.value: ShotgridField.ID.value,
                 ShotgridField.STEP.value: ShotgridField.STEP.value,
                 ShotgridField.ENTITY.value: ShotgridField.ENTITY.value,
+                status.value: status.value,
+                assignees.value: assignees.value,
                 **dic,
             }
         )

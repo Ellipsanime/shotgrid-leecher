@@ -72,6 +72,7 @@ SHOTGRID_DATA_ASSETS = [
                 "name": "look",
                 "type": "Task",
                 "step": {"name": "modeling"},
+                "sg_status_list": str(uuid.uuid4()),
                 ShotgridField.ENTITY.value: {
                     "type": "Asset",
                     "name": "Fork1",
@@ -114,6 +115,7 @@ SHOTGRID_DATA_TASKS = [
         "id": _RAND(10 ** 2, 10 ** 10),
         "content": "color",
         "step": {"name": "render"},
+        "sg_status_list": str(uuid.uuid4()),
         ShotgridField.ENTITY.value: {
             "type": "Shot",
             "name": "SHOT10",
@@ -124,6 +126,7 @@ SHOTGRID_DATA_TASKS = [
         "id": _RAND(10 ** 2, 10 ** 10),
         "content": "dev",
         "step": {"name": "layout"},
+        "sg_status_list": str(uuid.uuid4()),
         ShotgridField.ENTITY.value: {
             "type": "Shot",
             "name": "SHOT10",
@@ -134,6 +137,7 @@ SHOTGRID_DATA_TASKS = [
         "id": _RAND(10 ** 2, 10 ** 10),
         "content": "rig",
         "step": {"name": "layout"},
+        "sg_status_list": str(uuid.uuid4()),
         ShotgridField.ENTITY.value: {
             "type": "Shot",
             "name": "SHOT10",

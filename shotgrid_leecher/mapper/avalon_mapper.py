@@ -245,10 +245,18 @@ def _create_task_rows(tasks: List[IntermediateTask]) -> Map:
     return reduce(
         lambda acc, x: {
             **acc,
-            x.id
-            if acc.get(x.id.split("_")[0])
-            else x.id.split("_")[0]: {"type": x.task_type},
+            _unify_task_id(acc, x): {
+                "type": x.task_type,
+                "status": x.status,
+                "assigned_users": [{"name": y.name} for y in x.assigned_users],
+            },
         },
         tasks,
         dict(),
     )
+
+
+def _unify_task_id(acc: Map, x: IntermediateTask) -> str:
+    if acc.get(x.id.split("_")[0]):
+        return x.id
+    return x.id.split("_")[0]

@@ -21,7 +21,7 @@ from shotgrid_leecher.mapper.entity_mapper import (
     to_shotgrid_asset,
 )
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
-from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridCredentials,
@@ -64,6 +64,7 @@ def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
             "id": uuid.uuid4().int,
             "content": str(uuid.uuid4()),
             "name": str(uuid.uuid4()),
+            "sg_status_list": "some",
             "step": (
                 {"name": str(uuid.uuid4()), "id": -1}
                 if _RAND(1, 10) % 2 == 0
@@ -85,7 +86,7 @@ def _get_random_broken_tasks(num: int) -> List[ShotgridTask]:
 
 
 def _get_random_assets_with_tasks(
-    groups_n: int, num: int
+    groups_n: int, num: int, non_type_mod=10_000
 ) -> Tuple[List[ShotgridAsset], List[ShotgridTask]]:
     names = ["lines", "color", "look", "dev"]
     steps = ["modeling", "shading", "rigging"]
@@ -93,8 +94,10 @@ def _get_random_assets_with_tasks(
         {
             "type": "Asset",
             "code": f"Fork{n+1}",
-            "sg_asset_type": "".join(
-                (random.choice(ascii_uppercase) for _ in range(3))
+            "sg_asset_type": (
+                "".join((random.choice(ascii_uppercase) for _ in range(3)))
+                if n == 0 or (n % non_type_mod) != 0
+                else None
             ),
             "id": int(f"{n+1}1001"),
             "tasks": [
@@ -102,6 +105,10 @@ def _get_random_assets_with_tasks(
                     "id": uuid.uuid4().int,
                     "name": str(uuid.uuid4()),
                     "type": "Task",
+                    ShotgridField.TASK_STATUS.value: str(uuid.uuid4()),
+                    ShotgridField.TASK_ASSIGNEES.value: [
+                        {"name": str(uuid.uuid4()), "id": 1, "type": "user"}
+                    ],
                     "content": random.choice(names),
                     "step": {"name": random.choice(steps), "id": -1},
                     "entity": {
@@ -143,6 +150,10 @@ def _get_shut_tasks(shots: List[ShotgridShot], num: int) -> List[ShotgridTask]:
                 "id": uuid.uuid4().int,
                 "content": random.choice(names),
                 "name": str(uuid.uuid4()),
+                ShotgridField.TASK_STATUS.value: str(uuid.uuid4()),
+                ShotgridField.TASK_ASSIGNEES.value: [
+                    {"name": str(uuid.uuid4()), "id": 1, "type": "user"}
+                ],
                 "step": {"name": random.choice(steps), "id": -1},
                 "entity": {
                     "type": "Shot",
@@ -346,7 +357,7 @@ def test_random_assets_traversal_without_sg_type(
 ):
     # Arrange
     n_group = int(size / 10)
-    assets, tasks = _get_random_assets_with_tasks(n_group, size)
+    assets, tasks = _get_random_assets_with_tasks(n_group, size, 10)
     assets = [
         attr.evolve(x, asset_type=random.choice([None, x.asset_type]))
         for x in assets
@@ -364,6 +375,7 @@ def test_random_assets_traversal_without_sg_type(
     assert_that(actual).path_counts_types(
         f",{project.name},",
         group=1 if len([x for x in assets if x.asset_type]) else 0,
+        asset=len([x for x in assets if not x.asset_type]),
     )
     assert_that(actual).path_counts_types(
         f",{project.name},Asset,",
@@ -440,6 +452,37 @@ def test_random_complete_traversal(monkeypatch: MonkeyPatch, size: int):
         f",{project.name},Shot,*",
         count=len(shot_tasks),
     )
+
+
+@pytest.mark.parametrize(
+    "size",
+    list([_RAND(10, 25), _RAND(25, 55), _RAND(56, 100)]),
+)
+def test_tasks_status_and_assigned_users(monkeypatch: MonkeyPatch, size: int):
+    # Arrange
+    n_group = int(size / 10)
+    shots = [
+        *_get_full_shots(1, 1, size, 1),
+        *_get_full_shots(1, 11, size, 1),
+        *_get_full_shots(2, 2, size, 2),
+    ]
+    shot_tasks = _get_shut_tasks(shots, size)
+    assets, asset_tasks = _get_random_assets_with_tasks(n_group, size)
+    tasks = shot_tasks + asset_tasks
+    project_id = random.randint(10, 1000)
+    project = _get_project(project_id)
+    _patch_repo(monkeypatch, project, assets, shots, tasks)
+    # Act
+    actual = sut.get_hierarchy_by_project(_to_query(project_id))
+    # Assert
+    assert_that(actual).extracting(
+        "status",
+        filter=lambda x: x.type == ShotgridType.TASK and x.status,
+    ).is_length(len(tasks))
+    assert_that(actual).extracting(
+        "assigned_users",
+        filter=lambda x: x.type == ShotgridType.TASK and x.assigned_users,
+    ).is_length(len(tasks))
 
 
 @pytest.mark.parametrize(

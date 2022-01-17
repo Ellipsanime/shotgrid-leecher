@@ -16,6 +16,7 @@ from asset import (
     update_values_data,
     update_asset_data,
     delete_asset_data,
+    assets_without_types_data,
 )
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.mapper import intermediate_mapper
@@ -36,6 +37,8 @@ from utils.funcs import (
     all_intermediate,
     populate_db,
     params,
+    sg_query,
+    all_avalon_by_type,
 )
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -151,6 +154,42 @@ def _create_avalon_project_row(project_name: str, id_: ObjectId) -> Map:
         },
         "data": {},
     }
+
+
+@pytest.mark.asyncio
+async def test_batch_assets_without_types(monkeypatch: MonkeyPatch):
+    # Arrange
+    project_id = assets_without_types_data.PROJECT_ID
+    client = MongoClient()
+    sg_client = Mock()
+    sg_client.find = sg_query(assets_without_types_data)
+    sg_client.find_one = sg_query(assets_without_types_data)
+    project_obj_id = to_object_id(
+        assets_without_types_data.SHOTGRID_DATA_PROJECT[0]["id"]
+    )
+    project = AvalonProject(
+        str(project_obj_id),
+        project_id,
+        AvalonProjectData(),
+        dict(),
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
+    monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
+    # Act
+    await batch_controller.batch_update(project_id, batch_config())
+
+    # Assert
+    assert_that(all_avalon_by_type(client, "asset")).is_length(1)
+    assert_that(all_avalon_by_type(client, "asset")).extracting(
+        "data"
+    ).extracting("visualParent").is_equal_to([None])
+    assert_that(all_avalon_by_type(client, "asset")).extracting(
+        "data"
+    ).extracting("tasks").is_not_empty()
+    assert_that(all_avalon_by_type(client, "asset")).extracting(
+        "parent"
+    ).is_equal_to([project_obj_id])
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional, Callable, TypeVar
+from typing import Dict, Any, Optional, Callable, TypeVar, List
 
 import attr
 from toolz import curry, get_in
@@ -27,6 +27,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotToShotLinkMapping,
     AssetToShotLinkMapping,
     AssetToAssetLinkMapping,
+    ShotgridUser,
 )
 from shotgrid_leecher.utils.collections import swap_mapping_keys_values
 
@@ -57,7 +58,7 @@ def to_shotgrid_asset(
         id=data[ShotgridField.ID.value],
         type=data.get(ShotgridField.TYPE.value, ShotgridType.ASSET.value),
         code=data[ShotgridField.CODE.value],
-        asset_type=data[ShotgridField.ASSET_TYPE.value],
+        asset_type=data.get(ShotgridField.ASSET_TYPE.value, None),
         tasks=tasks,
     )
 
@@ -162,6 +163,8 @@ def to_shotgrid_task(
     task = ShotgridTask(
         id=data[ShotgridField.ID.value],
         content=data[ShotgridField.CONTENT.value],
+        status=data[ShotgridField.TASK_STATUS.value],
+        assigned_users=_to_task_users(data),
         entity=entity,
         step=None,
     )
@@ -194,6 +197,13 @@ def _to_asset_task(
         name=data[ShotgridField.NAME.value],
         type=data[ShotgridField.TYPE.value],
     )
+
+
+def _to_task_users(data: Map) -> List[ShotgridUser]:
+    ctor = ShotgridUser
+    return [
+        ctor(**x) for x in data.get(ShotgridField.TASK_ASSIGNEES.value, [])
+    ]
 
 
 def _to_shot_params(data: Map) -> Optional[ShotgridShotParams]:

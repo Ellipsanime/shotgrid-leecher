@@ -114,6 +114,8 @@ class ShotgridField(Enum):
     CODE = "code"
     TYPE = "type"
     TASKS = "tasks"
+    TASK_STATUS = "sg_status_list"
+    TASK_ASSIGNEES = "task_assignees"
     ASSET_TYPE = "asset_type"
     SHORT_NAME = "short_name"
     ASSETS = "assets"

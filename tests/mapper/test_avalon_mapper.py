@@ -106,6 +106,8 @@ def _get_prp_asset_with_tasks(
             params=_params(),
             object_id=to_object_id(uuid.uuid4().int),
             parent_id=asset[1].object_id,
+            status=str(uuid.uuid4()),
+            assigned_users=[],
         )
         for _ in range(task_num)
     ]

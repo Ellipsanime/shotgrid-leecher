@@ -20,18 +20,10 @@ from utils.funcs import (
     sg_query,
     batch_config,
     fun,
+    all_avalon_by_type,
 )
 
 Map = Dict[str, Any]
-
-
-def _all_avalon_by_type(client: MongoClient, type_: str) -> List[Map]:
-    col = client.get_database(DbName.AVALON.value).list_collection_names()[0]
-    return list(
-        client.get_database(DbName.AVALON.value)
-        .get_collection(col)
-        .find({"type": type_})
-    )
 
 
 def _all_intermediate_by_type(
@@ -139,7 +131,7 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
     await batch_controller.batch_update(project_id, batch_config())
 
     # Assert
-    assert_that(_all_avalon_by_type(client, "asset")).extracting(
+    assert_that(all_avalon_by_type(client, "asset")).extracting(
         "data", filter=lambda x: (x["data"].get("clipIn") or 0) > 10
     ).extracting("clipIn").is_equal_to(
         [
@@ -148,7 +140,7 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
             if "sg_cut_in" in x and x["sg_cut_in"]
         ],
     )
-    assert_that(_all_avalon_by_type(client, "asset")).extracting(
+    assert_that(all_avalon_by_type(client, "asset")).extracting(
         "data", filter=lambda x: (x["data"].get("clipOut") or 0) > 10
     ).extracting("clipOut").is_equal_to(
         [
