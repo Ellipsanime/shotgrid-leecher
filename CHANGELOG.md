@@ -1,8 +1,9 @@
 ## Shotgrid Leecher change Log
 
-### [0.0.7] Manage Assets without types
-#### Jan ?? - 2022
-  - Attach asset without types to the project
+### [0.0.7] Manage Assets without type
+#### Jan 17 - 2022
+  - Attach untyped assets to the project root
+  - Add assigned users and status fields to the avalon tasks
 ### [0.0.6] Improve input links/linked assets
 #### Dec 17 - 2021
  - Make avalon object ids be unique and stable, based on shotgrid ids
