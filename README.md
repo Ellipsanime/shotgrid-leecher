@@ -42,4 +42,20 @@ Here **MONGODB_URL** points to the OpenPype database instance and **PORT** speci
 
 ### Docker Swarm mode cluster with Traefik and HTTPS
 
- - **TODO**
+You might need to install a local docker (registry)[https://hub.docker.com/_/registry] or utilize any centrilized registry prior to any service deployment operation within your swarm.
+Step zero is to build the image as followed:
+```bash
+docker build . -t leecher --no-cache
+```
+
+Once your image ready and you opt for a local registry you will need to tag and redeploy the image:
+```bash
+docker tag shotgrid-leecher localhost:5000/shotgrid-leecher
+docker push localhost:5000/shotgrid-leecher
+```
+
+Then in order to deploy leecher service as a part of docker swarm stack it's preferable to use an `.env` file.
+The deployment command can be as followed:
+```bash
+env $(cat .env | grep "^[A-Z]" | xargs) docker stack deploy --compose-file docker-compose.yml shotgrid-leecher
+```
