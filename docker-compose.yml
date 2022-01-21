@@ -2,10 +2,6 @@ version: "3.8"
 services:
   leecher:
     image: localhost:5000/shotgrid-leecher_v0.0.7
-    networks:
-      net:
-        aliases:
-          - leecher
     environment:
       MONGODB_URL: ${MONGODB_URL}
       MODULE_NAME: shotgrid_leecher.main
@@ -18,6 +14,6 @@ services:
         constraints: [node.hostname == swarm-worker1]
       mode: 'replicated'
       replicas: 1
-networks:
-  net:
-    driver: overlay
+    dns:
+      - 8.8.8.8
+      - 9.9.9.9

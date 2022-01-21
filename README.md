@@ -57,5 +57,5 @@ docker push localhost:5000/shotgrid-leecher
 Then in order to deploy leecher service as a part of docker swarm stack it's preferable to use an `.env` file.
 The deployment command can be as followed:
 ```bash
-env $(cat .env | grep "^[A-Z]" | xargs) docker stack deploy --compose-file docker-compose.yml shotgrid-leecher
+env $(cat .env | grep "^[A-Z]" | xargs) docker stack deploy --compose-file docker-compose.yml shotgrid-leecher --resolve-image=never
 ```
