@@ -1,8 +1,8 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
+FROM flyingjoe/uvicorn-gunicorn-fastapi:python3.7
 
 ENV MODULE_NAME="shotgrid_leecher.main"
 
-RUN apt-get update && apt-get install -y --no-install-recommends iputils-ping
+RUN apt-get update && apt-get install -y --no-install-recommends iputils-ping git
 
 COPY ./requirements.txt /app/
 COPY ./shotgrid_leecher /app/shotgrid_leecher

@@ -22,13 +22,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry
+        pip install pytest
         pip install mypy
-        poetry config virtualenvs.create false
-        python -m poetry install
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
     - name: Test with pytest
       run: |
-        poetry run pytest
+        pytest .
     - name: Static type checking with MyPy
       run: |
-        poetry run mypy -p shotgrid_leecher --namespace-packages
+        mypy -p shotgrid_leecher --namespace-packages
