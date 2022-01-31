@@ -49,6 +49,7 @@ class IntermediateRow:
     src_id: Optional[int] = attr.attrib(None, init=False)
     code: Optional[str] = attr.attrib(None, init=False)
     type: ShotgridType = attr.attrib(init=False)
+    status: Optional[str] = attr.attrib(None, init=False)
 
     def has_field(self, field: str):
         return field in attr.asdict(self, recurse=False).keys()
@@ -92,6 +93,7 @@ class IntermediateAsset(IntermediateRow):
     src_id: int
     linked_entities: List[IntermediateLinkedEntity]
     object_id: Optional[ObjectId]
+    status: Optional[str] = None
     parent_id: Optional[ObjectId] = None
     type = ShotgridType.ASSET
 
@@ -136,9 +138,9 @@ class IntermediateUser:
 class IntermediateTask(IntermediateRow):
     task_type: str
     src_id: int
-    status: str
     object_id: Optional[ObjectId]
     assigned_users: List[IntermediateUser]
+    status: Optional[str] = None
     parent_id: Optional[ObjectId] = None
     type = ShotgridType.TASK
 
@@ -159,6 +161,7 @@ class IntermediateShot(IntermediateRow):
     src_id: int
     linked_entities: List[IntermediateLinkedEntity]
     object_id: Optional[ObjectId]
+    status: Optional[str] = None
     parent_id: Optional[ObjectId] = None
     type = ShotgridType.SHOT
 

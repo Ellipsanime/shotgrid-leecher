@@ -96,7 +96,7 @@ class TaskFieldsMapping(GenericFieldsMapping):
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "TaskFieldsMapping":
-        status = ShotgridField.TASK_STATUS
+        status = ShotgridField.SG_STATUS
         assignees = ShotgridField.TASK_ASSIGNEES
         return TaskFieldsMapping(
             {
@@ -117,6 +117,7 @@ class ShotFieldsMapping(GenericFieldsMapping):
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "ShotFieldsMapping":
+        status = ShotgridField.SG_STATUS.value
         return ShotFieldsMapping(
             {
                 ShotgridField.SEQUENCE.value: "sg_sequence",
@@ -135,6 +136,7 @@ class ShotFieldsMapping(GenericFieldsMapping):
                 ShotgridField.CODE.value: ShotgridField.CODE.value,
                 ShotgridField.ASSETS.value: ShotgridField.ASSETS.value,
                 ShotgridField.ID.value: ShotgridField.ID.value,
+                status: status,
                 **dic,
             }
         )
@@ -163,6 +165,7 @@ class AssetFieldsMapping(GenericFieldsMapping):
 
     @staticmethod
     def from_dict(dic: Dict[str, str]) -> "AssetFieldsMapping":
+        status = ShotgridField.SG_STATUS.value
         return AssetFieldsMapping(
             {
                 ShotgridField.ID.value: ShotgridField.ID.value,
@@ -171,6 +174,7 @@ class AssetFieldsMapping(GenericFieldsMapping):
                 ShotgridField.PARENTS.value: ShotgridField.PARENTS.value,
                 ShotgridField.ASSET_TYPE.value: "sg_asset_type",
                 ShotgridField.CODE.value: ShotgridField.CODE.value,
+                status: status,
                 **dic,
             }
         )

@@ -20,7 +20,16 @@ _I64 = compose(
 
 def test_to_shot_row_without_params():
     # Arrange
-    shot = ShotgridShot(_S(), _S(), uuid.uuid4().int, None, None, None, None)
+    shot = ShotgridShot(
+        _S(),
+        _S(),
+        uuid.uuid4().int,
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
     # Act
     actual = to_shot(shot, _S(), AvalonProjectData())
     # Assert
@@ -36,6 +45,7 @@ def test_to_shot_row_without_params():
             "object_id",
             "code",
             "linked_entities",
+            "status",
         }
     )
 
@@ -45,7 +55,16 @@ def test_to_shot_row_with_params():
     params = ShotgridShotParams(
         _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64()
     )
-    shot = ShotgridShot(_S(), _S(), uuid.uuid4().int, params, None, None, None)
+    shot = ShotgridShot(
+        _S(),
+        _S(),
+        uuid.uuid4().int,
+        params,
+        None,
+        None,
+        None,
+        status=str(uuid.uuid4()),
+    )
     project_data = AvalonProjectData()
     # Act
     actual = to_shot(shot, _S(), project_data)

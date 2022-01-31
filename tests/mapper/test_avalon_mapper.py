@@ -89,6 +89,7 @@ def _get_prp_assets(
             params=_params(),
             linked_entities=[],
             object_id=to_object_id("Fork"),
+            status=str(uuid.uuid4()),
         ),
     ]
 
@@ -132,6 +133,7 @@ def _get_ep_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             params=_params(),
             linked_entities=[],
             object_id=to_object_id(sh_name),
+            status=str(uuid.uuid4()),
         ),
     ]
 
@@ -154,6 +156,7 @@ def _get_seq_with_shot(parent: IntermediateRow) -> List[IntermediateRow]:
             params=_params(),
             linked_entities=[],
             object_id=to_object_id(sh_name),
+            status=str(uuid.uuid4()),
         ),
     ]
 

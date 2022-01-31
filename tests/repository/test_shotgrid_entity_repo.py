@@ -91,7 +91,7 @@ def test_find_assets_for_project(monkeypatch: MonkeyPatch):
     mapper = PropertyMock()
     p_id = uuid.uuid4().int
     project = ShotgridProject(p_id, str(uuid.uuid4()), str(uuid.uuid4()), "")
-    asset = ShotgridAsset(1, "", "", "", [])
+    asset = ShotgridAsset(1, "", "", "", [], str(uuid.uuid4()))
     raw_assets = [{str(uuid.uuid4()): uuid.uuid4().int}]
     client.find.return_value = raw_assets
     mapper.return_value = asset

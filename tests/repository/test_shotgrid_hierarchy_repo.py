@@ -105,7 +105,7 @@ def _get_random_assets_with_tasks(
                     "id": uuid.uuid4().int,
                     "name": str(uuid.uuid4()),
                     "type": "Task",
-                    ShotgridField.TASK_STATUS.value: str(uuid.uuid4()),
+                    ShotgridField.SG_STATUS.value: str(uuid.uuid4()),
                     ShotgridField.TASK_ASSIGNEES.value: [
                         {"name": str(uuid.uuid4()), "id": 1, "type": "user"}
                     ],
@@ -150,7 +150,7 @@ def _get_shut_tasks(shots: List[ShotgridShot], num: int) -> List[ShotgridTask]:
                 "id": uuid.uuid4().int,
                 "content": random.choice(names),
                 "name": str(uuid.uuid4()),
-                ShotgridField.TASK_STATUS.value: str(uuid.uuid4()),
+                ShotgridField.SG_STATUS.value: str(uuid.uuid4()),
                 ShotgridField.TASK_ASSIGNEES.value: [
                     {"name": str(uuid.uuid4()), "id": 1, "type": "user"}
                 ],

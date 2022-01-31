@@ -58,6 +58,7 @@ def to_shotgrid_asset(
         id=data[ShotgridField.ID.value],
         type=data.get(ShotgridField.TYPE.value, ShotgridType.ASSET.value),
         code=data[ShotgridField.CODE.value],
+        status=data.get(ShotgridField.SG_STATUS.value),
         asset_type=data.get(ShotgridField.ASSET_TYPE.value, None),
         tasks=tasks,
     )
@@ -126,6 +127,7 @@ def to_shotgrid_shot(
         params=_to_shot_params(data),
         code=data[ShotgridField.CODE.value],
         type=data.get(ShotgridField.TYPE.value, ShotgridType.SHOT.value),
+        status=data.get(ShotgridField.SG_STATUS.value),
         sequence=sequence,
         episode=episode,
         sequence_episode=sequence_episode,
@@ -163,7 +165,7 @@ def to_shotgrid_task(
     task = ShotgridTask(
         id=data[ShotgridField.ID.value],
         content=data[ShotgridField.CONTENT.value],
-        status=data.get(ShotgridField.TASK_STATUS.value, ""),
+        status=data.get(ShotgridField.SG_STATUS.value, ""),
         assigned_users=_to_task_users(data),
         entity=entity,
         step=None,

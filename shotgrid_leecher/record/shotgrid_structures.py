@@ -95,6 +95,7 @@ class ShotgridShot(ShotgridEntity):
     sequence: Optional[ShotgridShotSequence]
     episode: Optional[ShotgridShotEpisode]
     sequence_episode: Optional[ShotgridShotEpisode]
+    status: Optional[str] = None
 
     def has_params(self) -> bool:
         return self.params is not None and bool(
@@ -135,10 +136,10 @@ class ShotgridStep(ShotgridEntity):
 @attr.s(auto_attribs=True, frozen=True)
 class ShotgridTask(ShotgridEntity):
     content: str
-    status: str
     entity: ShotgridTaskEntity
     assigned_users: List[ShotgridUser]
     step: Optional[ShotgridTaskStep]
+    status: Optional[str] = None
 
     def step_name(self) -> Optional[str]:
         return self.step.name if self.step else None
@@ -154,6 +155,7 @@ class ShotgridAsset(ShotgridEntity):
     code: str
     asset_type: str
     tasks: List[ShotgridTask]
+    status: Optional[str] = None
 
     def copy_with_tasks(self, tasks: List[ShotgridTask]) -> "ShotgridAsset":
         return attr.evolve(self, **{"tasks": tasks})

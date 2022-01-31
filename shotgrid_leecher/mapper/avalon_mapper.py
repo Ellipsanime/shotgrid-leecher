@@ -233,6 +233,11 @@ def _create_data_row(
     return {
         **intermediate_row.params.to_avalonish_dict(),
         **_inputs(intermediate_row),
+        **(
+            {"status": intermediate_row.status}
+            if intermediate_row.status
+            else {}
+        ),
         "tasks": tasks,
         "parents": intermediate_row.parent.split(",")[2:-1],
         "visualParent": (

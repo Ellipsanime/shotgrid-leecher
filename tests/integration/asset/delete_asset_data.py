@@ -1,6 +1,5 @@
+import uuid
 from typing import Dict, Any
-
-from bson import ObjectId
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
@@ -154,6 +153,7 @@ SHOTGRID_DATA = [
         params=_PROJ_DATA,
         linked_entities=[],
         object_id=to_object_id(50711),
+        status=str(uuid.uuid4()),
     ),
 ]
 INTERMEDIATE_DB_DATA = [
