@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   leecher:
-    image: swarm-registry:5000/shotgrid-leecher_v0.0.7
+    image: swarm-registry:5000/shotgrid-leecher_v0.0.8
     environment:
       MONGODB_URL: ${MONGODB_URL}
       MODULE_NAME: shotgrid_leecher.main

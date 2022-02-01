@@ -1,5 +1,8 @@
 ## Shotgrid Leecher change Log
 
+### [0.0.8] Propagate shotgrid status to the avalon
+#### Jan 27 - 2022
+  - Propagate shotgrid status from assets and shots to the avalon assets
 ### [0.0.7] Manage Assets without type
 #### Jan 17 - 2022
   - Attach untyped assets to the project root
