@@ -85,35 +85,6 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
     db_writer.insert_avalon_rows(command.project_name, avalon_rows)
 
 
-def _get_hashes(
-    previous_hierarchy: List[IntermediateRow],
-) -> Tuple[Dict[int, IntermediateRow], Dict[str, IntermediateRow]]:
-    src_ids_hash = {
-        x.src_id: x
-        for x in previous_hierarchy
-        if x.has_field("src_id") and x.src_id
-    }
-    ids_hash = {x.id: x for x in previous_hierarchy if not x.src_id}
-    return src_ids_hash, ids_hash
-
-
-def _rearrange_parents(avalon_tree: Dict[str, Map], row: Map) -> Map:
-    return {
-        **row,
-        "parent": (
-            avalon_tree[row["parent"]]["_id"] if row.get("parent") else None
-        ),
-        "data": {
-            **row["data"],
-            "visualParent": (
-                avalon_tree[row["data"]["visualParent"]].get("_id")
-                if (row.get("data") or dict()).get("visualParent")
-                else None
-            ),
-        },
-    }
-
-
 @curry
 def _fetch_previous_hierarchy(
     project_name: str,
