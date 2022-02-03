@@ -1,0 +1,47 @@
+from datetime import datetime
+from typing import Union, List, Dict, Any
+
+import attr
+from toolz import pipe
+from toolz.curried import (
+    map as select,
+)
+
+from record.enums import EventTypes
+from record.new_asset_event import NewAssetEvent
+
+AnyEvent = Union[NewAssetEvent]
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class NewEventCommand:
+    id: str
+    event_type: EventTypes
+    event: AnyEvent
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "_id": f"{self.id}/{self.event_type}",
+            "event_type": self.event_type,
+            "event_data": self.event.to_dict(),
+            "datetime": datetime.utcnow().isoformat(),
+        }
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class NewEventsCommand:
+    event_type: EventTypes
+    events: List[AnyEvent]
+
+    def to_list(self) -> List[NewEventCommand]:
+        return pipe(
+            self.events,
+            select(
+                lambda x: NewEventCommand(
+                    x.get_unique_id(),
+                    self.event_type,
+                    x,
+                )
+            ),
+            list,
+        )
