@@ -1,42 +1,63 @@
 import {
-    Autocomplete,
     Box,
     Button,
     Checkbox,
+    FormControl,
     FormControlLabel,
     FormGroup,
+    InputLabel,
+    MenuItem,
+    Select,
+    Snackbar,
+    Stack,
     TextareaAutosize,
     TextField
 } from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
 import * as yup from "yup";
+import {ObjectSchema} from "yup";
 import {yupResolver} from '@hookform/resolvers/yup';
 import {Controller, SubmitHandler, useForm} from 'react-hook-form';
 import {pink} from "@mui/material/colors";
-
-const sgProjects: Array<{}> = []
+import React from "react";
+import {AlertColor} from "@mui/material/Alert/Alert";
 
 interface IBatchFormData {
-    openpypeProject: string
-    url: string
-    scriptName: string
-    apiKey: string
-    shotgridProjectId: number
-    overwrite: boolean
-    fieldsMapping?: string
+    openpypeProject: string;
+    urlProtocol: string;
+    urlPath: string;
+    scriptName: string;
+    apiKey: string;
+    shotgridProjectId: number;
+    overwrite: boolean;
+    fieldsMapping: string;
 }
 
-const batchSchema = yup.object().shape({
-    openpypeProject: yup.string().required(),
-    url: yup.string().url().required(),
+const urlPathRegexp = /(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gi
+
+const batchSchema: ObjectSchema<{}> = yup.object().shape({
+    openpypeProject: yup.string().min(3).required(),
+    urlProtocol: yup.string().default("http").required(),
+    urlPath: yup.string().matches(urlPathRegexp, "Should be a valid url path").required(),
     scriptName: yup.string().min(3).required(),
     apiKey: yup.string().min(3).required(),
     shotgridProjectId: yup.number().min(1).required(),
+    fieldsMapping: yup.string().nullable(),
 })
 
-const onSubmit: SubmitHandler<IBatchFormData> = (data) => console.log('data submitted: ', data);
-
 export default function BatchPanel() {
-    // const {project, url, scriptName, apiKey, overwrite, mappings} = this.state
+    const [bubble, setBubble] = React.useState(false);
+    const [severity, setSeverity] = React.useState<AlertColor>("success");
+    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setBubble(false);
+    };
+    const onSubmit: SubmitHandler<IBatchFormData> = (data) => {
+        console.log('data submitted: ', data);
+        setBubble(true);
+    }
     const {
         control,
         handleSubmit,
@@ -47,26 +68,42 @@ export default function BatchPanel() {
              sx={{'& .MuiTextField-root': {m: 1, width: '50ch'},}}
              noValidate
              autoComplete="off" onSubmit={handleSubmit(onSubmit)}>
-            {/*https://stackoverflow.com/questions/61655199/proper-way-to-use-react-hook-form-controller-with-material-ui-autocomplete*/}
-            <Controller control={control} name="openpypeProject"
-                render={({field}) => (
-                    <Autocomplete
-                        {...field}
-                        disablePortal
-                        options={sgProjects}
-                        renderInput={(params) => <TextField {...params}
-                                                            label="Openpype Project"
-                                                            error={!!errors.openpypeProject}
-                                                            helperText={errors?.openpypeProject?.message || ''}/>}
-                    />
-                )}/>
             <FormGroup>
-                <Controller control={control} name="url" render={({field}) => (
-                    <TextField {...field} label="Shotgrid url" type="search"
-                               error={!!errors.url}
-                               helperText={errors?.url?.message || ''}/>
-                )}
+                <Controller control={control} name="openpypeProject"
+                            render={({field}) => (
+                                <TextField {...field}
+                                           label="Openpype project name"
+                                           type="search"
+                                           error={!!errors.openpypeProject}
+                                           helperText={errors?.openpypeProject?.message || ''}/>
+                            )}
                 />
+            </FormGroup>
+
+            <FormGroup>
+                <Stack direction="row" spacing={2} sx={{width: '52ch'}}>
+                    <FormControl sx={{m: 1, width: '15ch'}}>
+                        <InputLabel id="protocol-label">Protocol</InputLabel>
+                        <Controller control={control} name="urlProtocol"
+                                    render={({field}) => (
+                                        <Select {...field} label="Protocol"
+                                                defaultValue={"http"}>
+                                            <MenuItem
+                                                value={"http"}>HTTP</MenuItem>
+                                            <MenuItem
+                                                value={"https"}>HTTPS</MenuItem>
+                                        </Select>
+                                    )}/>
+                    </FormControl>
+                    <Controller control={control} name="urlPath"
+                                render={({field}) => (
+                                    <TextField {...field} label="Shotgrid url"
+                                               type="search"
+                                               error={!!errors.urlPath}
+                                               helperText={errors?.urlPath?.message || ''}/>
+                                )}
+                    />
+                </Stack>
             </FormGroup>
             <FormGroup>
                 <Controller control={control} name="scriptName"
@@ -113,16 +150,20 @@ export default function BatchPanel() {
                 />
             </FormGroup>
             <FormGroup sx={{m: 1, width: '50ch'}}>
-                <TextareaAutosize
-                    aria-label="SG fields mapping"
-                    minRows={8}
-                    placeholder="Shotgrid fields mapping"
-                    style={{
-                        backgroundColor: "#111213",
-                        borderColor: "#5e636e",
-                        color: "#c2c9d6"
-                    }}
-                />
+                <Controller control={control} name="fieldsMapping"
+                            render={({field}) => (
+                                <TextareaAutosize
+                                    {...field}
+                                    aria-label="SG fields mapping"
+                                    minRows={8}
+                                    placeholder="Shotgrid fields mapping"
+                                    style={{
+                                        backgroundColor: "#111213",
+                                        borderColor: "#5e636e",
+                                        color: "#c2c9d6"
+                                    }}
+                                />
+                            )}/>
             </FormGroup>
 
             <Box sx={{
@@ -133,8 +174,16 @@ export default function BatchPanel() {
                 display: "flex"
             }}>
                 <Button variant="contained" type="submit"
-                        sx={{width: '20ch'}}>Batch</Button>
+                        sx={{width: '20ch', marginTop: 1}}>Batch</Button>
             </Box>
+            <Snackbar open={bubble} autoHideDuration={6000}
+                      anchorOrigin={{vertical: "top", horizontal: "center"}}
+                      onClose={handleClose}>
+                <MuiAlert onClose={handleClose} severity={severity}
+                          sx={{width: '100%'}} elevation={6} variant="filled">
+                    This is a success message!
+                </MuiAlert>
+            </Snackbar>
         </Box>
     )
 }
