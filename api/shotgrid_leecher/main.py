@@ -3,6 +3,7 @@ import os
 
 import uvicorn as uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.tasks import repeat_every
 
 import controller.batch_controller as batch
@@ -17,6 +18,29 @@ app = FastAPI(**PROJECT_META)
 app.include_router(batch.router)
 app.include_router(meta.router)
 app.include_router(schedule.router)
+
+origins = [
+    "http://localhost",
+    "http://localhost:8090",
+    "http://localhost:3000",
+    "http://127.0.0.1",
+    "http://127.0.0.1:8090",
+    "http://127.0.0.1:3000",
+    "http://rnd.ellipsanime.net/",
+    "http://rnd.ellipsanime.net:8090/",
+    "http://rnd.ellipsanime.net:3000/",
+    "http://35.181.15.175",
+    "http://35.181.15.175:8090",
+    "http://35.181.15.175:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 _LOG = get_logger(__name__.split(".")[-1])
 
@@ -43,7 +67,7 @@ async def clean_up_schedule() -> None:
 
 
 def start():
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("APP_PORT", 9001)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("APP_PORT", 8090)))
 
 
 if __name__ == "__main__":

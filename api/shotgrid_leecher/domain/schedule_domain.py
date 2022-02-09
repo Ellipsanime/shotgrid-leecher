@@ -4,7 +4,6 @@ import traceback
 from datetime import datetime
 from typing import Any, Dict
 
-from shotgrid_leecher.writers import schedule_writer as writer
 from starlette.concurrency import run_in_threadpool
 
 import repository.schedule_repo as schedule_repo
@@ -21,6 +20,7 @@ from repository import avalon_repo
 from utils.functional import try_or
 from utils.logger import get_logger
 from writers import schedule_writer
+from writers import schedule_writer as writer
 
 _LOG = get_logger(__name__.split(".")[-1])
 

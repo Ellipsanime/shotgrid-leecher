@@ -21,17 +21,8 @@ import {Controller, SubmitHandler, useForm} from 'react-hook-form';
 import {pink} from "@mui/material/colors";
 import React from "react";
 import {AlertColor} from "@mui/material/Alert/Alert";
-
-interface IBatchFormData {
-    openpypeProject: string;
-    urlProtocol: string;
-    urlPath: string;
-    scriptName: string;
-    apiKey: string;
-    shotgridProjectId: number;
-    overwrite: boolean;
-    fieldsMapping: string;
-}
+import {IBatchFormData} from "../records/batch";
+import {batch} from "../services/batchService";
 
 const urlPathRegexp = /(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gi
 
@@ -43,19 +34,20 @@ const batchSchema: ObjectSchema<{}> = yup.object().shape({
     apiKey: yup.string().min(3).required(),
     shotgridProjectId: yup.number().min(1).required(),
     fieldsMapping: yup.string().nullable(),
+    overwrite: yup.boolean().default(false).required()
 })
 
 export default function BatchPanel() {
     const [bubble, setBubble] = React.useState(false);
     const [severity, setSeverity] = React.useState<AlertColor>("success");
     const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-        if (reason === 'clickaway') {
-            return;
-        }
+        if (reason === 'clickaway') return;
         setBubble(false);
     };
-    const onSubmit: SubmitHandler<IBatchFormData> = (data) => {
+    const onSubmit: SubmitHandler<IBatchFormData> = async (data) => {
+        console.log('remote url: ', process.env.REACT_APP_API_URI);
         console.log('data submitted: ', data);
+        const result = await batch(data);
         setBubble(true);
     }
     const {
