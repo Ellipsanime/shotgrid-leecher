@@ -43,7 +43,7 @@ function App() {
                 </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
-                <BatchPanel/>
+                <BatchPanel />
             </TabPanel>
             <TabPanel value={value} index={1}>
                 <SchedulePanel/>

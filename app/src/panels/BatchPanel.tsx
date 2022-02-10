@@ -24,7 +24,7 @@ import {
     UseFormSetValue
 } from 'react-hook-form';
 import {pink} from "@mui/material/colors";
-import React from "react";
+import React, {useRef} from "react";
 import {AlertColor} from "@mui/material/Alert/Alert";
 import {IBatchFormData} from "../records/batch";
 import {batch} from "../services/batchService";
@@ -53,9 +53,11 @@ function setOnSubmitHandler(setBubble: (x: boolean) => any,
                             setSeverity: (x: AlertColor) => any,
                             setMessage: (x: string) => any): SubmitHandler<IBatchFormData> {
     return async (data) => {
+        setSeverity("info");
+        setMessage("Working...")
+        setBubble(true);
         localStorage.setItem("batch.data", JSON.stringify(data));
         const result = await batch(data);
-        setBubble(true);
         if ("errorStatus" in result) {
             setMessage(`Error status: ${result.errorStatus}, message: ${result.errorMessage}`);
             setSeverity("error")
@@ -81,6 +83,13 @@ function getLoadPreviousData(setValue: UseFormSetValue<IBatchFormData>) {
     return (_: any) => setValues(setValue, getPreviousData());
 }
 
+function useFirstRender(): boolean {
+    const ref = useRef(true);
+    const firstRender = ref.current;
+    ref.current = false;
+    return firstRender;
+}
+
 export default function BatchPanel() {
 
     const [bubble, setBubble] = React.useState(false);
@@ -90,25 +99,26 @@ export default function BatchPanel() {
         if (reason === 'clickaway') return;
         setBubble(false);
     };
-    const onSubmit: SubmitHandler<IBatchFormData> = setOnSubmitHandler(
-        setBubble,
-        setSeverity,
-        setMessage
-    );
     const {
         control,
         handleSubmit,
         setValue,
         formState: {errors},
     } = useForm<IBatchFormData>({resolver: yupResolver(getObjectSchema())});
-    setValues(setValue);
+    const onSubmit: SubmitHandler<IBatchFormData> = setOnSubmitHandler(
+        setBubble,
+        setSeverity,
+        setMessage,
+    );
+    if (useFirstRender())
+        setValues(setValue);
     const onLoadPreviousClick = getLoadPreviousData(setValue);
 
     return (
         <Box component="form"
              sx={{'& .MuiTextField-root': {m: 1, width: '50ch'},}}
              noValidate
-             autoComplete="off" onSubmit={handleSubmit(onSubmit)}>
+             autoComplete="on" onSubmit={handleSubmit(onSubmit)}>
             <FormGroup>
                 <Controller control={control} name="openpypeProject"
                             render={({field}) => (
@@ -126,7 +136,8 @@ export default function BatchPanel() {
                         <InputLabel id="protocol-label">Protocol</InputLabel>
                         <Controller control={control} name="urlProtocol"
                                     render={({field}) => (
-                                        <Select {...field} label="Protocol" defaultValue={"https"}>
+                                        <Select {...field} label="Protocol"
+                                                defaultValue={"https"}>
                                             <MenuItem
                                                 value={"http"}>HTTP</MenuItem>
                                             <MenuItem
@@ -180,11 +191,13 @@ export default function BatchPanel() {
                 <Controller control={control} name="overwrite"
                             render={({field}) => (
                                 <FormControlLabel {...field}
-                                    control={<Checkbox {...field} checked={field.value} sx={{
-                                        color: pink[800],
-                                        '&.Mui-checked': {color: pink[600],},
-                                    }}/>}
-                                    label="Overwrite existing project"/>
+                                                  control={<Checkbox {...field}
+                                                                     checked={field.value}
+                                                                     sx={{
+                                                                         color: pink[800],
+                                                                         '&.Mui-checked': {color: pink[600],},
+                                                                     }}/>}
+                                                  label="Overwrite existing project"/>
                             )}
                 />
             </FormGroup>
@@ -213,8 +226,10 @@ export default function BatchPanel() {
                 alignItems: "flex-end",
                 display: "flex"
             }}>
-                <Button variant="outlined" type="button" onClick={onLoadPreviousClick}
-                        sx={{width: '20ch', marginTop: 1, marginRight: 2}}>Previous data</Button>
+                <Button variant="outlined" type="button"
+                        onClick={onLoadPreviousClick}
+                        sx={{width: '20ch', marginTop: 1, marginRight: 2}}>Previous
+                    data</Button>
                 <Button variant="contained" type="submit"
                         sx={{width: '20ch', marginTop: 1}}>Batch</Button>
             </Box>
