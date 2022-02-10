@@ -21,17 +21,12 @@ app.include_router(schedule.router)
 
 origins = [
     "http://localhost",
-    "http://localhost:8090",
     "http://localhost:3000",
     "http://127.0.0.1",
-    "http://127.0.0.1:8090",
     "http://127.0.0.1:3000",
-    "http://rnd.ellipsanime.net/",
-    "http://rnd.ellipsanime.net:8090/",
+    "https://rnd.ellipsanime.net:443/",
     "http://rnd.ellipsanime.net:3000/",
-    "http://35.181.15.175",
-    "http://35.181.15.175:8090",
-    "http://35.181.15.175:3000",
+    "http://rnd.ellipsanime.net:9080/",
 ]
 
 app.add_middleware(

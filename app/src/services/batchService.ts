@@ -14,7 +14,7 @@ function toLeecherBatch(formData: IBatchFormData): {[_: string]: any } {
       "script_name": formData.scriptName,
       "script_key": formData.apiKey,
       "overwrite": formData.overwrite,
-      "fields_mapping": JSON.parse(formData.fieldsMapping || "{}")
+      "fields_mapping": JSON.parse(formData?.fieldsMapping || "{}")
     }
 }
 
@@ -25,7 +25,9 @@ export async function batch(formData: IBatchFormData): Promise<IBatchResult> {
         const response = await axios.post(url, data, {headers: commonHeaders});
         return {status: response.status};
     } catch (error: any) {
-        debugger
-        return {errorStatus: error.response?.status || -1, errorMessage: error.response.message};
+        return {
+            errorStatus: error?.response?.status || -1,
+            errorMessage: ""+ error+", details: "+ JSON.stringify(error?.response?.data),
+        };
     }
 }

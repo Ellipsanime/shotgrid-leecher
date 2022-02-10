@@ -17,44 +17,93 @@ import MuiAlert from '@mui/material/Alert';
 import * as yup from "yup";
 import {ObjectSchema} from "yup";
 import {yupResolver} from '@hookform/resolvers/yup';
-import {Controller, SubmitHandler, useForm} from 'react-hook-form';
+import {
+    Controller,
+    SubmitHandler,
+    useForm,
+    UseFormSetValue
+} from 'react-hook-form';
 import {pink} from "@mui/material/colors";
 import React from "react";
 import {AlertColor} from "@mui/material/Alert/Alert";
 import {IBatchFormData} from "../records/batch";
 import {batch} from "../services/batchService";
 
-const urlPathRegexp = /(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gi
+const urlPathRegexp = /(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/gi
 
-const batchSchema: ObjectSchema<{}> = yup.object().shape({
-    openpypeProject: yup.string().min(3).required(),
-    urlProtocol: yup.string().default("http").required(),
-    urlPath: yup.string().matches(urlPathRegexp, "Should be a valid url path").required(),
-    scriptName: yup.string().min(3).required(),
-    apiKey: yup.string().min(3).required(),
-    shotgridProjectId: yup.number().min(1).required(),
-    fieldsMapping: yup.string().nullable(),
-    overwrite: yup.boolean().default(false).required()
-})
+function getObjectSchema(): ObjectSchema<{}> {
+    return yup.object().shape({
+        openpypeProject: yup.string().min(3).required(),
+        urlProtocol: yup.string().required(),
+        urlPath: yup.string().matches(urlPathRegexp, "Should be a valid url path").required(),
+        scriptName: yup.string().min(3).required(),
+        apiKey: yup.string().min(3).required(),
+        shotgridProjectId: yup.number().min(1).required(),
+        fieldsMapping: yup.string().nullable(),
+        overwrite: yup.boolean().required()
+    })
+}
+
+function getPreviousData(): IBatchFormData {
+    const raw = localStorage.getItem("batch.data") || "{}";
+    return JSON.parse(raw) as IBatchFormData;
+}
+
+function setOnSubmitHandler(setBubble: (x: boolean) => any,
+                            setSeverity: (x: AlertColor) => any,
+                            setMessage: (x: string) => any): SubmitHandler<IBatchFormData> {
+    return async (data) => {
+        localStorage.setItem("batch.data", JSON.stringify(data));
+        const result = await batch(data);
+        setBubble(true);
+        if ("errorStatus" in result) {
+            setMessage(`Error status: ${result.errorStatus}, message: ${result.errorMessage}`);
+            setSeverity("error")
+            return;
+        }
+        setMessage(`Batch operation launched with success`);
+        setSeverity("success");
+    }
+}
+
+function setValues(setValue: UseFormSetValue<IBatchFormData>, previousData?: IBatchFormData) {
+    setValue("openpypeProject", previousData?.openpypeProject || "");
+    setValue("apiKey", previousData?.apiKey || "");
+    setValue("scriptName", previousData?.scriptName || "");
+    setValue("shotgridProjectId", previousData?.shotgridProjectId || 0);
+    setValue("urlPath", previousData?.urlPath || "");
+    setValue("urlProtocol", previousData?.urlProtocol || "https");
+    setValue("fieldsMapping", previousData?.fieldsMapping || "");
+    setValue("overwrite", previousData?.overwrite || false);
+}
+
+function getLoadPreviousData(setValue: UseFormSetValue<IBatchFormData>) {
+    return (_: any) => setValues(setValue, getPreviousData());
+}
 
 export default function BatchPanel() {
+
     const [bubble, setBubble] = React.useState(false);
     const [severity, setSeverity] = React.useState<AlertColor>("success");
+    const [message, setMessage] = React.useState<string>("");
     const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') return;
         setBubble(false);
     };
-    const onSubmit: SubmitHandler<IBatchFormData> = async (data) => {
-        console.log('remote url: ', process.env.REACT_APP_API_URI);
-        console.log('data submitted: ', data);
-        const result = await batch(data);
-        setBubble(true);
-    }
+    const onSubmit: SubmitHandler<IBatchFormData> = setOnSubmitHandler(
+        setBubble,
+        setSeverity,
+        setMessage
+    );
     const {
         control,
         handleSubmit,
+        setValue,
         formState: {errors},
-    } = useForm<IBatchFormData>({resolver: yupResolver(batchSchema)})
+    } = useForm<IBatchFormData>({resolver: yupResolver(getObjectSchema())});
+    setValues(setValue);
+    const onLoadPreviousClick = getLoadPreviousData(setValue);
+
     return (
         <Box component="form"
              sx={{'& .MuiTextField-root': {m: 1, width: '50ch'},}}
@@ -71,15 +120,13 @@ export default function BatchPanel() {
                             )}
                 />
             </FormGroup>
-
             <FormGroup>
                 <Stack direction="row" spacing={2} sx={{width: '52ch'}}>
                     <FormControl sx={{m: 1, width: '15ch'}}>
                         <InputLabel id="protocol-label">Protocol</InputLabel>
                         <Controller control={control} name="urlProtocol"
                                     render={({field}) => (
-                                        <Select {...field} label="Protocol"
-                                                defaultValue={"http"}>
+                                        <Select {...field} label="Protocol" defaultValue={"https"}>
                                             <MenuItem
                                                 value={"http"}>HTTP</MenuItem>
                                             <MenuItem
@@ -112,7 +159,7 @@ export default function BatchPanel() {
                 <Controller control={control} name="apiKey"
                             render={({field}) => (
                                 <TextField {...field} label="Shotgrid API key"
-                                           type="search"
+                                           type="password"
                                            error={!!errors.apiKey}
                                            helperText={errors?.apiKey?.message || ''}/>
                             )}
@@ -132,8 +179,8 @@ export default function BatchPanel() {
             <FormGroup sx={{m: 1, width: '50ch'}}>
                 <Controller control={control} name="overwrite"
                             render={({field}) => (
-                                <FormControlLabel
-                                    control={<Checkbox {...field} sx={{
+                                <FormControlLabel {...field}
+                                    control={<Checkbox {...field} checked={field.value} sx={{
                                         color: pink[800],
                                         '&.Mui-checked': {color: pink[600],},
                                     }}/>}
@@ -141,13 +188,14 @@ export default function BatchPanel() {
                             )}
                 />
             </FormGroup>
-            <FormGroup sx={{m: 1, width: '50ch'}}>
+            <FormGroup sx={{m: 1, width: '50ch', maxHeight: '70'}}>
                 <Controller control={control} name="fieldsMapping"
                             render={({field}) => (
                                 <TextareaAutosize
                                     {...field}
                                     aria-label="SG fields mapping"
                                     minRows={8}
+                                    maxRows={16}
                                     placeholder="Shotgrid fields mapping"
                                     style={{
                                         backgroundColor: "#111213",
@@ -165,6 +213,8 @@ export default function BatchPanel() {
                 alignItems: "flex-end",
                 display: "flex"
             }}>
+                <Button variant="outlined" type="button" onClick={onLoadPreviousClick}
+                        sx={{width: '20ch', marginTop: 1, marginRight: 2}}>Previous data</Button>
                 <Button variant="contained" type="submit"
                         sx={{width: '20ch', marginTop: 1}}>Batch</Button>
             </Box>
@@ -173,7 +223,7 @@ export default function BatchPanel() {
                       onClose={handleClose}>
                 <MuiAlert onClose={handleClose} severity={severity}
                           sx={{width: '100%'}} elevation={6} variant="filled">
-                    This is a success message!
+                    {message}
                 </MuiAlert>
             </Snackbar>
         </Box>
