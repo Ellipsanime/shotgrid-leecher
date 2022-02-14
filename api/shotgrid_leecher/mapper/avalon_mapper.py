@@ -10,17 +10,17 @@ from toolz.curried import (
     reduce,
 )
 
-from record.avalon_structures import AvalonProject
-from record.enums import ShotgridType, AvalonType
-from record.intermediate_structures import (
+from shotgrid_leecher.record.avalon_structures import AvalonProject
+from shotgrid_leecher.record.enums import ShotgridType, AvalonType
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateProject,
     IntermediateTask,
     IntermediateShot,
     IntermediateAsset,
 )
-from utils.functional import try_or
-from utils.logger import get_logger
+from shotgrid_leecher.utils.functional import try_or
+from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
 

@@ -9,30 +9,30 @@ from toolz.curried import (
 )
 from toolz.curried import groupby
 
-import mapper.intermediate_mapper as mapper
-import repository.shotgrid_entity_repo as entity_repo
-from mapper import query_mapper
-from record.avalon_structures import AvalonProjectData
-from record.enums import ShotgridType
-from record.intermediate_structures import (
+import shotgrid_leecher.mapper.intermediate_mapper as mapper
+import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
+from shotgrid_leecher.mapper import query_mapper
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
 )
-from record.queries import (
+from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
     ShotgridFindAssetsByProjectQuery,
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
 )
-from record.shotgrid_structures import (
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
     ShotgridEntityToEntityLink,
     ShotgridAsset,
 )
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
 )
-from utils.logger import get_logger
-from utils.timer import timed
+from shotgrid_leecher.utils.logger import get_logger
+from shotgrid_leecher.utils.timer import timed
 
 _LOG = get_logger(__name__.split(".")[-1])
 

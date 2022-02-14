@@ -3,10 +3,10 @@ from typing import Dict, Any, cast
 
 from toolz import get_in, curry
 
-from record.enums import EventTypes
-from record.new_asset_event import NewAssetEvent
-from record.new_event_commands import NewEventCommand
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.enums import EventTypes
+from shotgrid_leecher.record.new_asset_event import NewAssetEvent
+from shotgrid_leecher.record.new_event_commands import NewEventCommand
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     ShotgridUser,
     ShotgridEntity,

@@ -7,18 +7,18 @@ from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from mock import Mock
 
-import repository.schedule_repo as schedule_repo
-from domain import batch_domain, schedule_domain
-from record.avalon_structures import (
+import shotgrid_leecher.repository.schedule_repo as schedule_repo
+from shotgrid_leecher.domain import batch_domain, schedule_domain
+from shotgrid_leecher.record.avalon_structures import (
     AvalonProject,
     AvalonProjectData,
 )
-from record.commands import ScheduleShotgridBatchCommand
-from record.results import BatchResult, GroupAndCountResult
-from record.shotgrid_structures import ShotgridCredentials
-from record.shotgrid_subtypes import FieldsMapping
-from repository import avalon_repo
-from writers import schedule_writer
+from shotgrid_leecher.record.commands import ScheduleShotgridBatchCommand
+from shotgrid_leecher.record.results import BatchResult, GroupAndCountResult
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
+from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.writers import schedule_writer
 
 
 def _fun(param: Any) -> Callable[[Any], Any]:

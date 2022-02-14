@@ -8,13 +8,13 @@ from assertpy import assert_that
 from mock import Mock
 from mongomock.mongo_client import MongoClient
 
-from controller import schedule_controller
-from domain import batch_domain, schedule_domain
-from record.commands import ScheduleShotgridBatchCommand
-from record.enums import DbName, DbCollection
-from record.results import BatchResult
-from repository import avalon_repo
-from utils import connectivity as conn
+from shotgrid_leecher.controller import schedule_controller
+from shotgrid_leecher.domain import batch_domain, schedule_domain
+from shotgrid_leecher.record.commands import ScheduleShotgridBatchCommand
+from shotgrid_leecher.record.enums import DbName, DbCollection
+from shotgrid_leecher.record.results import BatchResult
+from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     batch_config,
     get_project,

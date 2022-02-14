@@ -1,4 +1,4 @@
-from record.shotgrid_structures import ShotgridNode
+from shotgrid_leecher.record.shotgrid_structures import ShotgridNode
 
 
 def _get_simple_hierarchy() -> ShotgridNode:

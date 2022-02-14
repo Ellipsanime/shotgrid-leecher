@@ -5,9 +5,9 @@ import cattr
 from bson import ObjectId
 from toolz import curry, memoize
 
-from record.avalon_structures import AvalonProjectData
-from record.enums import ShotgridType
-from record.intermediate_structures import (
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateGroup,
     IntermediateTask,
     IntermediateAsset,
@@ -22,7 +22,7 @@ from record.intermediate_structures import (
     IntermediateLinkedEntity,
     IntermediateUser,
 )
-from record.shotgrid_structures import (
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridAsset,
     ShotgridShot,
@@ -32,14 +32,14 @@ from record.shotgrid_structures import (
     ShotgridStep,
     ShotgridEntityToEntityLink,
 )
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     ShotgridUser,
 )
-from utils.collections import keep_keys
-from utils.functional import try_or
-from utils.ids import to_object_id
-from utils.logger import get_logger
+from shotgrid_leecher.utils.collections import keep_keys
+from shotgrid_leecher.utils.functional import try_or
+from shotgrid_leecher.utils.ids import to_object_id
+from shotgrid_leecher.utils.logger import get_logger
 
 Map = Dict[str, Any]
 

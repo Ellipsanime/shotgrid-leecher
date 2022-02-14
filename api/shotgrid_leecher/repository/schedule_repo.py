@@ -2,14 +2,14 @@ from typing import List, Dict, Any
 
 from pymongo.collection import Collection
 
-import utils.connectivity as conn
-from record.commands import (
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
 )
-from record.enums import DbName, DbCollection
-from record.queries import FindEntityQuery
-from record.results import GroupAndCountResult
-from record.schedule_structures import (
+from shotgrid_leecher.record.enums import DbName, DbCollection
+from shotgrid_leecher.record.queries import FindEntityQuery
+from shotgrid_leecher.record.results import GroupAndCountResult
+from shotgrid_leecher.record.schedule_structures import (
     ScheduleLog,
     ScheduleProject,
     ScheduleQueueItem,

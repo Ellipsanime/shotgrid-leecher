@@ -8,14 +8,14 @@ from bson import ObjectId
 from mongomock.mongo_client import MongoClient
 
 from asset import params_data
-from controller import batch_controller
-from record.avalon_structures import (
+from shotgrid_leecher.controller import batch_controller
+from shotgrid_leecher.record.avalon_structures import (
     AvalonProject,
     AvalonProjectData,
 )
-from record.enums import DbName, ShotgridType
-from repository import avalon_repo
-from utils import connectivity as conn
+from shotgrid_leecher.record.enums import DbName, ShotgridType
+from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     sg_query,
     batch_config,

@@ -7,14 +7,14 @@ from assertpy import assert_that
 from mongomock.mongo_client import MongoClient
 from toolz import curry
 
-import repository.shotgrid_hierarchy_repo as repository
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from asset import fields_mapping_data
 from asset import update_values_data
-from controller import batch_controller
-from mapper import intermediate_mapper
-from record.enums import ShotgridType, DbName
-from record.results import BatchCheckResult
-from utils import connectivity as conn
+from shotgrid_leecher.controller import batch_controller
+from shotgrid_leecher.mapper import intermediate_mapper
+from shotgrid_leecher.record.enums import ShotgridType, DbName
+from shotgrid_leecher.record.results import BatchCheckResult
+from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     fun,
     all_avalon,

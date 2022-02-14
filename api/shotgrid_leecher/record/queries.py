@@ -2,9 +2,9 @@ from typing import Any, Dict, Optional, List, Tuple
 
 import attr
 
-from record.avalon_structures import AvalonProjectData
-from record.shotgrid_structures import ShotgridCredentials
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
     ProjectFieldsMapping,

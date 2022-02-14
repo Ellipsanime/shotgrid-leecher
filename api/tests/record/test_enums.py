@@ -2,7 +2,7 @@ import uuid
 
 from assertpy import assert_that
 
-from record.enums import QueryStringType
+from shotgrid_leecher.record.enums import QueryStringType
 
 
 def test_query_string_type_from_unknown_type():

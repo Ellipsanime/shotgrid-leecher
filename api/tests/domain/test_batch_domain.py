@@ -8,12 +8,12 @@ from assertpy import assert_that
 from assertpy.assertpy import AssertionBuilder
 from toolz import curry
 
-import mapper.avalon_mapper as mapper
-import repository.shotgrid_hierarchy_repo as repository
-from domain import batch_domain as sut
-from record.commands import CreateShotgridInAvalonCommand
-from record.shotgrid_structures import ShotgridCredentials
-from record.shotgrid_subtypes import (
+import shotgrid_leecher.mapper.avalon_mapper as mapper
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+from shotgrid_leecher.domain import batch_domain as sut
+from shotgrid_leecher.record.commands import CreateShotgridInAvalonCommand
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import (
     FieldsMapping,
     ProjectFieldsMapping,
     AssetFieldsMapping,
@@ -24,7 +24,7 @@ from record.shotgrid_subtypes import (
     ShotToShotLinkMapping,
     AssetToAssetLinkMapping,
 )
-from writers import db_writer
+from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
 

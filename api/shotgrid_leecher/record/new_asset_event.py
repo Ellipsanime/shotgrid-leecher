@@ -4,13 +4,13 @@ from typing import Any, Dict
 
 import attr
 
-from record.enums import ShotgridEvents
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.enums import ShotgridEvents
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     ShotgridUser,
     ShotgridEntity,
 )
-from utils.encoders import DataclassJSONEncoder
+from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 
 
 @attr.s(auto_attribs=True, frozen=True)

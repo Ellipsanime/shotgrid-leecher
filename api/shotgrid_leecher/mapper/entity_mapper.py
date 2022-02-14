@@ -3,8 +3,8 @@ from typing import Dict, Any, Optional, Callable, TypeVar, List
 import attr
 from toolz import curry, get_in
 
-from record.enums import ShotgridField, ShotgridType
-from record.shotgrid_structures import (
+from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridTaskEntity,
     ShotgridTaskStep,
@@ -17,7 +17,7 @@ from record.shotgrid_structures import (
     ShotgridStep,
     ShotgridEntityToEntityLink,
 )
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
     ShotFieldsMapping,
     AssetFieldsMapping,
@@ -29,7 +29,7 @@ from record.shotgrid_subtypes import (
     AssetToAssetLinkMapping,
     ShotgridUser,
 )
-from utils.collections import swap_mapping_keys_values
+from shotgrid_leecher.utils.collections import swap_mapping_keys_values
 
 Map = Dict[str, Any]
 TOut = TypeVar("TOut")

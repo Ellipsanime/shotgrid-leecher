@@ -1,7 +1,7 @@
 from toolz import get_in
 
-import utils.connectivity as conn
-from record.enums import (
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.record.enums import (
     EventTables,
     ShotgridEvents,
     EventTypes,

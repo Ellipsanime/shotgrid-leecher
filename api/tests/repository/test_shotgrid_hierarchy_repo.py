@@ -13,23 +13,23 @@ from toolz.curried import (
     map as select,
 )
 
-import repository.shotgrid_entity_repo as entity_repo
-import repository.shotgrid_hierarchy_repo as sut
-from mapper.entity_mapper import (
+import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as sut
+from shotgrid_leecher.mapper.entity_mapper import (
     to_shotgrid_task,
     to_shotgrid_shot,
     to_shotgrid_asset,
 )
-from record.avalon_structures import AvalonProjectData
-from record.enums import ShotgridType, ShotgridField
-from record.queries import ShotgridHierarchyByProjectQuery
-from record.shotgrid_structures import (
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
+from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridCredentials,
     ShotgridTask,
     ShotgridShot,
     ShotgridAsset,
 )
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
     ProjectFieldsMapping,

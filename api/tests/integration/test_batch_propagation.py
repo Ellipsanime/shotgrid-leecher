@@ -5,9 +5,9 @@ from mock import Mock
 from mongomock.mongo_client import MongoClient
 
 from asset import propagation_data
-from controller import batch_controller
-from record.enums import DbName, AvalonType
-from utils import connectivity as conn
+from shotgrid_leecher.controller import batch_controller
+from shotgrid_leecher.record.enums import DbName, AvalonType
+from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     batch_config,
     fun,

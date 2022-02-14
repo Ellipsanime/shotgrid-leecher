@@ -3,10 +3,10 @@ import uuid
 from assertpy import assert_that
 from toolz import compose
 
-from mapper.intermediate_mapper import to_shot
-from record.avalon_structures import AvalonProjectData
-from record.intermediate_structures import IntermediateShot
-from record.shotgrid_structures import (
+from shotgrid_leecher.mapper.intermediate_mapper import to_shot
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.intermediate_structures import IntermediateShot
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridShot,
     ShotgridShotParams,
 )

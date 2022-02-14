@@ -2,22 +2,22 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from domain import schedule_domain
-from mapper import query_mapper
-from record.commands import (
+from shotgrid_leecher.domain import schedule_domain
+from shotgrid_leecher.mapper import query_mapper
+from shotgrid_leecher.record.commands import (
     CancelBatchSchedulingCommand,
     ScheduleShotgridBatchCommand,
 )
-from record.http_models import (
+from shotgrid_leecher.record.http_models import (
     BatchConfig,
     ScheduleQueryParams,
 )
-from record.schedule_structures import (
+from shotgrid_leecher.record.schedule_structures import (
     ScheduleLog,
     ScheduleProject,
     ScheduleQueueItem,
 )
-from repository import schedule_repo
+from shotgrid_leecher.repository import schedule_repo
 
 router = APIRouter(tags=["schedule"], prefix="/schedule")
 

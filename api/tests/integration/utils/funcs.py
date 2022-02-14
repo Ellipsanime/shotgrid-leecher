@@ -7,13 +7,13 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from toolz import curry
 
-from record.avalon_structures import (
+from shotgrid_leecher.record.avalon_structures import (
     AvalonProject,
     AvalonProjectData,
 )
-from record.enums import ShotgridType, DbName
-from record.http_models import BatchConfig
-from record.intermediate_structures import IntermediateParams
+from shotgrid_leecher.record.enums import ShotgridType, DbName
+from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.intermediate_structures import IntermediateParams
 
 Map = Dict[str, Any]
 

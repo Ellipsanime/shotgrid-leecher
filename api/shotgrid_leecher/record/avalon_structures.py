@@ -4,8 +4,8 @@ import attr
 import cattr
 from bson import ObjectId
 
-from record.enums import AvalonType
-from utils.strings import snakify_camel
+from shotgrid_leecher.record.enums import AvalonType
+from shotgrid_leecher.utils.strings import snakify_camel
 
 
 @attr.s(auto_attribs=True, frozen=True)

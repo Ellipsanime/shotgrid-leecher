@@ -7,8 +7,8 @@ from toolz.curried import (
     map as select,
 )
 
-from record.enums import EventTypes
-from record.new_asset_event import NewAssetEvent
+from shotgrid_leecher.record.enums import EventTypes
+from shotgrid_leecher.record.new_asset_event import NewAssetEvent
 
 AnyEvent = Union[NewAssetEvent]
 

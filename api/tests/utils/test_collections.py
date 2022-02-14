@@ -6,7 +6,7 @@ import pytest
 from assertpy import assert_that
 from mongomock.object_id import ObjectId
 
-from utils.collections import (
+from shotgrid_leecher.utils.collections import (
     flatten_dict,
     swap_mapping_keys_values,
 )

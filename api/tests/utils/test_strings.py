@@ -1,6 +1,6 @@
 from assertpy import assert_that
 
-from utils.strings import snakify_camel, avalonify_snake_case
+from shotgrid_leecher.utils.strings import snakify_camel, avalonify_snake_case
 
 
 def test_snakify_camel():

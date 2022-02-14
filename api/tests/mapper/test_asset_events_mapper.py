@@ -4,10 +4,10 @@ import uuid
 
 from assertpy import assert_that
 
-from mapper.asset_events_mapper import (
+from shotgrid_leecher.mapper.asset_events_mapper import (
     new_asset_event_from_dict,
 )
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridEntity,
     ShotgridUser,
     ShotgridProject,

@@ -6,23 +6,23 @@ import attr
 from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 
-import repository.shotgrid_entity_repo as sut
-import utils.connectivity as conn
-from mapper import entity_mapper
-from mapper.entity_mapper import to_shotgrid_task
-from record.avalon_structures import AvalonProjectData
-from record.enums import ShotgridType
-from record.queries import (
+import shotgrid_leecher.repository.shotgrid_entity_repo as sut
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.mapper import entity_mapper
+from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridFindAssetsByProjectQuery,
     ShotgridFindShotsByProjectQuery,
     ShotgridFindTasksByProjectQuery,
 )
-from record.shotgrid_structures import (
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridCredentials,
     ShotgridAsset,
 )
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
     ProjectFieldsMapping,

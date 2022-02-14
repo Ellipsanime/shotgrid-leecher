@@ -6,11 +6,11 @@ from typing import List
 import attr
 from assertpy import assert_that
 
-from mapper import intermediate_mapper
-from mapper.avalon_mapper import shotgrid_to_avalon
-from record.avalon_structures import AvalonProjectData
-from record.enums import ShotgridType
-from record.intermediate_structures import (
+from shotgrid_leecher.mapper import intermediate_mapper
+from shotgrid_leecher.mapper.avalon_mapper import shotgrid_to_avalon
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProject,
     IntermediateParams,
     IntermediateAsset,
@@ -23,7 +23,7 @@ from record.intermediate_structures import (
     IntermediateProjectConfig,
     IntermediateProjectStep,
 )
-from utils.ids import to_object_id
+from shotgrid_leecher.utils.ids import to_object_id
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]

@@ -4,11 +4,11 @@ from toolz.curried import (
     filter as where,
 )
 
-import domain.asset_domain as asset_domain
-import mapper.asset_events_mapper as asset_events_mapper
-import repository.asset_events_repo as asset_events_repo
-import repository.shotgrid_events_repo as shotgrid_events_repo
-from record.enums import (
+import shotgrid_leecher.domain.asset_domain as asset_domain
+import shotgrid_leecher.mapper.asset_events_mapper as asset_events_mapper
+import shotgrid_leecher.repository.asset_events_repo as asset_events_repo
+import shotgrid_leecher.repository.shotgrid_events_repo as shotgrid_events_repo
+from shotgrid_leecher.record.enums import (
     ShotgridEvents,
     EventTypes,
 )

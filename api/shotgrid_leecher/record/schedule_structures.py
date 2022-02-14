@@ -34,19 +34,27 @@ class ScheduleLog:
 class ScheduleProject:
     project_id: int
     project_name: str
+    credential_script: str
+    credential_url: str
     datetime: datetime
 
     @staticmethod
     def from_dict(raw_dic: Dict[str, Any]) -> "ScheduleProject":
         keys = set(attr.fields_dict(ScheduleProject).keys())
-        commands = raw_dic.get("command", dict()).items()
+        command = raw_dic.get("command", dict())
         dic: Dict[str, Any] = {
-            **{k: v for k, v in commands if k in keys},
+            **{k: v for k, v in command.items() if k in keys},
             **{k: v for k, v in raw_dic.items() if k in keys},
         }
         return ScheduleProject(
             project_id=dic["project_id"],
             project_name=dic["project_name"],
+            credential_script=command.get("credentials", dict()).get(
+                "script_name"
+            ),
+            credential_url=command.get("credentials", dict()).get(
+                "shotgrid_url"
+            ),
             datetime=dic["datetime"],
         )
 

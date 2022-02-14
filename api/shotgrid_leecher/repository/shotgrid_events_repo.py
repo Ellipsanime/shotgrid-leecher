@@ -1,7 +1,7 @@
 from typing import Any, List, Dict
 
-import utils.connectivity as connectivity
-from record.enums import ShotgridEvents, ShotgridEventEntries
+import shotgrid_leecher.utils.connectivity as connectivity
+from shotgrid_leecher.record.enums import ShotgridEvents, ShotgridEventEntries
 
 DEFAULT_FIELDS = [
     "id",
