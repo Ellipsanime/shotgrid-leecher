@@ -16,6 +16,7 @@ from shotgrid_leecher.record.schedule_structures import (
     ScheduleLog,
     ScheduleProject,
     ScheduleQueueItem,
+    EnhancedScheduleProject,
 )
 from shotgrid_leecher.repository import schedule_repo
 
@@ -28,6 +29,14 @@ async def projects(
 ) -> List[ScheduleProject]:
     query = query_mapper.http_to_find_query(params)
     return schedule_repo.fetch_scheduled_projects(query)
+
+
+@router.get("/enhanced-projects")
+async def enhanced_projects(
+    params: ScheduleQueryParams = Depends(ScheduleQueryParams),
+) -> List[EnhancedScheduleProject]:
+    query = query_mapper.http_to_find_query(params)
+    return schedule_repo.fetch_enhanced_projects(query)
 
 
 @router.get("/queue")

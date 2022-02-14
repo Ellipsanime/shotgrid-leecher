@@ -1,4 +1,4 @@
 
 export default function MonitoringPanel() {
-    return(<div>Monitoring panel</div>)
+    return(<div>TODO Later</div>)
 }

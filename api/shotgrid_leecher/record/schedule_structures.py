@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, List
 
 import attr
+from toolz import pipe
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -48,7 +49,7 @@ class ScheduleProject:
         }
         return ScheduleProject(
             project_id=dic["project_id"],
-            project_name=dic["project_name"],
+            project_name=raw_dic["_id"],
             credential_script=command.get("credentials", dict()).get(
                 "script_name"
             ),
@@ -57,6 +58,21 @@ class ScheduleProject:
             ),
             datetime=dic["datetime"],
         )
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class EnhancedScheduleProject(ScheduleProject):
+    latest_logs: List[ScheduleLog]
+
+    @staticmethod
+    def from_entities(
+        project: ScheduleProject, logs: List[ScheduleLog]
+    ) -> "EnhancedScheduleProject":
+        params = {
+            **attr.asdict(project),
+            "latest_logs": logs,
+        }
+        return pipe(params, lambda x: EnhancedScheduleProject(**x))
 
 
 @attr.s(auto_attribs=True, frozen=True)
