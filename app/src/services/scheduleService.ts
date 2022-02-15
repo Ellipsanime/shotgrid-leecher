@@ -1,5 +1,6 @@
 import axios from "axios";
 import format from 'date-fns/format'
+import {Result} from "../records/batch";
 
 const commonHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -24,12 +25,16 @@ export interface IScheduleProject {
     latestLogs: Array<IScheduleLog>
 }
 
-export async function deleteSchedule(project:IScheduleProject): Promise<any> {
+export async function deleteSchedule(project:IScheduleProject): Promise<Result> {
     const url = `${apiUrl}/schedule/${project.projectName}`;
     try {
-        return await axios.delete(url, {headers: commonHeaders});
+        const data = await axios.delete(url, {headers: commonHeaders});
+        return {status: data.status};
     } catch (error: any) {
-        throw error
+        return {
+            errorStatus: error?.response?.status || -1,
+            errorMessage: ""+ error+", details: "+ JSON.stringify(error?.response?.data),
+        };
     }
 }
 

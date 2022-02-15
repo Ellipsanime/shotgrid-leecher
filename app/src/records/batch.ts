@@ -9,13 +9,13 @@ export interface IBatchFormData {
     fieldsMapping: string;
 }
 
-export interface IBatchOkResult {
+export interface Success {
     status: number;
 }
 
-export interface IBatchKoResult {
+export interface Failure {
     errorMessage: string;
     errorStatus: number;
 }
 
-export type IBatchResult = IBatchOkResult | IBatchKoResult
+export type Result = Success | Failure

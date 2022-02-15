@@ -1,4 +1,4 @@
-import {IBatchFormData, IBatchResult} from "../records/batch";
+import {IBatchFormData, Result} from "../records/batch";
 import axios from "axios";
 
 const apiUrl = process.env.REACT_APP_API_URI || ""
@@ -18,7 +18,7 @@ function toLeecherBatch(formData: IBatchFormData): {[_: string]: any } {
     }
 }
 
-export async function batch(formData: IBatchFormData): Promise<IBatchResult> {
+export async function batch(formData: IBatchFormData): Promise<Result> {
     const url = `${apiUrl}/batch/${formData.openpypeProject}`;
     const data = toLeecherBatch(formData);
     try {

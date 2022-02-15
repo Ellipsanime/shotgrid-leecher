@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import Paper from '@mui/material/Paper';
 import {
     Box,
@@ -23,9 +23,11 @@ import {
     SentimentSatisfiedAlt,
     SentimentVeryDissatisfied
 } from "@mui/icons-material";
-
+import AlertDialog from "../dialogs/Confirm";
+import ScheduleDeleteContext from "../contexts/Schedule";
 
 type Order = 'asc' | 'desc';
+
 
 interface IEnhancedTableProps {
     onRequestSort: (event: React.MouseEvent<unknown>, property: keyof IScheduleProject) => void;
@@ -65,11 +67,15 @@ function EnhancedTableHead(props: IEnhancedTableProps) {
 function EnhancedRow(props: { row: IScheduleProject, index: number }) {
     const {row, index} = props;
     const [open, setOpen] = React.useState(false);
+    const {
+        projectToDelete,
+        setProjectToDelete
+    } = useContext(ScheduleDeleteContext);
     const labelId = `enhanced-table-row-${index}`;
     return (
         <React.Fragment>
-            <TableRow sx={{'& > *': {borderBottom: 'unset'}}}>
-                <TableCell id={labelId}>
+            <TableRow sx={{'& > *': {borderBottom: 'unset'}}} key={labelId}>
+                <TableCell>
                     <IconButton
                         sx={{visibility: row.latestLogs.length ? "visible" : "hidden"}}
                         aria-label="expand row"
@@ -92,13 +98,13 @@ function EnhancedRow(props: { row: IScheduleProject, index: number }) {
                     align="right">{row.datetime}</TableCell>
                 <TableCell align="right">
                     <Tooltip sx={{color: 'red'}} title="Delete scheduling">
-                        <IconButton onClick={() => deleteSchedule(row)}>
+                        <IconButton onClick={() => setProjectToDelete(row)}>
                             <DeleteIcon/>
                         </IconButton>
                     </Tooltip>
                 </TableCell>
             </TableRow>
-            <TableRow>
+            <TableRow key={`${labelId}-sub`}>
                 <TableCell style={{paddingBottom: 0, paddingTop: 0}}
                            colSpan={7}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
@@ -126,8 +132,10 @@ function EnhancedRow(props: { row: IScheduleProject, index: number }) {
                                         <TableRow key={logRow.id}>
                                             <TableCell
                                                 align="right">{logRow.batchResult ?
-                                                <SentimentSatisfiedAlt sx={{color: "green"}}/> :
-                                                <SentimentVeryDissatisfied sx={{color: "orange"}}/>}</TableCell>
+                                                <SentimentSatisfiedAlt
+                                                    sx={{color: "green"}}/> :
+                                                <SentimentVeryDissatisfied
+                                                    sx={{color: "orange"}}/>}</TableCell>
                                             <TableCell component="th"
                                                        scope="row">
                                                 {logRow.id}
@@ -145,9 +153,6 @@ function EnhancedRow(props: { row: IScheduleProject, index: number }) {
     );
 }
 
-async function deleteSchedule(project: IScheduleProject) {
-    debugger
-}
 
 function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number): Array<T> {
     const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
@@ -183,12 +188,18 @@ function getComparator<Key extends keyof any>(
         : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
+function reducer<T>(state: Array<any>, item: T) {
+    return [...state, item]
+}
+
 export default function ScheduleDataTable() {
     const [projects, setProjects] = React.useState<Array<IScheduleProject>>([]);
     const [order, setOrder] = React.useState<Order>('asc');
     const [orderBy, setOrderBy] = React.useState<keyof IScheduleProject>('datetime');
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [projectToDelete, setProjectToDelete] = useState<IScheduleProject>();
+    const projectDeleteValue = {projectToDelete, setProjectToDelete};
 
     const handleRequestSort = (
         event: React.MouseEvent<unknown>,
@@ -212,6 +223,7 @@ export default function ScheduleDataTable() {
             const projects = await fetchProjects();
             setProjects(projects);
         } catch (error: any) {
+            throw error;
         }
     }
 
@@ -220,43 +232,48 @@ export default function ScheduleDataTable() {
         const _ = fetchAndProcessRows()
     }, []);
     return (
-        <Box sx={{width: '100%'}}>
-            <Paper sx={{maxWidth: 1000, minWidth: 350}}>
-                <TableContainer component={Paper}>
-                    <Table aria-label="simple table">
-                        <EnhancedTableHead
-                            order={order}
-                            orderBy={orderBy}
-                            onRequestSort={handleRequestSort}
-                            rowCount={projects.length}
-                        />
-                        <TableBody>
-                            {/*{stableSort(projects, getComparator(order, orderBy))*/}
-                            {projects
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((row, index) => {
-                                    // const isItemSelected = isSelected(row.name);
-                                    return (
-                                        <EnhancedRow row={row} index={index}/>)
-                                })}
-                            {emptyRows > 0 && (
-                                <TableRow style={{height: 53 * emptyRows}}>
-                                    <TableCell colSpan={6}/>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={projects.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </Paper>
-        </Box>
+        <ScheduleDeleteContext.Provider value={projectDeleteValue}>
+            <Box sx={{width: '100%'}}>
+                <Paper sx={{maxWidth: 1000, minWidth: 350}}>
+                    <TableContainer component={Paper}>
+                        <Table aria-label="simple table">
+                            <EnhancedTableHead
+                                order={order}
+                                orderBy={orderBy}
+                                onRequestSort={handleRequestSort}
+                                rowCount={projects.length}
+                            />
+                            <TableBody>
+                                {/*{stableSort(projects, getComparator(order, orderBy))*/}
+                                {projects
+                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    .map((row, index) => {
+                                        // const isItemSelected = isSelected(row.name);
+                                        return (
+                                            <EnhancedRow key={"row-" + index}
+                                                         row={row}
+                                                         index={index}/>)
+                                    })}
+                                {emptyRows > 0 && (
+                                    <TableRow style={{height: 53 * emptyRows}}>
+                                        <TableCell colSpan={6}/>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25]}
+                        component="div"
+                        count={projects.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                </Paper>
+                <AlertDialog message="Delete this schedule?"/>
+            </Box>
+        </ScheduleDeleteContext.Provider>
     )
 }
