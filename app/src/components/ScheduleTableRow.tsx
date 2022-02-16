@@ -1,7 +1,7 @@
 import {IScheduleProject} from "../services/scheduleService";
 import * as React from "react";
 import {useContext} from "react";
-import ScheduleDataContext from "../contexts/Schedule";
+import {ScheduleDataContext} from "../contexts/Schedule";
 import {
   Box,
   Collapse,

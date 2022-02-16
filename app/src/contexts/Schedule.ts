@@ -8,10 +8,20 @@ export interface IScheduleDataContext {
   setProjects: (_: Array<IScheduleProject>) => any
 }
 
+export interface IScheduleDialogContext {
+  create: boolean
+  setCreate: (_: boolean) => any
+}
+
 const ScheduleDataContext = createContext<IScheduleDataContext>({
   setProjectToDelete: () => {},
   setProjects: () => {},
   projects: [],
 });
 
-export default ScheduleDataContext;
+const ScheduleDialogContext = createContext<IScheduleDialogContext>({
+  create: false,
+  setCreate: () => {},
+});
+
+export {ScheduleDialogContext, ScheduleDataContext};

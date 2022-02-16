@@ -9,6 +9,16 @@ export interface IBatchFormData {
     fieldsMapping: string;
 }
 
+export interface IScheduleFormData {
+    openpypeProject: string;
+    urlProtocol: string;
+    urlPath: string;
+    scriptName: string;
+    apiKey: string;
+    shotgridProjectId: number;
+    fieldsMapping: string;
+}
+
 export interface Success {
     status: number;
 }

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import {fetchProjects, IScheduleProject} from "../services/scheduleService";
 import ScheduleConfirm from "../dialogs/ScheduleConfirm";
-import ScheduleDataContext from "../contexts/Schedule";
+import {ScheduleDataContext} from "../contexts/Schedule";
 import {ScheduleTableRow} from "./ScheduleTableRow";
 import {Order, ScheduleTableHead} from "./ScheduleTableHead";
 

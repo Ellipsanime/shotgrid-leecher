@@ -7,35 +7,50 @@ import {Fab, Snackbar} from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import AlertContext, {IAlert} from "../contexts/Alert";
 import MuiAlert from "@mui/material/Alert";
+import ScheduleCreate from "../dialogs/ScheduleCreate";
+import {ScheduleDialogContext} from "../contexts/Schedule";
+
 
 export default function SchedulePanel() {
-    const [alert, setAlert] = useState<IAlert>();
-    const alertContextValue = {alert, setAlert};
-    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-        if (reason === 'clickaway') return;
-        setAlert(undefined);
-    };
-    return (
-        <AlertContext.Provider value={alertContextValue}>
-            <Box sx={{minWidth: 150}}>
-                <ScheduleDataTable/>
-                <FormControl fullWidth>
-                </FormControl>
-                <Fab sx={{position: "fixed", left: 16, bottom: 16}}
-                     aria-label="Add" color="primary">
-                    <AddIcon/>
-                </Fab>
-                <Snackbar open={!!alertContextValue.alert}
-                          autoHideDuration={6000}
-                          anchorOrigin={{vertical: "top", horizontal: "center"}}
-                          onClose={handleClose}>
-                    <MuiAlert onClose={handleClose} severity={alert?.severity}
-                              sx={{width: '100%'}} elevation={6}
-                              variant="filled">
-                        {alert?.message}
-                    </MuiAlert>
-                </Snackbar>
-            </Box>
-        </AlertContext.Provider>
-    )
+  const [alert, setAlert] = useState<IAlert>();
+  const [scheduleCreate, setScheduleCreate] = useState<boolean>(false);
+  const alertContextValue = {alert, setAlert};
+  const scheduleCreateValue = {
+    create: scheduleCreate,
+    setCreate: setScheduleCreate
+  }
+  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setAlert(undefined);
+  };
+  const handleAddClick = () => {
+    setScheduleCreate(true);
+  }
+
+  return (
+    <AlertContext.Provider value={alertContextValue}>
+      <Box sx={{minWidth: 180}}>
+        <ScheduleDataTable/>
+        <FormControl fullWidth>
+        </FormControl>
+        <ScheduleDialogContext.Provider value={scheduleCreateValue}>
+          <Fab sx={{position: "fixed", left: 16, bottom: 16}}
+               aria-label="Add" color="primary" onClick={handleAddClick}>
+            <AddIcon/>
+          </Fab>
+          <ScheduleCreate/>
+        </ScheduleDialogContext.Provider>
+        <Snackbar open={!!alertContextValue.alert}
+                  autoHideDuration={6000}
+                  anchorOrigin={{vertical: "top", horizontal: "center"}}
+                  onClose={handleClose}>
+          <MuiAlert onClose={handleClose} severity={alert?.severity}
+                    sx={{width: '100%'}} elevation={6}
+                    variant="filled">
+            {alert?.message}
+          </MuiAlert>
+        </Snackbar>
+      </Box>
+    </AlertContext.Provider>
+  )
 }

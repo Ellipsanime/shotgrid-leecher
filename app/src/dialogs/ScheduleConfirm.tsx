@@ -6,7 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import ScheduleDataContext from "../contexts/Schedule";
+import {ScheduleDataContext} from "../contexts/Schedule";
 import {deleteSchedule} from "../services/scheduleService";
 import AlertContext from "../contexts/Alert";
 
