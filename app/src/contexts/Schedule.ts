@@ -1,11 +1,17 @@
 import {createContext} from "react";
 import {IScheduleProject} from "../services/scheduleService";
 
-export interface IScheduleDeleteContext {
-    projectToDelete?: IScheduleProject
-    setProjectToDelete: (_: IScheduleProject | undefined) => any
+export interface IScheduleDataContext {
+  projectToDelete?: IScheduleProject
+  setProjectToDelete: (_: IScheduleProject | undefined) => any
+  projects: Array<IScheduleProject>
+  setProjects: (_: Array<IScheduleProject>) => any
 }
 
-const ScheduleDeleteContext = createContext<IScheduleDeleteContext>({setProjectToDelete: () => {}});
+const ScheduleDataContext = createContext<IScheduleDataContext>({
+  setProjectToDelete: () => {},
+  setProjects: () => {},
+  projects: [],
+});
 
-export default ScheduleDeleteContext;
+export default ScheduleDataContext;
