@@ -1,4 +1,7 @@
+import {useState} from "react";
+import {IAlert} from "../contexts/Alert";
 
 export default function MonitoringPanel() {
-    return(<div>TODO Later</div>)
+  const [alert, setAlert] = useState<IAlert>();
+  return (<div>TODO Later</div>)
 }

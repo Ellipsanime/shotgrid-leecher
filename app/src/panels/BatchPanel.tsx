@@ -26,7 +26,7 @@ import {
 import {pink} from "@mui/material/colors";
 import React from "react";
 import {AlertColor} from "@mui/material/Alert/Alert";
-import {IBatchFormData} from "../records/batch";
+import {IBatchFormData} from "../records/forms";
 import {batch} from "../services/batchService";
 import {getScheduleObjectShape, useFirstRender} from "../tools/forms";
 

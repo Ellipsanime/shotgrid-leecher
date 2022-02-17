@@ -22,13 +22,19 @@ import {
   useForm,
   UseFormSetValue
 } from "react-hook-form";
-import {IScheduleFormData} from "../records/batch";
+import {IScheduleFormData} from "../records/forms";
 import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import {ObjectSchema} from "yup";
 import {getScheduleObjectShape, useFirstRender} from "../tools/forms";
-import {ScheduleDialogContext} from "../contexts/Schedule";
+import {ScheduleDataContext, ScheduleDialogContext} from "../contexts/Schedule";
 import AlertContext, {IAlert} from "../contexts/Alert";
+import {
+  createSchedule,
+  fetchProjects,
+  IScheduleProject
+} from "../services/scheduleService";
+import {toFailure} from "../tools/requests";
 
 export interface IScheduleCreateProps {
 }
@@ -49,43 +55,43 @@ function setValues(setValue: UseFormSetValue<IScheduleFormData>) {
   setValue("fieldsMapping", "");
 }
 
-function setOnSubmitHandler(setAlert: (_: IAlert | undefined) => any): SubmitHandler<IScheduleFormData> {
+function setOnSubmitHandler(setAlert: (_: IAlert) => any,
+                            setCreate: (_: boolean) => any,
+                            setProjects: (_: IScheduleProject[]) => any): SubmitHandler<IScheduleFormData> {
   return async (data) => {
-    // setAlert({severity: "info", title: "info"})
-    // setSeverity("info");
-    // setMessage("Working...")
-    // setBubble(true);
-    // localStorage.setItem("batch.data", JSON.stringify(data));
-    // const result = await batch(data);
-    // if ("errorStatus" in result) {
-    //   setMessage(`Error status: ${result.errorStatus}, message: ${result.errorMessage}`);
-    //   setSeverity("error")
-    //   return;
-    // }
-    // setMessage(`Batch operation launched with success`);
-    // setSeverity("success");
+    setAlert({severity: "info", message: "Working..."});
+
+    const result = await createSchedule(data);
+
+    if ("errorStatus" in result)
+      return setAlert({severity: "error", message: result.errorMessage});
+    setCreate(false);
+    try {
+      const projects = await fetchProjects();
+      setProjects(projects);
+    } catch (error: any) {
+      return setAlert({message: toFailure(error).errorMessage, severity: "error"});
+    }
+    return setAlert({severity: "success", message: "New schedule was registered"});
   }
 }
 
-export default function ScheduleCreate(props: IScheduleCreateProps) {
-  const [open, setOpen] = React.useState(false);
+export default function ScheduleCreate(_: IScheduleCreateProps) {
   const {create, setCreate} = React.useContext(ScheduleDialogContext);
-  const {alert, setAlert} = useContext(AlertContext);
+  const {setProjects, projects} = React.useContext(ScheduleDataContext);
+  const {setAlert} = useContext(AlertContext);
   const {
     control,
     handleSubmit,
     setValue,
     formState: {errors},
   } = useForm<IScheduleFormData>({resolver: yupResolver(getObjectSchema())});
-  const onSubmit = setOnSubmitHandler(setAlert);
+  const onSubmit = setOnSubmitHandler(setAlert, setCreate, setProjects);
   if (useFirstRender())
     setValues(setValue);
 
-  React.useEffect(() => {
-    setOpen(create);
-  }, [create]);
   return (
-    <Dialog open={open} onClose={() => {
+    <Dialog open={create} onClose={() => {
     }}>
       <Box component="form" noValidate autoComplete="on"
            onSubmit={handleSubmit(onSubmit)}>

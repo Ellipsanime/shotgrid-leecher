@@ -30,10 +30,7 @@ export interface IScheduleTableRowProps {
 export function ScheduleTableRow(props: IScheduleTableRowProps) {
   const {row, index} = props;
   const [open, setOpen] = React.useState(false);
-  const {
-    projectToDelete,
-    setProjectToDelete,
-  } = useContext(ScheduleDataContext);
+  const {setProjectToDelete,} = useContext(ScheduleDataContext);
   const labelId = `enhanced-table-row-${index}`;
   return (
     <React.Fragment>
@@ -94,7 +91,7 @@ export function ScheduleTableRow(props: IScheduleTableRowProps) {
                   {row.latestLogs.map((logRow) => (
                     <TableRow key={logRow.id}>
                       <TableCell
-                        align="right">{logRow.batchResult ?
+                        align="right">{logRow.batchResult.toLocaleLowerCase() === "ok"  ?
                         <SentimentSatisfiedAlt
                           sx={{color: "green"}}/> :
                         <SentimentVeryDissatisfied

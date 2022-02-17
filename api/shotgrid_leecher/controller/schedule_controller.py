@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from shotgrid_leecher.domain import schedule_domain
 from shotgrid_leecher.mapper import query_mapper
@@ -12,6 +12,7 @@ from shotgrid_leecher.record.http_models import (
     BatchConfig,
     ScheduleQueryParams,
 )
+from shotgrid_leecher.record.queries import FindEntityQuery
 from shotgrid_leecher.record.schedule_structures import (
     ScheduleLog,
     ScheduleProject,
@@ -57,6 +58,12 @@ async def logs(
 
 @router.post("/{project_name}")
 async def schedule_batch(project_name: str, batch_config: BatchConfig):
+    query = FindEntityQuery({"_id": project_name}, limit=1)
+    if schedule_repo.fetch_scheduled_projects(query):
+        raise HTTPException(
+            status_code=422,
+            detail=f"Project {project_name} already exists",
+        )
     command = ScheduleShotgridBatchCommand.from_http_model(
         project_name, batch_config
     )

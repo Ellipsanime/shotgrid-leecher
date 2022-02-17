@@ -40,10 +40,10 @@ app.add_middleware(
 _LOG = get_logger(__name__.split(".")[-1])
 
 
-# @app.on_event("startup")
-# @repeat_every(seconds=180, logger=_LOG)
-# async def queue_scheduled_batches() -> None:
-#     await schedule_domain.queue_scheduled_batches()
+@app.on_event("startup")
+@repeat_every(seconds=180, logger=_LOG)
+async def queue_scheduled_batches() -> None:
+    await schedule_domain.queue_scheduled_batches()
 
 
 @app.on_event("startup")

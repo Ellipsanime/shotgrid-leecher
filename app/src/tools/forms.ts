@@ -12,7 +12,6 @@ export function getScheduleObjectShape(): {} {
         apiKey: yup.string().min(3).required(),
         shotgridProjectId: yup.number().min(1).required(),
         fieldsMapping: yup.string().nullable(),
-        overwrite: yup.boolean().required()
     }
 }
 
