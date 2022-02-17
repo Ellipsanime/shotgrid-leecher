@@ -1,6 +1,6 @@
-import {IScheduleProject} from "../services/scheduleService";
 import * as React from "react";
 import {TableCell, TableHead, TableRow} from "@mui/material";
+import {IScheduleProject} from "../records/data";
 
 export type Order = 'asc' | 'desc';
 

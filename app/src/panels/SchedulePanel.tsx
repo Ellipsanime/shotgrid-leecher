@@ -9,8 +9,9 @@ import AlertContext, {IAlert} from "../contexts/Alert";
 import MuiAlert from "@mui/material/Alert";
 import ScheduleCreate from "../dialogs/ScheduleCreate";
 import {ScheduleDataContext, ScheduleDialogContext} from "../contexts/Schedule";
-import {fetchProjects, IScheduleProject} from "../services/scheduleService";
+import {fetchProjects} from "../services/scheduleService";
 import {toFailure} from "../tools/requests";
+import {IScheduleProject} from "../records/data";
 
 
 export default function SchedulePanel() {

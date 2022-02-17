@@ -7,7 +7,7 @@ import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import {TabPanel} from "./panels/TabPanel";
 import BatchPanel from "./panels/BatchPanel";
 import SchedulePanel from "./panels/SchedulePanel";
-import MonitoringPanel from "./panels/MonitoringPnel";
+import MonitoringPanel from "./panels/MonitoringPanel";
 
 function a11yProps(index: number) {
     return {

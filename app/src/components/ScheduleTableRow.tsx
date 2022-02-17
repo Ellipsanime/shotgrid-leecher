@@ -1,4 +1,3 @@
-import {IScheduleProject} from "../services/scheduleService";
 import * as React from "react";
 import {useContext} from "react";
 import {ScheduleDataContext} from "../contexts/Schedule";
@@ -21,6 +20,7 @@ import {
   SentimentSatisfiedAlt,
   SentimentVeryDissatisfied
 } from "@mui/icons-material";
+import {IScheduleProject} from "../records/data";
 
 export interface IScheduleTableRowProps {
   row: IScheduleProject

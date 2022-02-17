@@ -29,12 +29,9 @@ import {ObjectSchema} from "yup";
 import {getScheduleObjectShape, useFirstRender} from "../tools/forms";
 import {ScheduleDataContext, ScheduleDialogContext} from "../contexts/Schedule";
 import AlertContext, {IAlert} from "../contexts/Alert";
-import {
-  createSchedule,
-  fetchProjects,
-  IScheduleProject
-} from "../services/scheduleService";
+import {createSchedule, fetchProjects} from "../services/scheduleService";
 import {toFailure} from "../tools/requests";
+import {IScheduleProject} from "../records/data";
 
 export interface IScheduleCreateProps {
 }

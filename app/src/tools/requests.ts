@@ -1,4 +1,5 @@
 import {Failure, IBatchFormData, IScheduleFormData} from "../records/forms";
+import format from "date-fns/format";
 
 export function toFailure(error: any): Failure {
   return {
@@ -11,6 +12,10 @@ export const CommonHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Content-Type': 'application/json',
 };
+
+export function formatDatetime(datetime: string) {
+  return format(Date.parse(datetime), "yy-MM-dd' at 'HH:mm");
+}
 
 export function toLeecherBase(data: IBatchFormData | IScheduleFormData) {
   return {

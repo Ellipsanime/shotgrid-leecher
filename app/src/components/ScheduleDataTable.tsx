@@ -9,11 +9,11 @@ import {
   TablePagination,
   TableRow
 } from "@mui/material";
-import {IScheduleProject} from "../services/scheduleService";
 import ScheduleConfirm from "../dialogs/ScheduleConfirm";
 import {ScheduleDataContext} from "../contexts/Schedule";
 import {ScheduleTableRow} from "./ScheduleTableRow";
 import {Order, ScheduleTableHead} from "./ScheduleTableHead";
+import {IScheduleProject} from "../records/data";
 
 
 function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number): Array<T> {
@@ -80,7 +80,7 @@ export default function ScheduleDataTable() {
     <Box sx={{width: '100%'}}>
       <Paper sx={{maxWidth: 1000, minWidth: 350}}>
         <TableContainer component={Paper}>
-          <Table aria-label="simple table">
+          <Table aria-label="schedule table">
             <ScheduleTableHead
               order={order}
               orderBy={orderBy}

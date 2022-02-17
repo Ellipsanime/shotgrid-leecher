@@ -1,26 +1,15 @@
 import axios from "axios";
-import format from 'date-fns/format'
 import {IScheduleFormData, Result} from "../records/forms";
-import {CommonHeaders, toFailure, toLeecherBase} from "../tools/requests";
+import {
+  CommonHeaders,
+  formatDatetime,
+  toFailure,
+  toLeecherBase
+} from "../tools/requests";
+import {IScheduleProject} from "../records/data";
 
 
-const apiUrl = process.env.REACT_APP_API_URI || ""
-
-export interface IScheduleLog {
-  batchResult: string
-  datetime: string
-  id: string
-  data: any
-}
-
-export interface IScheduleProject {
-  projectId: number
-  projectName: string
-  scriptName: string
-  url: string
-  datetime: string
-  latestLogs: Array<IScheduleLog>
-}
+const apiUrl = process.env.REACT_APP_API_URI || "";
 
 export async function deleteSchedule(project: IScheduleProject): Promise<Result> {
   const url = `${apiUrl}/schedule/${project.projectName}`;
@@ -44,7 +33,7 @@ export async function createSchedule(data: IScheduleFormData): Promise<Result> {
   }
 }
 
-export async function fetchProjects(): Promise<Array<IScheduleProject>> {
+export async function fetchProjects(): Promise<IScheduleProject[]> {
   const url = `${apiUrl}/schedule/enhanced-projects?sort_field=datetime&sort_order=-1`;
   try {
     const response = await axios.get(url, {headers: CommonHeaders});
@@ -55,13 +44,13 @@ export async function fetchProjects(): Promise<Array<IScheduleProject>> {
       url: x.credential_url,
       latestLogs: x.latest_logs?.map((y: any) => ({
         batchResult: y.batch_result,
-        datetime: format(Date.parse(y.datetime), "yy-MM-dd' at 'HH:mm"),
+        datetime: formatDatetime(y.datetime),
         id: y.id,
         data: y.data,
       })) || [],
-      datetime: format(Date.parse(x.datetime), "yy-MM-dd' at 'HH:mm"),
+      datetime: formatDatetime(x.datetime),
     }));
   } catch (error: any) {
-    throw error
+    throw error;
   }
 }
