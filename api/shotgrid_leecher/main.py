@@ -25,8 +25,7 @@ origins = [
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
     "https://rnd.ellipsanime.net:443/",
-    "http://rnd.ellipsanime.net:3000/",
-    "http://rnd.ellipsanime.net:9080/",
+    "http://rnd.ellipsanime.net:9010/",
 ]
 
 app.add_middleware(

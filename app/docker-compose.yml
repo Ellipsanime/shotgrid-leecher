@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  leecher:
+    image: '$AWS_ID$.dkr.ecr.eu-west-3.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_app_v0.0.9'
+    environment:
+      API_URI: ${API_URI}
+    ports:
+      - "9010:80"
+      - "443:80"
+    deploy:
+      placement:
+        constraints: [node.hostname == swarm-worker2]
+      mode: 'replicated'
+      replicas: 1
+    dns:
+      - 8.8.8.8
+      - 9.9.9.9
