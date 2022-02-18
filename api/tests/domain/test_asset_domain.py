@@ -2,14 +2,15 @@ import uuid
 from datetime import datetime
 from unittest.mock import patch, PropertyMock
 
+import pytest
 from assertpy import assert_that
 
-import domain.asset_domain as domain
-from record.enums import EventTypes
-from record.new_asset_event import NewAssetEvent
-from record.new_event_commands import NewEventCommand
-from record.results import InsertionResult
-from record.shotgrid_subtypes import (
+import shotgrid_leecher.domain.asset_domain as domain
+from shotgrid_leecher.record.enums import EventTypes
+from shotgrid_leecher.record.new_asset_event import NewAssetEvent
+from shotgrid_leecher.record.new_event_commands import NewEventCommand
+from shotgrid_leecher.record.results import InsertionResult
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridUser,
     ShotgridProject,
     ShotgridEntity,
@@ -25,6 +26,7 @@ def _get_command() -> NewEventCommand:
     return NewEventCommand(str(uuid.uuid4()), EventTypes.INITIALIZED, event)
 
 
+@pytest.mark.skip(reason="Must be reset with monkeypatch")
 @patch(
     "shotgrid_leecher.utils.connectivity.get_collection",
     new_callable=PropertyMock,

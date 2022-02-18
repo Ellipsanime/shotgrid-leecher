@@ -21,6 +21,7 @@ jobs:
         architecture: x64
     - name: Install dependencies
       run: |
+        cd api
         python -m pip install --upgrade pip
         pip install pytest
         pip install mypy
@@ -28,7 +29,9 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Test with pytest
       run: |
+        cd api
         pytest .
     - name: Static type checking with MyPy
       run: |
+        cd api
         mypy -p shotgrid_leecher --namespace-packages

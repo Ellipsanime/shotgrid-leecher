@@ -4,8 +4,8 @@ from typing import Dict, Any, List, cast
 import attr
 import cattr
 
-from record.enums import ShotgridType, ShotgridField
-from utils.encoders import DataclassJSONEncoder
+from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
+from shotgrid_leecher.utils.encoders import DataclassJSONEncoder
 
 
 @attr.s(auto_attribs=True, frozen=True)

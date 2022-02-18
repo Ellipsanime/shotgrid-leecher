@@ -1,11 +1,11 @@
 from typing import Sequence
 
-from record.enums import EventTables
-from record.new_event_commands import (
+from shotgrid_leecher.record.enums import EventTables
+from shotgrid_leecher.record.new_event_commands import (
     NewEventCommand,
 )
-from record.results import InsertionResult
-from utils import connectivity as conn
+from shotgrid_leecher.record.results import InsertionResult
+from shotgrid_leecher.utils import connectivity as conn
 
 
 def save_new_asset_events(

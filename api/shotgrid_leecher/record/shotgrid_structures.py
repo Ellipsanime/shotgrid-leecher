@@ -3,8 +3,8 @@ from typing import Optional, List, Dict, Any, Iterator
 
 import attr
 
-from record.shotgrid_subtypes import ShotgridUser
-from utils.strings import format_path
+from shotgrid_leecher.record.shotgrid_subtypes import ShotgridUser
+from shotgrid_leecher.utils.strings import format_path
 
 
 @attr.s(auto_attribs=True, frozen=True)

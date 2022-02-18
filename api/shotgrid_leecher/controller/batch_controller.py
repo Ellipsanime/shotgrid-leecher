@@ -3,16 +3,16 @@ from typing import Dict, Any
 from attr import asdict
 from fastapi import APIRouter, HTTPException
 
-from domain import batch_domain
-from record.commands import (
+from shotgrid_leecher.domain import batch_domain
+from shotgrid_leecher.record.commands import (
     ShotgridCheckCommand,
     UpdateShotgridInAvalonCommand,
     CreateShotgridInAvalonCommand,
 )
-from record.http_models import BatchConfig
-from record.results import BatchResult
-from record.shotgrid_structures import ShotgridCredentials
-from repository import avalon_repo
+from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.results import BatchResult
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.repository import avalon_repo
 
 router = APIRouter(tags=["batch"], prefix="/batch")
 

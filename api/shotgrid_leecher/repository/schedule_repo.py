@@ -1,18 +1,23 @@
 from typing import List, Dict, Any
 
 from pymongo.collection import Collection
+from toolz import pipe, curry, compose
+from toolz.curried import (
+    map as select,
+)
 
-import utils.connectivity as conn
-from record.commands import (
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
 )
-from record.enums import DbName, DbCollection
-from record.queries import FindEntityQuery
-from record.results import GroupAndCountResult
-from record.schedule_structures import (
+from shotgrid_leecher.record.enums import DbName, DbCollection
+from shotgrid_leecher.record.queries import FindEntityQuery
+from shotgrid_leecher.record.results import GroupAndCountResult
+from shotgrid_leecher.record.schedule_structures import (
     ScheduleLog,
     ScheduleProject,
     ScheduleQueueItem,
+    EnhancedScheduleProject,
 )
 
 
@@ -68,6 +73,31 @@ def fetch_scheduled_projects(
         ScheduleProject.from_dict(x)
         for x in _fetch_all(find_query, DbCollection.SCHEDULE_PROJECTS)
     ]
+
+
+@curry
+def _latest_logs_query(limit: int, project_name: str) -> FindEntityQuery:
+    return FindEntityQuery(
+        filter={"project_name": project_name},
+        limit=limit,
+        sort=[("datetime", -1)],
+    )
+
+
+def fetch_enhanced_projects(
+    find_query: FindEntityQuery,
+) -> List[EnhancedScheduleProject]:
+    fetch_logs = compose(fetch_scheduled_logs, _latest_logs_query(5))
+    return pipe(
+        _fetch_all(find_query, DbCollection.SCHEDULE_PROJECTS),
+        select(ScheduleProject.from_dict),
+        select(
+            lambda x: EnhancedScheduleProject.from_entities(
+                x, fetch_logs(x.project_name)
+            )
+        ),
+        list,
+    )
 
 
 def _fetch_all(

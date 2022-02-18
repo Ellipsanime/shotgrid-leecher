@@ -3,27 +3,30 @@ from typing import Dict, Any, List, Set, Tuple, Optional
 from bson.objectid import ObjectId
 from toolz import curry, pipe
 
-import repository.shotgrid_entity_repo as entity_repo
-import repository.shotgrid_hierarchy_repo as repository
-from mapper import avalon_mapper, intermediate_mapper
-from record.avalon_structures import AvalonProjectData
-from record.commands import (
+import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+from shotgrid_leecher.mapper import avalon_mapper, intermediate_mapper
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.commands import (
     UpdateShotgridInAvalonCommand,
     ShotgridCheckCommand,
     CreateShotgridInAvalonCommand,
 )
-from record.intermediate_structures import (
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
 )
-from record.queries import (
+from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridHierarchyByProjectQuery,
 )
-from record.results import BatchCheckResult, BatchResult
-from record.shotgrid_subtypes import ProjectFieldsMapping
-from repository import intermediate_hierarchy_repo, avalon_repo
-from utils.functional import try_or
-from writers import db_writer
+from shotgrid_leecher.record.results import BatchCheckResult, BatchResult
+from shotgrid_leecher.record.shotgrid_subtypes import ProjectFieldsMapping
+from shotgrid_leecher.repository import (
+    avalon_repo,
+    intermediate_hierarchy_repo,
+)
+from shotgrid_leecher.utils.functional import try_or
+from shotgrid_leecher.writers import db_writer
 
 Map = Dict[str, Any]
 

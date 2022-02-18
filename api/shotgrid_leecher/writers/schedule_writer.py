@@ -4,15 +4,15 @@ from typing import Dict, Any, List, Optional
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import UpdateOne
 
-import utils.connectivity as conn
-from record.commands import (
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
     LogBatchUpdateCommand,
     CancelBatchSchedulingCommand,
     CleanScheduleBatchLogsCommand,
 )
-from record.enums import DbName, DbCollection
-from utils.logger import get_logger
+from shotgrid_leecher.record.enums import DbName, DbCollection
+from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
 

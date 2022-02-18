@@ -1,7 +1,7 @@
 import random
 import uuid
 
-from record.enums import ShotgridType, ShotgridField
+from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
 
 _RAND = random.randint
 

@@ -2,7 +2,7 @@ from functools import wraps
 from time import time
 from typing import Callable
 
-from utils.logger import global_logger
+from shotgrid_leecher.utils.logger import global_logger
 
 
 def timed(func: Callable) -> Callable:

@@ -1,8 +1,9 @@
 ## Shotgrid Leecher change Log
 
 ### [0.0.9] Split UI and API parts
-#### Feb ?? - 2022
+#### Feb 14 - 2022
   - Add UI management application
+  - Enable CORS at API level
 ### [0.0.8] Propagate shotgrid status to the avalon
 #### Jan 27 - 2022
   - Propagate shotgrid status from assets and shots to the avalon assets

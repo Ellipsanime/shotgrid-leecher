@@ -1,7 +1,7 @@
 from enum import Enum, unique
 from typing import List
 
-from utils.functional import try_or
+from shotgrid_leecher.utils.functional import try_or
 
 
 @unique

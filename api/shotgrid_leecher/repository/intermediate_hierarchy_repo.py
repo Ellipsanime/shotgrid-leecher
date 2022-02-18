@@ -1,9 +1,9 @@
 from typing import List
 
-import utils.connectivity as conn
-from mapper import intermediate_mapper
-from record.enums import DbName
-from record.intermediate_structures import (
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.mapper import intermediate_mapper
+from shotgrid_leecher.record.enums import DbName
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
     IntermediateParams,
 )

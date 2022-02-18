@@ -13,7 +13,7 @@ repos:
       language_version: "3"
       args:
         - "--config"
-        - "./pyproject.toml"
+        - "./api/pyproject.toml"
 -   repo: https://github.com/pycqa/flake8
     rev: "3.9.2"  # pick a git hash / tag to point to
     hooks:

@@ -1,7 +1,7 @@
-from record.avalon_structures import AvalonProjectData
-from record.intermediate_structures import IntermediateParams
-from utils.collections import drop_keys
-from utils.ids import to_object_id
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.intermediate_structures import IntermediateParams
+from shotgrid_leecher.utils.collections import drop_keys
+from shotgrid_leecher.utils.ids import to_object_id
 
 PROJECT_ID = "Project_564e3805"
 

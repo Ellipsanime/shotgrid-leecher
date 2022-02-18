@@ -9,8 +9,8 @@ from assertpy import assert_that
 from fastapi import HTTPException
 from mongomock import MongoClient, ObjectId
 
-import repository.shotgrid_hierarchy_repo as repository
-import utils.connectivity as conn
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+import shotgrid_leecher.utils.connectivity as conn
 from asset import (
     overwrite_data,
     update_values_data,
@@ -18,15 +18,16 @@ from asset import (
     delete_asset_data,
     assets_without_types_data,
 )
-from controller import batch_controller
-from mapper import intermediate_mapper
-from record.avalon_structures import (
+from shotgrid_leecher.controller import batch_controller
+from shotgrid_leecher.mapper import intermediate_mapper
+from shotgrid_leecher.record.avalon_structures import (
     AvalonProject,
     AvalonProjectData,
 )
-from record.enums import DbName, ShotgridType
-from record.intermediate_structures import IntermediateRow
-from repository import avalon_repo
+from shotgrid_leecher.record.enums import DbName, ShotgridType
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
+from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.utils.ids import to_object_id
 from utils.funcs import (
     batch_config,
     avalon_collections,
@@ -39,7 +40,6 @@ from utils.funcs import (
     sg_query,
     all_avalon_by_type,
 )
-from utils.ids import to_object_id
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]

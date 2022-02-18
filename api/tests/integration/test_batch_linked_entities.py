@@ -8,9 +8,10 @@ from mock import Mock
 from mongomock.mongo_client import MongoClient
 
 from asset import linked_entities_data
-from controller import batch_controller
-from record.enums import DbName
-from utils import connectivity as conn
+from shotgrid_leecher.controller import batch_controller
+from shotgrid_leecher.record.enums import DbName
+from shotgrid_leecher.utils import connectivity as conn
+from shotgrid_leecher.utils.ids import to_object_id
 from utils.funcs import (
     all_intermediate,
     batch_config,
@@ -19,7 +20,6 @@ from utils.funcs import (
     populate_db,
     sg_query,
 )
-from utils.ids import to_object_id
 
 
 def _intermediate_entity_links(client: MongoClient) -> List[Dict]:

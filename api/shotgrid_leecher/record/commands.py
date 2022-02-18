@@ -4,12 +4,12 @@ from typing import Dict, Any
 import attr
 import cattr
 
-from record.avalon_structures import AvalonProjectData
-from record.http_models import BatchConfig
-from record.results import BatchResult
-from record.shotgrid_structures import ShotgridCredentials
-from record.shotgrid_subtypes import FieldsMapping
-from utils.strings import attr_value_to_dict
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.results import BatchResult
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
+from shotgrid_leecher.utils.strings import attr_value_to_dict
 
 
 @attr.s(auto_attribs=True, frozen=True)

@@ -2,7 +2,7 @@ from typing import Dict, Any
 
 from fastapi import APIRouter
 
-from const import PROJECT_META
+from shotgrid_leecher.const import PROJECT_META
 
 router = APIRouter(tags=["meta"], prefix="/meta")
 

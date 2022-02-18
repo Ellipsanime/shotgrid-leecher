@@ -3,8 +3,8 @@ import uuid
 
 from toolz import compose
 
-from record.enums import ShotgridField
-from utils.ids import to_object_id
+from shotgrid_leecher.record.enums import ShotgridField
+from shotgrid_leecher.utils.ids import to_object_id
 
 _RAND = random.randint
 

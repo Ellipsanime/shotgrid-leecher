@@ -2,9 +2,9 @@ from typing import Callable
 
 from toolz import curry
 
-from record.enums import QueryStringType
-from record.http_models import ScheduleQueryParams
-from record.queries import (
+from shotgrid_leecher.record.enums import QueryStringType
+from shotgrid_leecher.record.http_models import ScheduleQueryParams
+from shotgrid_leecher.record.queries import (
     ShotgridHierarchyByProjectQuery,
     ShotgridFindProjectByIdQuery,
     ShotgridFindAssetsByProjectQuery,
@@ -14,7 +14,7 @@ from record.queries import (
     ShotgridFindAllStepsQuery,
     ShotgridLinkedEntitiesQuery,
 )
-from record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
 
 def http_to_find_query(model: ScheduleQueryParams) -> FindEntityQuery:

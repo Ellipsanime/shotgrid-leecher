@@ -5,15 +5,15 @@ from typing import Callable, Dict, TypeVar
 import attr
 from assertpy import assert_that
 
-from mapper import entity_mapper
-from record.enums import ShotgridField, ShotgridType
-from record.shotgrid_structures import (
+from shotgrid_leecher.mapper import entity_mapper
+from shotgrid_leecher.record.enums import ShotgridField, ShotgridType
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridAsset,
     ShotgridShot,
     ShotgridTask,
     ShotgridEntityToEntityLink,
 )
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.shotgrid_subtypes import (
     ProjectFieldsMapping,
     GenericFieldsMapping,
     ShotgridProject,

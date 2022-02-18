@@ -1,17 +1,17 @@
 import uuid
 from typing import Dict, Any
 
-from record.avalon_structures import AvalonProjectData
-from record.enums import ShotgridType
-from record.intermediate_structures import (
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProject,
     IntermediateParams,
     IntermediateAsset,
     IntermediateGroup,
     IntermediateProjectConfig,
 )
-from utils.collections import drop_keys
-from utils.ids import to_object_id
+from shotgrid_leecher.utils.collections import drop_keys
+from shotgrid_leecher.utils.ids import to_object_id
 
 PROJECT_ID = "Project_2ffc00ab4"
 _SRC_ID = 111

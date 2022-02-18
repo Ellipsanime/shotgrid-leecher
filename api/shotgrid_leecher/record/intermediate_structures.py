@@ -5,9 +5,9 @@ import attr
 import cattr
 from bson import ObjectId
 
-from record.enums import ShotgridType
-from utils.ids import to_object_id
-from utils.strings import avalonify_snake_case
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.utils.ids import to_object_id
+from shotgrid_leecher.utils.strings import avalonify_snake_case
 
 Map = Dict[str, Any]
 

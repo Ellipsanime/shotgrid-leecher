@@ -8,13 +8,13 @@ from _pytest.monkeypatch import MonkeyPatch
 from assertpy import assert_that
 from mongomock import MongoClient
 
-import repository.shotgrid_hierarchy_repo as repository
-import utils.connectivity as conn
-from domain import batch_domain as sut
-from record.avalon_structures import AvalonProjectData
-from record.commands import UpdateShotgridInAvalonCommand
-from record.enums import ShotgridType
-from record.intermediate_structures import (
+import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.domain import batch_domain as sut
+from shotgrid_leecher.record.avalon_structures import AvalonProjectData
+from shotgrid_leecher.record.commands import UpdateShotgridInAvalonCommand
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProject,
     IntermediateParams,
     IntermediateRow,
@@ -24,9 +24,9 @@ from record.intermediate_structures import (
     IntermediateProjectConfig,
     IntermediateProjectStep,
 )
-from record.results import BatchResult
-from record.shotgrid_structures import ShotgridCredentials
-from record.shotgrid_subtypes import (
+from shotgrid_leecher.record.results import BatchResult
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.shotgrid_subtypes import (
     FieldsMapping,
     ProjectFieldsMapping,
     AssetFieldsMapping,
@@ -37,9 +37,9 @@ from record.shotgrid_subtypes import (
     ShotToShotLinkMapping,
     AssetToAssetLinkMapping,
 )
-from repository import intermediate_hierarchy_repo
-from utils.ids import to_object_id
-from writers import db_writer
+from shotgrid_leecher.repository import intermediate_hierarchy_repo
+from shotgrid_leecher.utils.ids import to_object_id
+from shotgrid_leecher.writers import db_writer
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
@@ -212,7 +212,6 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     project = _get_project()
     asset_grp = _get_asset_group(project)
     data = [project, asset_grp, *_get_prp_assets(asset_grp)]
-    # last_batch_data = [attr.evolve(x, object_id=ObjectId()) for x in data[:2]]
     call_list = []
 
     def upsert_mock(project_name, rows):

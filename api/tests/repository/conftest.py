@@ -7,8 +7,8 @@ from toolz.curried import (
     map as select,
 )
 
-from record.enums import ShotgridType
-from record.intermediate_structures import IntermediateRow
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
 
 
 def _find_by_type(

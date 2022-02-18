@@ -6,10 +6,10 @@ from toolz.curried import (
     map as select,
 )
 
-import mapper.entity_mapper as mapper
-import utils.connectivity as conn
-from record.enums import ShotgridType
-from record.queries import (
+import shotgrid_leecher.mapper.entity_mapper as mapper
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridFindAssetsByProjectQuery,
     ShotgridFindShotsByProjectQuery,
@@ -17,21 +17,21 @@ from record.queries import (
     ShotgridFindAllStepsQuery,
     ShotgridLinkedEntitiesQuery,
 )
-from record.shotgrid_filters import (
+from shotgrid_leecher.record.shotgrid_filters import (
     CompositeFilter,
     IdFilter,
     IsFilter,
     IsNotFilter,
     NameIsFilter,
 )
-from record.shotgrid_structures import (
+from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridTask,
     ShotgridShot,
     ShotgridAsset,
     ShotgridStep,
     ShotgridEntityToEntityLink,
 )
-from record.shotgrid_subtypes import ShotgridProject
+from shotgrid_leecher.record.shotgrid_subtypes import ShotgridProject
 
 Map = Dict[str, Any]
 _F = CompositeFilter

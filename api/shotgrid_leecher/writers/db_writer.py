@@ -5,10 +5,10 @@ from pymongo import UpdateOne, InsertOne
 from pymongo.collection import Collection
 from pymongo.results import DeleteResult, BulkWriteResult
 
-import utils.connectivity as conn
-from record.enums import DbName, AvalonType
-from record.intermediate_structures import IntermediateRow
-from utils.collections import flatten_dict
+import shotgrid_leecher.utils.connectivity as conn
+from shotgrid_leecher.record.enums import DbName, AvalonType
+from shotgrid_leecher.record.intermediate_structures import IntermediateRow
+from shotgrid_leecher.utils.collections import flatten_dict
 
 Map = Dict[str, Any]
 _ROW_FLATTEN_EXCEPTIONS = {"config.tasks", "data.tasks"}

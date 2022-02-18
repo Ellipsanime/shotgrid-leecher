@@ -9,8 +9,8 @@ from pymongo.collection import Collection
 from retry import retry
 from toolz import memoize
 
-from record.enums import EventTables
-from record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.enums import EventTables
+from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 
 Map = Dict[str, Any]
 
