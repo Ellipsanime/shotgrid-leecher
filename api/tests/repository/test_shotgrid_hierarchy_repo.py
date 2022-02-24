@@ -339,11 +339,11 @@ def test_random_assets_traversal(monkeypatch: MonkeyPatch, size: int):
         group=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Asset,",
+        f",{project.name},Assets,",
         group=n_group,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Asset,*",
+        f",{project.name},Assets,*",
         count=len(tasks),
     )
 
@@ -378,11 +378,11 @@ def test_random_assets_traversal_without_sg_type(
         asset=len([x for x in assets if not x.asset_type]),
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Asset,",
+        f",{project.name},Assets,",
         group=len([x for x in assets if x.asset_type]),
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Asset,*",
+        f",{project.name},Assets,*",
         count=len(list(chain(*[x.tasks for x in assets if x.asset_type]))),
     )
 
@@ -406,7 +406,7 @@ def test_random_broken_data_traversal(monkeypatch: MonkeyPatch, size: int):
     assert_that(actual).is_type_of(list)
     assert_that(actual).is_length(n_group * size + n_group * 2 + 2)
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Asset,*",
+        f",{project.name},Assets,*",
         count=len(asset_tasks),
     )
 
@@ -437,19 +437,19 @@ def test_random_complete_traversal(monkeypatch: MonkeyPatch, size: int):
         group=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,",
+        f",{project.name},Shots,",
         episode=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Asset,",
+        f",{project.name},Assets,",
         group=n_group,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Asset,*",
+        f",{project.name},Assets,*",
         count=len(asset_tasks),
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,*",
+        f",{project.name},Shots,*",
         count=len(shot_tasks),
     )
 
@@ -509,33 +509,33 @@ def test_random_shots_traversal_at_shot_level(
     # Assert
     assert_that(actual).path_counts_types(f",{project.name},", group=1)
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,",
+        f",{project.name},Shots,",
         episode=2,
         sequence=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_1,",
+        f",{project.name},Shots,EP_1,",
         sequence=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_2,",
+        f",{project.name},Shots,EP_2,",
         sequence=1,
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_1,SQ_1,",
+        f",{project.name},Shots,EP_1,SQ_1,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_1,SQ_11,",
+        f",{project.name},Shots,EP_1,SQ_11,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_2,SQ_2,",
+        f",{project.name},Shots,EP_2,SQ_2,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,SQ_2,",
+        f",{project.name},Shots,SQ_2,",
         shot=size,
     )
 
@@ -562,27 +562,27 @@ def test_odd_random_shots_traversal_at_shot_level(
     # Assert
     assert_that(actual).path_counts_types(f",{project.name},", group=1)
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,",
+        f",{project.name},Shots,",
         episode=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_1,",
+        f",{project.name},Shots,EP_1,",
         sequence=2,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_2,",
+        f",{project.name},Shots,EP_2,",
         sequence=1,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_1,SQ_1,",
+        f",{project.name},Shots,EP_1,SQ_1,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_1,SQ_11,",
+        f",{project.name},Shots,EP_1,SQ_11,",
         shot=size,
     )
     assert_that(actual).path_counts_types(
-        f",{project.name},Shot,EP_2,SQ_2,",
+        f",{project.name},Shots,EP_2,SQ_2,",
         shot=size,
     )
 
@@ -610,23 +610,23 @@ def test_random_shots_traversal_at_bottom_level(
     actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Assert
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,EP_1,SQ_1,SHOT*",
+        f",{project.name},Shots,EP_1,SQ_1,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,EP_1,SQ_11,SHOT*",
+        f",{project.name},Shots,EP_1,SQ_11,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,EP_2,SQ_2,SHOT*",
+        f",{project.name},Shots,EP_2,SQ_2,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,EP_2,SHOT5*",
+        f",{project.name},Shots,EP_2,SHOT5*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,SQ_2,SHOT4*",
+        f",{project.name},Shots,SQ_2,SHOT4*",
         count=size * size,
     )
 
@@ -652,14 +652,14 @@ def test_odd_random_shots_traversal_at_bottom_level(
     actual = sut.get_hierarchy_by_project(_to_query(project_id))
     # Assert
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,EP_1,SQ_1,SHOT*",
+        f",{project.name},Shots,EP_1,SQ_1,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,EP_1,SQ_11,SHOT*",
+        f",{project.name},Shots,EP_1,SQ_11,SHOT*",
         count=size * size,
     )
     assert_that(actual).path_counts_tasks(
-        f",{project.name},Shot,EP_2,SQ_2,SHOT*",
+        f",{project.name},Shots,EP_2,SQ_2,SHOT*",
         count=size * size,
     )

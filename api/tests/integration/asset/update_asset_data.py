@@ -38,9 +38,9 @@ AVALON_DATA = [
         "parent": None,
     },
     {
-        "_id": to_object_id("Asset"),
+        "_id": to_object_id("Assets"),
         "type": "asset",
-        "name": "Asset",
+        "name": "Assets",
         "data": {
             "clipIn": 1,
             "clipOut": 1,
@@ -120,7 +120,7 @@ SHOTGRID_DATA = [
         "params": _PROJ_DATA.to_dict(),
     },
     {
-        "_id": "Asset",
+        "_id": "Assets",
         "type": "Group",
         "parent": f",{PROJECT_ID},",
         "params": _PROJ_DATA.to_dict(),
@@ -128,20 +128,20 @@ SHOTGRID_DATA = [
     {
         "_id": "PROPS",
         "type": "Group",
-        "parent": f",{PROJECT_ID},Asset,",
+        "parent": f",{PROJECT_ID},Assets,",
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "Fork",
         "src_id": 50712,
         "type": "Asset",
-        "parent": f",{PROJECT_ID},Asset,PROPS,",
+        "parent": f",{PROJECT_ID},Assets,PROPS,",
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
-        "parent": f",{PROJECT_ID},Asset,",
+        "parent": f",{PROJECT_ID},Assets,",
         "params": _PROJ_DATA.to_dict(),
     },
 ]
@@ -156,16 +156,16 @@ INTERMEDIATE_DB_DATA = [
         "params": _PROJ_DATA.to_dict(),
     },
     {
-        "_id": "Asset",
+        "_id": "Assets",
         "type": "Group",
         "parent": f",{PROJECT_ID},",
-        "object_id": to_object_id("Asset"),
+        "object_id": to_object_id("Assets"),
         "params": _PROJ_DATA.to_dict(),
     },
     {
         "_id": "PRP",
         "type": "Group",
-        "parent": f",{PROJECT_ID},Asset,",
+        "parent": f",{PROJECT_ID},Assets,",
         "object_id": to_object_id("PRP"),
         "params": _PROJ_DATA.to_dict(),
     },
@@ -173,7 +173,7 @@ INTERMEDIATE_DB_DATA = [
         "_id": "Fork",
         "src_id": 50711,
         "type": "Asset",
-        "parent": f",{PROJECT_ID},Asset,PRP,",
+        "parent": f",{PROJECT_ID},Assets,PRP,",
         "object_id": to_object_id(50711),
         "params": _PROJ_DATA.to_dict(),
     },

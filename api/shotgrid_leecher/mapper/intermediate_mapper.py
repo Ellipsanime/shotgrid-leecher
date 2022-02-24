@@ -6,7 +6,7 @@ from bson import ObjectId
 from toolz import curry, memoize
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
-from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.enums import ShotgridType, TopMediaLevelType
 from shotgrid_leecher.record.intermediate_structures import (
     IntermediateGroup,
     IntermediateTask,
@@ -106,10 +106,10 @@ def to_top_shot(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.SHOT.value,
+        TopMediaLevelType.SHOTS.value,
         f",{project.name},",
         to_params(project_data),
-        object_id=to_object_id(ShotgridType.SHOT.value),
+        object_id=to_object_id(TopMediaLevelType.SHOTS.value),
     )
 
 
@@ -117,10 +117,10 @@ def to_top_asset(
     project: ShotgridProject, project_data: AvalonProjectData
 ) -> IntermediateGroup:
     return IntermediateGroup(
-        ShotgridType.ASSET.value,
+        TopMediaLevelType.ASSETS.value,
         f",{project.name},",
         to_params(project_data),
-        object_id=to_object_id(ShotgridType.ASSET.value),
+        object_id=to_object_id(TopMediaLevelType.ASSETS.value),
     )
 
 
@@ -228,7 +228,7 @@ def to_asset_group(
 ) -> IntermediateGroup:
     return IntermediateGroup(
         id=asset_type,
-        parent=f",{project.name},{ShotgridType.ASSET.value},",
+        parent=f",{project.name},{TopMediaLevelType.ASSETS.value},",
         params=to_params(project_data),
         object_id=to_object_id(asset_type),
     )
@@ -242,7 +242,7 @@ def to_episode_shot_group(
     return IntermediateEpisode(
         id=episode.name,
         src_id=episode.id,
-        parent=f",{project.name},{ShotgridType.SHOT.value},",
+        parent=f",{project.name},{TopMediaLevelType.SHOTS.value},",
         params=to_params(project_data),
         object_id=to_object_id(episode.id),
     )

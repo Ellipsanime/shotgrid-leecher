@@ -13,6 +13,7 @@ class ScheduleLog:
     project_id: int
     datetime: datetime
     data: Optional[Dict[str, Any]]
+    duration: float
 
     @staticmethod
     def from_dict(raw_dic: Dict[str, Any]) -> "ScheduleLog":
@@ -28,6 +29,7 @@ class ScheduleLog:
             datetime=dic["datetime"],
             batch_result=dic["batch_result"],
             data=dic["data"],
+            duration=dic["duration"]
         )
 
 

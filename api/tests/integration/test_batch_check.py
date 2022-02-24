@@ -74,7 +74,7 @@ async def test_batch_first_level_virtual_orphans(monkeypatch: MonkeyPatch):
         len(update_values_data.AVALON_DATA)
     )
     assert_that(all_avalon(client)).extracting(
-        "data", filter={"name": "Asset"}
+        "data", filter={"name": "Assets"}
     ).extracting("visualParent").is_equal_to([None])
     assert_that(all_avalon(client)).extracting("data").extracting(
         "visualParent", filter=lambda x: x["visualParent"]

@@ -12,9 +12,10 @@ export async function fetchTopNLogs(top: number): Promise<ILog[]> {
       id: x.id,
       projectName: x.project_name,
       projectId: x.project_id,
-      data: JSON.stringify(x.data, null, 2),
+      data: !!x.data ? JSON.stringify(x.data, null, 2) : undefined,
       result: x.batch_result,
       datetime: formatDatetime(x.datetime),
+      duration: x.duration?.toFixed(2),
     } as ILog)) || [];
   } catch (error: any) {
     throw error;

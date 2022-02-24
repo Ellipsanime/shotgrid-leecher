@@ -100,7 +100,7 @@ def _get_simple_asset_mapped_rows(task_num: int) -> List[Map]:
     project = _get_project_mapped_rows()
     asset_grp = {
         "type": "asset",
-        "name": "Asset",
+        "name": "Assets",
         "data": _default_avalon_asset_data(),
         "schema": "openpype:project-3.0",
         "parent": project["name"],

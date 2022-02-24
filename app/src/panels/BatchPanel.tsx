@@ -134,7 +134,7 @@ export default function BatchPanel() {
           </FormControl>
           <Controller control={control} name="urlPath"
                       render={({field}) => (
-                        <TextField {...field} label="Shotgrid url"
+                        <TextField {...field} label="Shotgrid url without protocol type (http://*)"
                                    type="search"
                                    error={!!errors.urlPath}
                                    helperText={errors?.urlPath?.message || ''}/>

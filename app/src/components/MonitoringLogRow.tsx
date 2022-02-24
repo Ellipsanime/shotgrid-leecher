@@ -30,7 +30,7 @@ export function MonitoringLogRow(props: IMonitoringLogRowProps) {
       <TableRow sx={{'& > *': {borderBottom: 'unset'}}} key={labelId}>
         <TableCell>
           <IconButton
-            sx={{visibility: row.data ? "visible" : "hidden"}}
+            sx={{visibility: !!row.data ? "visible" : "hidden"}}
             aria-label="expand row"
             size="small"
             onClick={() => setOpen(!open)}

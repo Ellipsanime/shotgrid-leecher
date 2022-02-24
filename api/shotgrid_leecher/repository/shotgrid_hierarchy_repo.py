@@ -13,7 +13,7 @@ import shotgrid_leecher.mapper.intermediate_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_entity_repo as entity_repo
 from shotgrid_leecher.mapper import query_mapper
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
-from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.enums import TopMediaLevelType
 from shotgrid_leecher.record.intermediate_structures import (
     IntermediateRow,
 )
@@ -89,7 +89,7 @@ def _tackle_full_shots(
     project: ShotgridProject,
     shots: List[ShotgridShot],
 ) -> Iterator[IntermediateRow]:
-    shot_type = ShotgridType.SHOT.value
+    archetype = TopMediaLevelType.SHOTS.value
     full_shots = pipe(
         shots,
         where(lambda x: x.sequence_name() and x.episode_name()),
@@ -98,7 +98,7 @@ def _tackle_full_shots(
     for shot in full_shots:
         episode = shot.episode_name()
         sequence_ = shot.sequence_name()
-        parent_path = f",{project.name},{shot_type},{episode},{sequence_},"
+        parent_path = f",{project.name},{archetype},{episode},{sequence_},"
         yield mapper.to_shot(shot, parent_path, project_data)
 
 
@@ -107,7 +107,7 @@ def _tackle_shot_sequences(
     project: ShotgridProject,
     shots: List[ShotgridShot],
 ) -> Iterator[IntermediateRow]:
-    shot_type = ShotgridType.SHOT.value
+    archetype = TopMediaLevelType.SHOTS.value
     sequence_group = pipe(
         shots,
         where(lambda x: x.sequence_name()),
@@ -116,7 +116,7 @@ def _tackle_shot_sequences(
     for sq, sq_shots in sequence_group.items():
         for shot in unique(sq_shots, lambda x: x.episode_id()):
             episode = shot.episode_name()
-            base_path = f",{project.name},{shot_type},"
+            base_path = f",{project.name},{archetype},"
             parent_path = f"{base_path}{episode}," if episode else base_path
             yield mapper.to_sequence_shot_group(
                 shot.sequence, parent_path, project_data
@@ -144,7 +144,7 @@ def _tackle_partial_shots(
     project: ShotgridProject,
     shots: List[ShotgridShot],
 ) -> Iterator[IntermediateRow]:
-    shot_type = ShotgridType.SHOT.value
+    archetype = TopMediaLevelType.SHOTS.value
     partial_shots = pipe(
         shots,
         where(lambda x: not x.sequence_name() or not x.episode_name()),
@@ -152,15 +152,15 @@ def _tackle_partial_shots(
     )
     for shot in partial_shots:
         if not shot.episode and not shot.sequence:
-            parent_path = f",{project.name},{shot_type},"
+            parent_path = f",{project.name},{archetype},"
             yield mapper.to_shot(shot, parent_path, project_data)
         if not shot.episode and shot.sequence:
             sequence_ = shot.sequence.name
-            parent_path = f",{project.name},{shot_type},{sequence_},"
+            parent_path = f",{project.name},{archetype},{sequence_},"
             yield mapper.to_shot(shot, parent_path, project_data)
         if shot.episode and not shot.sequence:
             episode = shot.episode.name
-            parent_path = f",{project.name},{shot_type},{episode},"
+            parent_path = f",{project.name},{archetype},{episode},"
             yield mapper.to_shot(shot, parent_path, project_data)
 
 
@@ -187,7 +187,7 @@ def _fetch_typed_project_assets(
     raw_assets: List[ShotgridAsset],
 ) -> Iterator[IntermediateRow]:
     assets = [x for x in raw_assets if x.asset_type]
-    archetype = ShotgridType.ASSET.value
+    archetype = TopMediaLevelType.ASSETS.value
     if assets:
         yield mapper.to_top_asset(query.project, query.project_data)
     for g, g_assets in groupby(lambda x: x.asset_type, assets).items():

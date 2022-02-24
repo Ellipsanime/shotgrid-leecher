@@ -51,7 +51,7 @@ export default function MonitoringLogTable() {
                 <TableCell align="right">Log ID</TableCell>
                 <TableCell align="right">Project Name</TableCell>
                 <TableCell align="right">Project ID</TableCell>
-                <TableCell align="right">Duration</TableCell>
+                <TableCell align="right">Duration(sec)</TableCell>
                 <TableCell align="right">Log datetime</TableCell>
                 <TableCell/>
               </TableRow>

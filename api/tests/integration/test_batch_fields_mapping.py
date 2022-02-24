@@ -13,7 +13,7 @@ from shotgrid_leecher.record.avalon_structures import (
     AvalonProject,
     AvalonProjectData,
 )
-from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.enums import ShotgridType, TopMediaLevelType
 from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.utils import connectivity as conn
@@ -82,7 +82,8 @@ async def test_batch_with_fields_mapping(monkeypatch: MonkeyPatch):
         )
     )
     assert_that(all_intermediate(client)).extracting(
-        "_id", filter={"parent": f",{project_id},{ShotgridType.ASSET.value},"}
+        "_id",
+        filter={"parent": f",{project_id},{TopMediaLevelType.ASSETS.value},"},
     ).is_equal_to(
         _extract(
             fields_mapping_data.FIELD_ASSET_TYPE,

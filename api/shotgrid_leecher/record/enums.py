@@ -41,6 +41,12 @@ class AvalonType(Enum):
 
 
 @unique
+class TopMediaLevelType(Enum):
+    ASSETS = "Assets"
+    SHOTS = "Shots"
+
+
+@unique
 class ShotgridType(Enum):
     PROJECT = "Project"
     ASSET = "Asset"

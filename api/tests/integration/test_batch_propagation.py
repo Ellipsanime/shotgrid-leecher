@@ -173,7 +173,7 @@ async def test_batch_with_project_to_children_partial_cut_in_propagation(
         [propagation_data.SHOTGRID_DATA_SHOTS[0]["sg_cut_in"]]
     )
     assert_that(all_avalon(client)).extracting(
-        "data", filter={"name": "Shot"}
+        "data", filter={"name": "Shots"}
     ).extracting("clipIn").is_not_equal_to(
         [propagation_data.SHOTGRID_DATA_SHOTS[0]["sg_cut_in"]]
     )
@@ -205,7 +205,7 @@ async def test_batch_with_project_to_children_partial_cut_out_propagation(
         [propagation_data.SHOTGRID_DATA_SHOTS[0]["sg_cut_out"]]
     )
     assert_that(all_avalon(client)).extracting(
-        "data", filter={"name": "Shot"}
+        "data", filter={"name": "Shots"}
     ).extracting("clipOut").is_not_equal_to(
         [propagation_data.SHOTGRID_DATA_SHOTS[0]["sg_cut_out"]]
     )
