@@ -54,7 +54,7 @@ def update_shotgrid_in_avalon(
     # TODO get rid of mutability and avalon_tree
     avalon_rows = avalon_mapper.shotgrid_to_avalon(current_hierarchy)
 
-    if command.project_name != avalon_rows[0]["name"]:
+    if command.project_name.lower() != str(avalon_rows[0]["name"]).lower():
         return BatchResult.WRONG_PROJECT_NAME
 
     if command.overwrite:
