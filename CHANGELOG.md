@@ -1,5 +1,8 @@
 ## Shotgrid Leecher change Log
 
+### [0.0.10] Support custom frame start/end fields
+#### March ?? - 2022
+  - Add custom frame start/end fields
 ### [0.0.9] Split UI and API parts
 #### Feb 14 - 2022
   - Add UI management application
