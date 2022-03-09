@@ -7,11 +7,11 @@ import {
   toLeecherBase
 } from "../tools/requests";
 import {IScheduleProject} from "../records/data";
+import {loadConfig} from "../tools/config";
 
-
-const apiUrl = process.env.REACT_APP_API_URI || "";
 
 export async function deleteSchedule(project: IScheduleProject): Promise<Result> {
+  const apiUrl = loadConfig().activeUri;
   const url = `${apiUrl}/schedule/${project.projectName}`;
   try {
     const data = await axios.delete(url, {headers: CommonHeaders});
@@ -24,6 +24,7 @@ export async function deleteSchedule(project: IScheduleProject): Promise<Result>
 const toLeecherAddSchedule: (_: IScheduleFormData) => { [_: string]: any } = toLeecherBase
 
 export async function createSchedule(data: IScheduleFormData): Promise<Result> {
+  const apiUrl = loadConfig().activeUri;
   const url = `${apiUrl}/schedule/${data.openpypeProject}`;
   try {
     const result = await axios.post(url, toLeecherAddSchedule(data), {headers: CommonHeaders});
@@ -34,6 +35,7 @@ export async function createSchedule(data: IScheduleFormData): Promise<Result> {
 }
 
 export async function fetchProjects(): Promise<IScheduleProject[]> {
+  const apiUrl = loadConfig().activeUri;
   const url = `${apiUrl}/schedule/enhanced-projects?sort_field=datetime&sort_order=-1`;
   try {
     const response = await axios.get(url, {headers: CommonHeaders});

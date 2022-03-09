@@ -1,10 +1,11 @@
 import {ILog} from "../records/data";
 import axios from "axios";
 import {CommonHeaders, formatDatetime} from "../tools/requests";
+import {loadConfig} from "../tools/config";
 
-const apiUrl = process.env.REACT_APP_API_URI || "";
 
 export async function fetchTopNLogs(top: number): Promise<ILog[]> {
+  const apiUrl = loadConfig().activeUri;
   const url = `${apiUrl}/schedule/logs?sort_field=datetime&sort_order=-1&limit=${top}`;
   try {
     const response = await axios.get(url, {headers: CommonHeaders});

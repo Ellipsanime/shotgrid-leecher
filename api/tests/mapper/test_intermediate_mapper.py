@@ -53,7 +53,16 @@ def test_to_shot_row_without_params():
 def test_to_shot_row_with_params():
     # Arrange
     params = ShotgridShotParams(
-        _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64(), _I64()
+        _I64(),
+        _I64(),
+        _I64(),
+        _I64(),
+        _I64(),
+        _I64(),
+        _I64(),
+        _I64(),
+        _I64(),
+        _I64(),
     )
     shot = ShotgridShot(
         _S(),

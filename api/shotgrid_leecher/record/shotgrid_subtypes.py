@@ -128,6 +128,8 @@ class ShotFieldsMapping(GenericFieldsMapping):
                 ShotgridField.CUT_OUT.value: "sg_cut_out",
                 ShotgridField.HEAD_IN.value: "sg_head_in",
                 ShotgridField.HEAD_OUT.value: "sg_head_out",
+                ShotgridField.FRAME_START.value: "sg_frame_start",
+                ShotgridField.FRAME_END.value: "sg_frame_end",
                 ShotgridField.TAIL_IN.value: "sg_tail_in",
                 ShotgridField.TAIL_OUT.value: "sg_tail_out",
                 ShotgridField.SEQUENCE_EPISODE.value: ".".join(

@@ -179,6 +179,8 @@ def to_shot(
         result.params,
         clip_in=raw_params.cut_in or project_data.clip_in,
         clip_out=raw_params.cut_out or project_data.clip_out,
+        frame_start=raw_params.frame_start or project_data.frame_start,
+        frame_end=raw_params.frame_end or project_data.frame_end,
     )
     return attr.evolve(result, params=params)
 

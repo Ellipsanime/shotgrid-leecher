@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import Box from '@mui/material/Box';
-import FormControl from '@mui/material/FormControl';
 import ScheduleDataTable from "../components/ScheduleDataTable";
 import {Fab, Snackbar} from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
@@ -56,8 +55,6 @@ export default function SchedulePanel() {
       <ScheduleDataContext.Provider value={projectDataValue}>
         <Box sx={{minWidth: 180}}>
           <ScheduleDataTable/>
-          <FormControl fullWidth>
-          </FormControl>
           <ScheduleDialogContext.Provider value={scheduleCreateValue}>
             <Fab sx={{position: "fixed", left: 16, bottom: 16}}
                  aria-label="Add" color="primary" onClick={handleAddClick}>

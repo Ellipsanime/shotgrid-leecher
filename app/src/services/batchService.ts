@@ -1,8 +1,7 @@
 import {IBatchFormData, Result} from "../records/forms";
 import axios from "axios";
 import {CommonHeaders, toLeecherBase} from "../tools/requests";
-
-const apiUrl = process.env.REACT_APP_API_URI || ""
+import {loadConfig} from "../tools/config";
 
 
 function toLeecherBatch(formData: IBatchFormData): { [_: string]: any } {
@@ -13,6 +12,7 @@ function toLeecherBatch(formData: IBatchFormData): { [_: string]: any } {
 }
 
 export async function batch(formData: IBatchFormData): Promise<Result> {
+  const apiUrl = loadConfig().activeUri;
   const url = `${apiUrl}/batch/${formData.openpypeProject}`;
   const data = toLeecherBatch(formData);
   try {

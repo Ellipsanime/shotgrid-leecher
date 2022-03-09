@@ -111,6 +111,77 @@ async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
 
 
 @pytest.mark.asyncio
+async def test_batch_frame_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
+    # Arrange
+    def exp_filter(x):
+        params = x.get("params", dict())
+        return params.get("frame_start") or params.get("frame_end")
+
+    project_id = params_data.PROJECT_ID
+    client = MongoClient()
+    sg_client = Mock()
+    sg_client.find = sg_query(params_data)
+    sg_client.find_one = sg_query(params_data)
+    project = AvalonProject(
+        str(ObjectId()),
+        project_id,
+        AvalonProjectData(frame_start=None, frame_end=None),
+        {"tasks": {x: {"short_name": x[:1]} for x in ["render"]}},
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
+    monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
+    # Act
+    await batch_controller.batch_update(project_id, batch_config())
+
+    # Assert
+    assert_that(
+        _all_intermediate_by_type(client, ShotgridType.SHOT)
+    ).extracting("src_id", filter=exp_filter).is_equal_to(
+        _extract(
+            "id",
+            [
+                x
+                for x in params_data.SHOTGRID_DATA_SHOTS
+                if x.get("sg_frame_start") or x.get("sg_frame_end")
+            ],
+        )
+    )
+    assert_that(
+        _all_intermediate_by_type(client, ShotgridType.SHOT)
+    ).extracting(
+        "params", filter=lambda x: x.get("params", dict()).get("frame_start")
+    ).extracting(
+        "frame_start"
+    ).is_equal_to(
+        _extract(
+            "sg_frame_start",
+            [
+                x
+                for x in params_data.SHOTGRID_DATA_SHOTS
+                if x.get("sg_frame_start")
+            ],
+        )
+    )
+    assert_that(
+        _all_intermediate_by_type(client, ShotgridType.SHOT)
+    ).extracting(
+        "params", filter=lambda x: x.get("params", dict()).get("frame_end")
+    ).extracting(
+        "frame_end"
+    ).is_equal_to(
+        _extract(
+            "sg_frame_end",
+            [
+                x
+                for x in params_data.SHOTGRID_DATA_SHOTS
+                if x.get("sg_frame_end")
+            ],
+        )
+    )
+
+
+@pytest.mark.asyncio
 async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
     # Arrange
     project_id = params_data.PROJECT_ID
@@ -147,5 +218,46 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
             x["sg_cut_out"]
             for x in params_data.SHOTGRID_DATA_SHOTS
             if "sg_cut_out" in x and x["sg_cut_out"]
+        ],
+    )
+
+
+@pytest.mark.asyncio
+async def test_batch_frame_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
+    # Arrange
+    project_id = params_data.PROJECT_ID
+    client = MongoClient()
+    sg_client = Mock()
+    sg_client.find = sg_query(params_data)
+    sg_client.find_one = sg_query(params_data)
+    project = AvalonProject(
+        str(ObjectId()),
+        project_id,
+        AvalonProjectData(),
+        dict(),
+    )
+    monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
+    monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
+    monkeypatch.setattr(conn, "get_db_client", fun(client))
+    # Act
+    await batch_controller.batch_update(project_id, batch_config())
+
+    # Assert
+    assert_that(all_avalon_by_type(client, "asset")).extracting(
+        "data", filter=lambda x: (x["data"].get("frameStart") or 0) > 10
+    ).extracting("frameStart").is_equal_to(
+        [
+            x["sg_frame_start"]
+            for x in params_data.SHOTGRID_DATA_SHOTS
+            if "sg_frame_start" in x and x["sg_frame_start"]
+        ],
+    )
+    assert_that(all_avalon_by_type(client, "asset")).extracting(
+        "data", filter=lambda x: (x["data"].get("frameEnd") or 0) > 10
+    ).extracting("frameEnd").is_equal_to(
+        [
+            x["sg_frame_end"]
+            for x in params_data.SHOTGRID_DATA_SHOTS
+            if "sg_frame_end" in x and x["sg_frame_end"]
         ],
     )

@@ -58,6 +58,8 @@ class ShotgridShotParams:
     tail_out: Optional[int]
     cut_duration: Optional[int]
     frame_rate: Optional[int]
+    frame_end: Optional[int]
+    frame_start: Optional[int]
 
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self)

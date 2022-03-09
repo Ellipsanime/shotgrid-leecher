@@ -117,6 +117,8 @@ class ShotgridField(Enum):
     HEAD_OUT = "head_out"
     TAIL_IN = "tail_in"
     TAIL_OUT = "tail_out"
+    FRAME_START = "frame_start"
+    FRAME_END = "frame_end"
     CODE = "code"
     TYPE = "type"
     TASKS = "tasks"

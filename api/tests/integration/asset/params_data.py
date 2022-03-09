@@ -63,122 +63,6 @@ SHOTGRID_DATA_ASSETS = [
         ],
     }
 ]
-SHOTGRID_DATA_SHOTS = [
-    {
-        "type": "Shot",
-        "id": 110,
-        "sequence": {"id": 1, "name": "SQ_1", "type": "Sequence"},
-        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
-        "code": "SHOT10",
-        ShotgridField.SEQUENCE_EPISODE.value: {
-            "id": 1,
-            "name": "EP_1",
-            "type": "Episode",
-        },
-        "sg_cut_in": _RAND(10 ** 2, 10 ** 10),
-        "sg_cut_out": _I32(),
-    },
-    {
-        "type": "Shot",
-        "id": 111,
-        "sequence": {"id": 1, "name": "SQ_1", "type": "Sequence"},
-        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
-        "code": "SHOT11",
-        ShotgridField.SEQUENCE_EPISODE.value: {
-            "id": 1,
-            "name": "EP_1",
-            "type": "Episode",
-        },
-        **(
-            {
-                "sg_cut_in": _I32(),
-                "sg_cut_out": _I32(),
-            }
-            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
-            else {}
-        ),
-    },
-    {
-        "type": "Shot",
-        "id": 112,
-        "sequence": {"id": 11, "name": "SQ_11", "type": "Sequence"},
-        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
-        "code": "SHOT12",
-        ShotgridField.SEQUENCE_EPISODE.value: {
-            "id": 1,
-            "name": "EP_1",
-            "type": "Episode",
-        },
-        **(
-            {
-                "sg_cut_in": _I32(),
-                "sg_cut_out": _I32(),
-            }
-            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
-            else {}
-        ),
-    },
-    {
-        "type": "Shot",
-        "id": 113,
-        "sequence": {"id": 11, "name": "SQ_11", "type": "Sequence"},
-        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
-        "code": "SHOT13",
-        ShotgridField.SEQUENCE_EPISODE.value: {
-            "id": 1,
-            "name": "EP_1",
-            "type": "Episode",
-        },
-        **(
-            {
-                "sg_cut_in": _I32(),
-                "sg_cut_out": _I32(),
-            }
-            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
-            else {}
-        ),
-    },
-    {
-        "type": "Shot",
-        "id": 120,
-        "sequence": {"id": 2, "name": "SQ_2", "type": "Sequence"},
-        "episode": {"id": 2, "name": "EP_2", "type": "Episode"},
-        "code": "SHOT20",
-        ShotgridField.SEQUENCE_EPISODE.value: {
-            "id": 2,
-            "name": "EP_2",
-            "type": "Episode",
-        },
-        **(
-            {
-                "sg_cut_in": _I32(),
-                "sg_cut_out": _I32(),
-            }
-            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
-            else {}
-        ),
-    },
-    {
-        "type": "Shot",
-        "id": 121,
-        "sequence": {"id": 2, "name": "SQ_2", "type": "Sequence"},
-        "episode": {"id": 2, "name": "EP_2", "type": "Episode"},
-        "code": "SHOT21",
-        ShotgridField.SEQUENCE_EPISODE.value: {
-            "id": 2,
-            "name": "EP_2",
-            "type": "Episode",
-        },
-        **(
-            {
-                "sg_cut_in": _I32(),
-                "sg_cut_out": _I32(),
-            }
-            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
-            else {}
-        ),
-    },
-]
 SHOTGRID_DATA_TASKS = [
     {
         "id": _RAND(10 ** 2, 10 ** 10),
@@ -333,6 +217,134 @@ SHOTGRID_DATA_TASKS = [
             "name": "Fork1",
             "id": 11001,
         },
+    },
+]
+SHOTGRID_DATA_SHOTS = [
+    {
+        "type": "Shot",
+        "id": 110,
+        "sequence": {"id": 1, "name": "SQ_1", "type": "Sequence"},
+        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
+        "code": "SHOT10",
+        ShotgridField.SEQUENCE_EPISODE.value: {
+            "id": 1,
+            "name": "EP_1",
+            "type": "Episode",
+        },
+        "sg_cut_in": _RAND(10 ** 2, 10 ** 10),
+        "sg_cut_out": _I32(),
+        "sg_frame_start": _RAND(10 ** 2, 10 ** 10),
+        "sg_frame_end": _I32(),
+    },
+    {
+        "type": "Shot",
+        "id": 111,
+        "sequence": {"id": 1, "name": "SQ_1", "type": "Sequence"},
+        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
+        "code": "SHOT11",
+        ShotgridField.SEQUENCE_EPISODE.value: {
+            "id": 1,
+            "name": "EP_1",
+            "type": "Episode",
+        },
+        **(
+            {
+                "sg_frame_start": _I32(),
+                "sg_frame_end": _I32(),
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
+            }
+            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
+            else {}
+        ),
+    },
+    {
+        "type": "Shot",
+        "id": 112,
+        "sequence": {"id": 11, "name": "SQ_11", "type": "Sequence"},
+        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
+        "code": "SHOT12",
+        ShotgridField.SEQUENCE_EPISODE.value: {
+            "id": 1,
+            "name": "EP_1",
+            "type": "Episode",
+        },
+        **(
+            {
+                "sg_frame_start": _I32(),
+                "sg_frame_end": _I32(),
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
+            }
+            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
+            else {}
+        ),
+    },
+    {
+        "type": "Shot",
+        "id": 113,
+        "sequence": {"id": 11, "name": "SQ_11", "type": "Sequence"},
+        "episode": {"id": 1, "name": "EP_1", "type": "Episode"},
+        "code": "SHOT13",
+        ShotgridField.SEQUENCE_EPISODE.value: {
+            "id": 1,
+            "name": "EP_1",
+            "type": "Episode",
+        },
+        **(
+            {
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
+                "sg_frame_start": _I32(),
+                "sg_frame_end": _I32(),
+            }
+            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
+            else {}
+        ),
+    },
+    {
+        "type": "Shot",
+        "id": 120,
+        "sequence": {"id": 2, "name": "SQ_2", "type": "Sequence"},
+        "episode": {"id": 2, "name": "EP_2", "type": "Episode"},
+        "code": "SHOT20",
+        ShotgridField.SEQUENCE_EPISODE.value: {
+            "id": 2,
+            "name": "EP_2",
+            "type": "Episode",
+        },
+        **(
+            {
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
+                "sg_frame_start": _I32(),
+                "sg_frame_end": _I32(),
+            }
+            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
+            else {}
+        ),
+    },
+    {
+        "type": "Shot",
+        "id": 121,
+        "sequence": {"id": 2, "name": "SQ_2", "type": "Sequence"},
+        "episode": {"id": 2, "name": "EP_2", "type": "Episode"},
+        "code": "SHOT21",
+        ShotgridField.SEQUENCE_EPISODE.value: {
+            "id": 2,
+            "name": "EP_2",
+            "type": "Episode",
+        },
+        **(
+            {
+                "sg_cut_in": _I32(),
+                "sg_cut_out": _I32(),
+                "sg_frame_start": _I32(),
+                "sg_frame_end": _I32(),
+            }
+            if _RAND(10 ** 2, 10 ** 10) % 2 == 0
+            else {}
+        ),
     },
 ]
 SHOTGRID_ASSET_TO_ASSET_LINKS = []

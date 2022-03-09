@@ -18,6 +18,7 @@
     "axios": "^0.25.0",
     "date-fns": "^2.28.0",
     "dayjs": "^1.10.7",
+    "query-string": "^7.1.1",
     "ramda": "^0.28.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -52,6 +53,7 @@
     ]
   },
   "devDependencies": {
-    "@react-buddy/ide-toolbox": "^1.1.0"
+    "@react-buddy/ide-toolbox": "^1.1.0",
+    "@types/ramda": "^0.28.1"
   }
 }
