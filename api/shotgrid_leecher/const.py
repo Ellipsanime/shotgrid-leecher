@@ -1,3 +1,3 @@
 """Constants module"""
 
-PROJECT_META = {"version": "0.0.10"}
+PROJECT_META = {"version": "0.1.0"}

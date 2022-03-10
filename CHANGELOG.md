@@ -1,5 +1,9 @@
 ## Shotgrid Leecher change Log
 
+### [0.1.0] Add user API
+#### March ?? - 2022
+  - Add user API and related ingestion mechanisms
+  - Add scheduled user/project synchronization
 ### [0.0.10] Support custom frame start/end fields
 #### March 09 - 2022
   - Add custom frame start/end fields
