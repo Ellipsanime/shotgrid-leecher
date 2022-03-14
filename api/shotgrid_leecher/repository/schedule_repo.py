@@ -1,24 +1,25 @@
 from typing import List, Dict, Any
 
-from pymongo.collection import Collection
 from toolz import pipe, curry, compose
 from toolz.curried import (
     map as select,
 )
 
-import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
 )
 from shotgrid_leecher.record.enums import DbName, DbCollection
-from shotgrid_leecher.record.queries import FindEntityQuery
-from shotgrid_leecher.record.results import GroupAndCountResult
-from shotgrid_leecher.record.schedule_structures import (
+from shotgrid_leecher.record.leecher_structures import (
     ScheduleLog,
     ScheduleProject,
     ScheduleQueueItem,
     EnhancedScheduleProject,
 )
+from shotgrid_leecher.record.queries import FindEntityQuery
+from shotgrid_leecher.record.results import GroupAndCountResult
+from shotgrid_leecher.utils.connectivity import db_collection
+
+_collection = db_collection(DbName.SCHEDULE)
 
 
 def fetch_batch_commands(
@@ -111,11 +112,3 @@ def _fetch_all(
         limit=find_query.limit_or_default(),
     )
     return list(cursor)
-
-
-def _collection(collection: DbCollection) -> Collection:
-    return (
-        conn.get_db_client()
-        .get_database(DbName.SCHEDULE.value)
-        .get_collection(collection.value)
-    )

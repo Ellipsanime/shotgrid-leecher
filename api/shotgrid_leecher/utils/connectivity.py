@@ -7,10 +7,10 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from retry import retry
-from toolz import memoize
+from toolz import memoize, curry
 
-from shotgrid_leecher.record.enums import EventTables
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.enums import EventTables, DbName, DbCollection
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 
 Map = Dict[str, Any]
 
@@ -51,6 +51,15 @@ def get_async_db_client(
 ) -> AsyncIOMotorClient:
     print(f"Mongo motor connection initialized for id {connection_id}")
     return AsyncIOMotorClient(os.getenv("MONGODB_URL"))
+
+
+@curry
+def db_collection(db: DbName, collection: DbCollection) -> Collection:
+    return (
+        get_db_client()
+        .get_database(db.value)
+        .get_collection(collection.value)
+    )
 
 
 @memoize

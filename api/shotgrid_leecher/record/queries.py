@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, List, Tuple
 import attr
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridProject,
     FieldsMapping,
@@ -89,3 +89,15 @@ class ShotgridFindTasksByProjectQuery(ShotgridBoundEntityQuery):
 class ShotgridFindAllStepsQuery:
     step_mapping: StepFieldsMapping
     credentials: ShotgridCredentials
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridFindUserProjectLinkQuery:
+    credentials: ShotgridCredentials
+    user_fields: List[str] = ["email", "name"]
+    linkage_fields: List[str] = ["project", "user"]
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridFetchUserProjectLinksQuery:
+    email: str

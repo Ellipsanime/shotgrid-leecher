@@ -24,6 +24,7 @@ class QueryStringType(Enum):
 class DbName(Enum):
     AVALON = "avalon"
     INTERMEDIATE = "shotgrid_openpype"
+    LEECHER = "shotgrid_leecher"
     SCHEDULE = "shotgrid_schedule"
 
 
@@ -32,6 +33,8 @@ class DbCollection(Enum):
     SCHEDULE_PROJECTS = "projects"
     SCHEDULE_QUEUE = "queue"
     SCHEDULE_LOGS = "logs"
+    SHOTGRID_CREDENTIALS = "shotgrid_credentials"
+    SHOTGRID_PROJ_USER_LINKS = "shotgrid_project_user_links"
 
 
 @unique
@@ -57,6 +60,8 @@ class ShotgridType(Enum):
     GROUP = "Group"
     TASK = "Task"
     STEP = "Step"
+    HUMAN_USER = "HumanUser"
+    PROJECT_USER_LINK = "ProjectUserConnection"
     ASSET_TO_SHOT_LINK = "AssetShotConnection"
     SHOT_TO_SHOT_LINK = "ShotShotConnection"
     ASSET_TO_ASSET_LINK = "AssetAssetConnection"

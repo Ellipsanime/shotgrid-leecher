@@ -1,9 +1,22 @@
 from typing import Optional, Dict, Any
-from urllib.parse import urlparse
 
+import validators
 from pydantic import BaseModel, Field, validator
 from pydantic.fields import ModelField
 from pydantic.main import ModelMetaclass
+
+
+def _validate_shotgrid_url(url: str) -> str:
+    if not validators.url(url):
+        raise ValueError(f"shotgrid_url {url} should be a valid url")
+    return url
+
+
+def _validate_non_empty_fields(*args) -> Any:
+    value, _, _, field = args
+    if value is None:
+        raise ValueError(f'Model field "{field.name}" can be null')
+    return value
 
 
 class ScheduleQueryParams(BaseModel):
@@ -16,6 +29,44 @@ class ScheduleQueryParams(BaseModel):
     limit: Optional[int] = Field(
         None, title="Amount of rows to return(max: 25)"
     )
+
+
+class ShotgridUrlModel(BaseModel):
+    shotgrid_url: str = Field(None, title="Shotgrid server url")
+
+    @validator("shotgrid_url")
+    def validate_shotgrid_url(cls: ModelMetaclass, url: str) -> str:
+        return _validate_shotgrid_url(url)
+
+    @validator("*", pre=True, always=True)
+    def validate_non_empty_fields(
+        cls: ModelMetaclass,
+        value: Optional[Any],
+        values: Any,
+        config: Dict,
+        field: ModelField,
+    ) -> Any:
+        return _validate_non_empty_fields(value, values, config, field)
+
+
+class ShotgridCredentialsModel(BaseModel):
+    shotgrid_url: str = Field(None, title="Shotgrid server url")
+    script_name: str = Field(None, title="Shotgrid script name")
+    script_key: str = Field(None, title="Shotgrid script key")
+
+    @validator("shotgrid_url")
+    def validate_shotgrid_url(cls: ModelMetaclass, url: str) -> str:
+        return _validate_shotgrid_url(url)
+
+    @validator("*", pre=True, always=True)
+    def validate_non_empty_fields(
+        cls: ModelMetaclass,
+        value: Optional[Any],
+        values: Any,
+        config: Dict,
+        field: ModelField,
+    ) -> Any:
+        return _validate_non_empty_fields(value, values, config, field)
 
 
 class BatchConfig(BaseModel):
@@ -31,10 +82,8 @@ class BatchConfig(BaseModel):
     fields_mapping: Dict[str, Dict[str, str]]
 
     @validator("shotgrid_url")
-    def validate_shotgrid_url(cls, url: str) -> str:
-        if not urlparse(url):
-            raise ValueError(f"shotgrid_url {url} should be a valid url")
-        return url
+    def validate_shotgrid_url(cls: ModelMetaclass, url: str) -> str:
+        return _validate_shotgrid_url(url)
 
     @validator("*", pre=True, always=True)
     def validate_non_empty_fields(
@@ -44,6 +93,5 @@ class BatchConfig(BaseModel):
         config: Dict,
         field: ModelField,
     ) -> Any:
-        if value is None:
-            raise ValueError(f'Model field "{field.name}" can be null')
-        return value
+        return _validate_non_empty_fields(value, values, config, field)
+

@@ -12,7 +12,7 @@ import shotgrid_leecher.mapper.avalon_mapper as mapper
 import shotgrid_leecher.repository.shotgrid_hierarchy_repo as repository
 from shotgrid_leecher.domain import batch_domain as sut
 from shotgrid_leecher.record.commands import CreateShotgridInAvalonCommand
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     FieldsMapping,
     ProjectFieldsMapping,
@@ -24,7 +24,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotToShotLinkMapping,
     AssetToAssetLinkMapping,
 )
-from shotgrid_leecher.writers import db_writer
+from shotgrid_leecher.writers import batch_writer
 
 Map = Dict[str, Any]
 
@@ -149,7 +149,7 @@ def test_shotgrid_to_avalon_batch_empty(monkeypatch: MonkeyPatch):
     # Arrange
     _patch_adjacent(monkeypatch, [], [])
     insert_avalon = Mock(return_value=1)
-    monkeypatch.setattr(db_writer, "insert_avalon_row", insert_avalon)
+    monkeypatch.setattr(batch_writer, "insert_avalon_row", insert_avalon)
     command = CreateShotgridInAvalonCommand(
         123,
         "",
@@ -178,7 +178,7 @@ def test_shotgrid_to_avalon_batch_project(monkeypatch: MonkeyPatch):
         _default_fields_mapping(),
     )
     insert_avalon = Mock(return_value=1)
-    monkeypatch.setattr(db_writer, "insert_avalon_rows", insert_avalon)
+    monkeypatch.setattr(batch_writer, "insert_avalon_rows", insert_avalon)
     # Act
     sut.create_shotgrid_in_avalon(command)
     # Assert
@@ -199,7 +199,7 @@ def test_shotgrid_to_avalon_batch_asset_values(monkeypatch: MonkeyPatch):
     ids = [project_name, 1, 2]
     _patch_adjacent(monkeypatch, data, [{"_id": project_name}])
     insert_avalon = Mock(side_effect=ids)
-    monkeypatch.setattr(db_writer, "insert_avalon_rows", insert_avalon)
+    monkeypatch.setattr(batch_writer, "insert_avalon_rows", insert_avalon)
     command = CreateShotgridInAvalonCommand(
         123,
         project_name,

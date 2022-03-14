@@ -26,7 +26,7 @@ from shotgrid_leecher.repository import (
     intermediate_hierarchy_repo,
 )
 from shotgrid_leecher.utils.functional import try_or
-from shotgrid_leecher.writers import db_writer
+from shotgrid_leecher.writers import batch_writer
 
 Map = Dict[str, Any]
 
@@ -58,11 +58,11 @@ def update_shotgrid_in_avalon(
         return BatchResult.WRONG_PROJECT_NAME
 
     if command.overwrite:
-        db_writer.drop_avalon_assets(command.project_name)
+        batch_writer.drop_avalon_assets(command.project_name)
 
-    db_writer.upsert_avalon_rows(command.project_name, avalon_rows)
-    db_writer.delete_avalon_rows(command.project_name, dropped_ids)
-    db_writer.overwrite_intermediate(command.project_name, current_hierarchy)
+    batch_writer.upsert_avalon_rows(command.project_name, avalon_rows)
+    batch_writer.delete_avalon_rows(command.project_name, dropped_ids)
+    batch_writer.overwrite_intermediate(command.project_name, current_hierarchy)
 
     return BatchResult.OK
 
@@ -82,7 +82,7 @@ def create_shotgrid_in_avalon(command: CreateShotgridInAvalonCommand):
     if not avalon_rows:
         return
 
-    db_writer.insert_avalon_rows(command.project_name, avalon_rows)
+    batch_writer.insert_avalon_rows(command.project_name, avalon_rows)
 
 
 @curry

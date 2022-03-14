@@ -1,6 +1,8 @@
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional
 
 import attr
+
+from shotgrid_leecher.record.enums import ShotgridType
 
 
 class BaseFilter:
@@ -30,9 +32,18 @@ class NameIsFilter(BaseFilter):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class TypeIsFilter(BaseFilter):
+    key: str
+    type: ShotgridType
+
+    def to_sublist(self) -> List[Any]:
+        return [self.key, "type_is", self.type.value]
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class IsNotFilter(BaseFilter):
     key: str
-    value: Any
+    value: Optional[Any]
 
     def to_sublist(self) -> List[Any]:
         return [self.key, "is_not", self.value]

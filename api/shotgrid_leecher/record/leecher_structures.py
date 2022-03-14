@@ -100,3 +100,40 @@ class ScheduleQueueItem:
             project_id=dic["project_id"],
             datetime=dic["datetime"],
         )
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridCredentials:
+    shotgrid_url: str
+    script_name: str
+    script_key: str
+
+    def to_mongo(self) -> Dict[str, Any]:
+        return {
+            "_id": self.shotgrid_url,
+            "script_name": self.script_name,
+            "script_key": self.script_key,
+        }
+
+    @staticmethod
+    def from_struct(struct: Any) -> "ShotgridCredentials":
+        if not attr.has(type(struct)):
+            raise Exception(f"Unsupported type {type(struct)} of {struct}")
+        return ShotgridCredentials.from_dict(attr.asdict(struct))
+
+    @staticmethod
+    def from_mongo(dic: Dict[str, Any]) -> "ShotgridCredentials":
+        return ShotgridCredentials(
+            shotgrid_url=dic["_id"],
+            script_name=dic["script_name"],
+            script_key=dic["script_key"],
+        )
+
+    @staticmethod
+    def from_dict(dic: Dict[str, Any]) -> "ShotgridCredentials":
+        return ShotgridCredentials(
+            shotgrid_url=dic["shotgrid_url"],
+            script_name=dic["script_name"],
+            script_key=dic["script_key"],
+        )
+

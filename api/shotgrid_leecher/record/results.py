@@ -5,6 +5,11 @@ import attr
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class DeletionResult:
+    deleted_count: int
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class InsertionResult:
     acknowledged: bool
     inserted_ids: List[Any]
@@ -37,3 +42,9 @@ class BatchResult(Enum):
     NO_SHOTGRID_HIERARCHY = "No_Shotgrid_Hierarchy"
     WRONG_PROJECT_NAME = "Project_Names_Differres"
     OK = "Ok"
+
+
+@unique
+class LogType(Enum):
+    SCHEDULE = "Schedule"
+    BATCH = "Batch"

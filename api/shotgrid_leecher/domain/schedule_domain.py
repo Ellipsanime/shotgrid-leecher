@@ -11,7 +11,7 @@ from shotgrid_leecher.domain import batch_domain
 from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
     UpdateShotgridInAvalonCommand,
-    LogBatchUpdateCommand,
+    LogScheduleUpdateCommand,
     CancelBatchSchedulingCommand,
     CleanScheduleBatchLogsCommand,
 )
@@ -73,28 +73,28 @@ def _batch_and_log(_: Any) -> None:
             {**request.to_dict(), "project_data": project_data.to_dict()}
         )
         result = batch_domain.update_shotgrid_in_avalon(command)
-        log_command = LogBatchUpdateCommand(
-            result,
-            command.project_name,
-            command.project_id,
-            time.time() - start,
-            None,
-            datetime.now(),
+        log_command = LogScheduleUpdateCommand(
+            batch_result=result,
+            project_name=command.project_name,
+            project_id=command.project_id,
+            duration=time.time() - start,
+            data=None,
+            datetime=datetime.now(),
         )
         schedule_writer.log_batch_result(log_command)
     except Exception as ex:
         _, _, ex_traceback = sys.exc_info()
         traceback.print_tb(ex_traceback, limit=10, file=sys.stdout)
-        log_command = LogBatchUpdateCommand(
-            BatchResult.FAILURE,
-            request.project_name,
-            request.project_id,
-            time.time() - start,
-            {
+        log_command = LogScheduleUpdateCommand(
+            batch_result=BatchResult.FAILURE,
+            project_name=request.project_name,
+            project_id=request.project_id,
+            duration=time.time() - start,
+            data={
                 "exception": try_or(lambda x: x[0], ex.args, ex.args),
                 "traceback": traceback.format_tb(ex_traceback, 100),
             },
-            datetime.now(),
+            datetime=datetime.now(),
         )
         _LOG.error(ex)
         schedule_writer.log_batch_result(log_command)

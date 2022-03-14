@@ -14,8 +14,8 @@ from shotgrid_leecher.record.avalon_structures import (
     AvalonProjectData,
 )
 from shotgrid_leecher.record.commands import ScheduleShotgridBatchCommand
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.results import BatchResult, GroupAndCountResult
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
 from shotgrid_leecher.repository import avalon_repo
 from shotgrid_leecher.writers import schedule_writer

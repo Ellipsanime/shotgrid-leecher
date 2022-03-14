@@ -1,20 +1,36 @@
 from datetime import datetime as dt
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import attr
 import cattr
 
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.http_models import BatchConfig
-from shotgrid_leecher.record.results import BatchResult
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
+from shotgrid_leecher.record.results import BatchResult, LogType
+from shotgrid_leecher.record.shotgrid_structures import ShotgridProjectUserLink
 from shotgrid_leecher.record.shotgrid_subtypes import FieldsMapping
 from shotgrid_leecher.utils.strings import attr_value_to_dict
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class UpsertProjectUserLinksCommand:
+    links: List[ShotgridProjectUserLink]
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class CancelBatchSchedulingCommand:
     project_name: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class UpsertShotgridCredentialsCommand:
+    credentials: ShotgridCredentials
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class DeleteShotgridCredentialsCommand:
+    shotgrid_url: str
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -120,13 +136,18 @@ class ShotgridCheckCommand:
 
 
 @attr.s(auto_attribs=True, frozen=True)
-class LogBatchUpdateCommand:
-    batch_result: BatchResult
+class BaseLogCommand:
     project_name: str
     project_id: int
     duration: float
     data: Any
     datetime: dt
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class LogScheduleUpdateCommand(BaseLogCommand):
+    batch_result: BatchResult
+    type: LogType = LogType.SCHEDULE
 
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self, value_serializer=attr_value_to_dict)

@@ -16,6 +16,7 @@ from shotgrid_leecher.record.shotgrid_structures import (
     ShotgridAssetTask,
     ShotgridStep,
     ShotgridEntityToEntityLink,
+    ShotgridProjectUserLink,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (
     TaskFieldsMapping,
@@ -30,6 +31,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
     ShotgridUser,
 )
 from shotgrid_leecher.utils.collections import swap_mapping_keys_values
+from shotgrid_leecher.utils.ids import to_sha256_id
 
 Map = Dict[str, Any]
 TOut = TypeVar("TOut")
@@ -41,6 +43,21 @@ def to_shotgrid_project(
 ) -> ShotgridProject:
     data = swap_mapping_keys_values(project_mapping.mapping_table, target)
     return ShotgridProject.from_dict(data)
+
+
+def to_shotgrid_project_user_link(
+    shotgrid_url: str, user: Map, project_user_link: Map,
+) -> ShotgridProjectUserLink:
+    return ShotgridProjectUserLink(
+        id=to_sha256_id(f"{shotgrid_url}/{project_user_link['id']}"),
+        type=project_user_link["type"],
+        user_email=user["email"],
+        user_name=user["name"],
+        user_id=user["id"],
+        project_name=project_user_link["project"]["name"],
+        project_id=project_user_link["project"]["id"],
+        host_url=shotgrid_url,
+    )
 
 
 @curry

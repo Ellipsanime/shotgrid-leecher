@@ -10,8 +10,8 @@ from shotgrid_leecher.record.commands import (
     CreateShotgridInAvalonCommand,
 )
 from shotgrid_leecher.record.http_models import BatchConfig
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.results import BatchResult
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.repository import avalon_repo
 
 router = APIRouter(tags=["batch"], prefix="/batch")

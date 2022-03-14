@@ -24,8 +24,8 @@ from shotgrid_leecher.record.intermediate_structures import (
     IntermediateProjectConfig,
     IntermediateProjectStep,
 )
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.results import BatchResult
-from shotgrid_leecher.record.shotgrid_structures import ShotgridCredentials
 from shotgrid_leecher.record.shotgrid_subtypes import (
     FieldsMapping,
     ProjectFieldsMapping,
@@ -39,7 +39,7 @@ from shotgrid_leecher.record.shotgrid_subtypes import (
 )
 from shotgrid_leecher.repository import intermediate_hierarchy_repo
 from shotgrid_leecher.utils.ids import to_object_id
-from shotgrid_leecher.writers import db_writer
+from shotgrid_leecher.writers import batch_writer
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
 STEP_NAMES = ["modeling", "shading", "rigging"]
@@ -183,8 +183,8 @@ def test_shotgrid_to_avalon_batch_update_project(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
-    monkeypatch.setattr(db_writer, "overwrite_intermediate", _fun(None))
-    monkeypatch.setattr(db_writer, "upsert_avalon_rows", upsert_mock)
+    monkeypatch.setattr(batch_writer, "overwrite_intermediate", _fun(None))
+    monkeypatch.setattr(batch_writer, "upsert_avalon_rows", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
         123,
@@ -223,8 +223,8 @@ def test_shotgrid_to_avalon_batch_update_asset_value(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
-    monkeypatch.setattr(db_writer, "overwrite_intermediate", _fun(None))
-    monkeypatch.setattr(db_writer, "upsert_avalon_rows", upsert_mock)
+    monkeypatch.setattr(batch_writer, "overwrite_intermediate", _fun(None))
+    monkeypatch.setattr(batch_writer, "upsert_avalon_rows", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
         123,
@@ -264,9 +264,9 @@ def test_shotgrid_to_avalon_batch_update_asset_hierarchy_db(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
     monkeypatch.setattr(
-        db_writer, "overwrite_intermediate", insert_intermediate
+        batch_writer, "overwrite_intermediate", insert_intermediate
     )
-    monkeypatch.setattr(db_writer, "upsert_avalon_row", upsert_mock)
+    monkeypatch.setattr(batch_writer, "upsert_avalon_row", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
         123,
@@ -316,8 +316,8 @@ def test_shotgrid_to_avalon_batch_update_asset_with_tasks(
     monkeypatch.setattr(
         intermediate_hierarchy_repo, "fetch_by_project", _fun(data)
     )
-    monkeypatch.setattr(db_writer, "overwrite_intermediate", _fun(None))
-    monkeypatch.setattr(db_writer, "upsert_avalon_rows", upsert_mock)
+    monkeypatch.setattr(batch_writer, "overwrite_intermediate", _fun(None))
+    monkeypatch.setattr(batch_writer, "upsert_avalon_rows", upsert_mock)
 
     command = UpdateShotgridInAvalonCommand(
         123,

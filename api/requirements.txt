@@ -11,4 +11,5 @@ pydantic==1.9.0
 pymongo==3.12.3
 retry==0.9.2
 toolz==0.11.2
+validators==0.18.2
 shotgun-api3 @ git+https://github.com/shotgunsoftware/python-api.git@v3.2.6

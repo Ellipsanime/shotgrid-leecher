@@ -12,6 +12,7 @@ from shotgrid_leecher.mapper import entity_mapper
 from shotgrid_leecher.mapper.entity_mapper import to_shotgrid_task
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.queries import (
     ShotgridFindProjectByIdQuery,
     ShotgridFindAssetsByProjectQuery,
@@ -19,7 +20,6 @@ from shotgrid_leecher.record.queries import (
     ShotgridFindTasksByProjectQuery,
 )
 from shotgrid_leecher.record.shotgrid_structures import (
-    ShotgridCredentials,
     ShotgridAsset,
 )
 from shotgrid_leecher.record.shotgrid_subtypes import (

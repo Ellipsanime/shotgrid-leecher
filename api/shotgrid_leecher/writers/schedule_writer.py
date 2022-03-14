@@ -1,13 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
-from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import UpdateOne
 
 import shotgrid_leecher.utils.connectivity as conn
 from shotgrid_leecher.record.commands import (
     ScheduleShotgridBatchCommand,
-    LogBatchUpdateCommand,
+    LogScheduleUpdateCommand,
     CancelBatchSchedulingCommand,
     CleanScheduleBatchLogsCommand,
 )
@@ -16,13 +15,7 @@ from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
 
-
-def _collection(collection: DbCollection) -> AsyncIOMotorCollection:
-    return (
-        conn.get_db_client()
-        .get_database(DbName.SCHEDULE.value)
-        .get_collection(collection.value)
-    )
+_collection = conn.db_collection(DbName.SCHEDULE)
 
 
 def queue_requests(
@@ -70,7 +63,7 @@ def dequeue_request() -> Optional[ScheduleShotgridBatchCommand]:
     return ScheduleShotgridBatchCommand.from_dict(raw["command"])
 
 
-def log_batch_result(command: LogBatchUpdateCommand) -> Dict[str, Any]:
+def log_batch_result(command: LogScheduleUpdateCommand) -> Dict[str, Any]:
     logs_table = _collection(DbCollection.SCHEDULE_LOGS)
     _LOG.debug(f"log batch result: {command}")
     return logs_table.insert_one(command.to_dict())

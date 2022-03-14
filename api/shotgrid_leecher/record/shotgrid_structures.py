@@ -1,5 +1,5 @@
 from enum import unique, Enum
-from typing import Optional, List, Dict, Any, Iterator
+from typing import Optional, List, Dict, Any, Iterator, Type
 
 import attr
 
@@ -63,6 +63,30 @@ class ShotgridShotParams:
 
     def to_dict(self) -> Dict[str, Any]:
         return attr.asdict(self)
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ShotgridProjectUserLink:
+    id: str
+    type: str
+    user_email: str
+    user_name: str
+    user_id: int
+    project_name: str
+    project_id: int
+    host_url: str
+
+    @staticmethod
+    def from_dict(raw_dic: Dict[str, Any]) -> "ShotgridProjectUserLink":
+        dic = {
+            **{k: v for k, v in raw_dic.items() if k != "_id"},
+            "id": raw_dic.get("_id", raw_dic.get("id")),
+        }
+        ctor: Type = ShotgridProjectUserLink
+        return ctor(**dic)
+
+    def to_base_dict(self) -> Dict[str, Any]:
+        return {k: v for k, v in attr.asdict(self).items() if k != "id"}
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -161,27 +185,6 @@ class ShotgridAsset(ShotgridEntity):
 
     def copy_with_tasks(self, tasks: List[ShotgridTask]) -> "ShotgridAsset":
         return attr.evolve(self, **{"tasks": tasks})
-
-
-@attr.s(auto_attribs=True, frozen=True)
-class ShotgridCredentials:
-    shotgrid_url: str
-    script_name: str
-    script_key: str
-
-    @staticmethod
-    def from_struct(struct: Any) -> "ShotgridCredentials":
-        if not attr.has(type(struct)):
-            raise Exception(f"Unsupported type {type(struct)} of {struct}")
-        return ShotgridCredentials.from_dict(attr.asdict(struct))
-
-    @staticmethod
-    def from_dict(dic: Dict[str, Any]) -> "ShotgridCredentials":
-        return ShotgridCredentials(
-            shotgrid_url=dic["shotgrid_url"],
-            script_name=dic["script_name"],
-            script_key=dic["script_key"],
-        )
 
 
 @unique

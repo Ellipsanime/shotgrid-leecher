@@ -12,13 +12,13 @@ from shotgrid_leecher.record.http_models import (
     BatchConfig,
     ScheduleQueryParams,
 )
-from shotgrid_leecher.record.queries import FindEntityQuery
-from shotgrid_leecher.record.schedule_structures import (
+from shotgrid_leecher.record.leecher_structures import (
     ScheduleLog,
     ScheduleProject,
     ScheduleQueueItem,
     EnhancedScheduleProject,
 )
+from shotgrid_leecher.record.queries import FindEntityQuery
 from shotgrid_leecher.repository import schedule_repo
 
 router = APIRouter(tags=["schedule"], prefix="/schedule")

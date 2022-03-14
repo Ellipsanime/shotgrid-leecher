@@ -22,9 +22,9 @@ from shotgrid_leecher.mapper.entity_mapper import (
 )
 from shotgrid_leecher.record.avalon_structures import AvalonProjectData
 from shotgrid_leecher.record.enums import ShotgridType, ShotgridField
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.queries import ShotgridHierarchyByProjectQuery
 from shotgrid_leecher.record.shotgrid_structures import (
-    ShotgridCredentials,
     ShotgridTask,
     ShotgridShot,
     ShotgridAsset,
