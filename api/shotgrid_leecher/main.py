@@ -7,9 +7,10 @@ from shotgrid_leecher.utils.logger import get_logger
 
 _LOG = get_logger(__name__.split(".")[-1])
 
+app = setup_all()
+
 
 def start():
-    app = setup_all()
     port = int(os.getenv("APP_PORT", 8090))
     uvicorn.run(app, host="0.0.0.0", port=port)
 
