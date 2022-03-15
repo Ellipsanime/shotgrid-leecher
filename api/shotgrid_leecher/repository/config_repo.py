@@ -19,3 +19,7 @@ def fetch_credentials() -> List[ShotgridCredentials]:
         ShotgridCredentials.from_mongo(x)
         for x in _collection(DbCollection.SHOTGRID_CREDENTIALS).find({})
     ]
+
+
+def fetch_shotgrid_urls() -> List[str]:
+    return [x.shotgrid_url for x in fetch_credentials()]

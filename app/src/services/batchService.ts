@@ -1,6 +1,6 @@
 import {IBatchFormData, Result} from "../records/forms";
 import axios from "axios";
-import {CommonHeaders, toLeecherBase} from "../tools/requests";
+import {CommonHeaders, toFailure, toLeecherBase} from "../tools/requests";
 import {loadConfig} from "../tools/config";
 
 
@@ -19,9 +19,6 @@ export async function batch(formData: IBatchFormData): Promise<Result> {
     const response = await axios.post(url, data, {headers: CommonHeaders});
     return {status: response.status};
   } catch (error: any) {
-    return {
-      errorStatus: error?.response?.status || -1,
-      errorMessage: "" + error + ", details: " + JSON.stringify(error?.response?.data),
-    };
+    return toFailure(error);
   }
 }

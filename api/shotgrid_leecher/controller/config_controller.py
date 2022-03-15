@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter
 
 import shotgrid_leecher.domain.config_domain as domain
@@ -6,8 +8,14 @@ from shotgrid_leecher.record.http_models import (
     ShotgridUrlModel,
 )
 from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
+from shotgrid_leecher.repository import config_repo
 
 router = APIRouter(tags=["config"], prefix="/config")
+
+
+@router.get("/credentials")
+async def fetch_credentials() -> List[str]:
+    return config_repo.fetch_shotgrid_urls()
 
 
 @router.post("/credentials")
