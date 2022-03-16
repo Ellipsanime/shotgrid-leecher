@@ -26,7 +26,7 @@ from shotgrid_leecher.record.avalon_structures import (
 )
 from shotgrid_leecher.record.enums import DbName, ShotgridType
 from shotgrid_leecher.record.intermediate_structures import IntermediateRow
-from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.repository import avalon_repo, config_repo
 from shotgrid_leecher.utils.ids import to_object_id
 from utils.funcs import (
     batch_config,
@@ -38,7 +38,7 @@ from utils.funcs import (
     populate_db,
     params,
     sg_query,
-    all_avalon_by_type,
+    all_avalon_by_type, creds,
 )
 
 TASK_NAMES = ["lines", "color", "look", "dev"]
@@ -176,6 +176,7 @@ async def test_batch_assets_without_types(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, batch_config())
 
@@ -201,6 +202,7 @@ async def test_update_shotgrid_to_avalon_empty(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     # Act
     await batch_controller.batch_update("1", batch_config())
@@ -225,6 +227,7 @@ async def test_update_shotgrid_to_avalon_init_project(
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     # Act
     await batch_controller.batch_update(data[0].id, batch_config())
@@ -248,6 +251,7 @@ async def test_update_shotgrid_to_avalon_update_project(
 
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     project_avalon_init_data = _create_avalon_project_row(
         project.id, project.object_id
@@ -299,6 +303,7 @@ async def test_update_batch_when_projects_with_different_source_name(
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     project_avalon_init_data = _create_avalon_project_row(
         data[0].id, data[0].object_id
@@ -332,6 +337,7 @@ async def test_update_shotgrid_to_avalon_update_project_tasks(
 
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     project_avalon_init_data = _create_avalon_project_row(
         project.id, project.object_id
@@ -370,6 +376,7 @@ async def test_update_shotgrid_to_avalon_init_asset(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(repository, "get_hierarchy_by_project", fun(data))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     # Act
     await batch_controller.batch_update(project_id, batch_config())
@@ -412,6 +419,7 @@ async def test_update_shotgrid_to_avalon_overwrite(monkeypatch: MonkeyPatch):
         ),
     )
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, batch_config())
 
@@ -452,6 +460,7 @@ async def test_update_shotgrid_to_avalon_update_values(
         ),
     )
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     # Act
     await batch_controller.batch_update(project_id, batch_config())
@@ -491,6 +500,7 @@ async def test_update_shotgrid_to_avalon_update_asset_type(
         ),
         update_asset_data.INTERMEDIATE_DB_DATA,
     )
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     monkeypatch.setattr(
         repository,
         "get_hierarchy_by_project",
@@ -542,6 +552,7 @@ async def test_update_shotgrid_when_some_assets_deleted(
         ),
         delete_asset_data.INTERMEDIATE_DB_DATA,
     )
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     monkeypatch.setattr(
         repository,
         "get_hierarchy_by_project",

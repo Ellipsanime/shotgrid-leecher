@@ -19,7 +19,7 @@ from shotgrid_leecher.record.leecher_structures import (
     EnhancedScheduleProject,
 )
 from shotgrid_leecher.record.queries import FindEntityQuery
-from shotgrid_leecher.repository import schedule_repo
+from shotgrid_leecher.repository import schedule_repo, config_repo
 
 router = APIRouter(tags=["schedule"], prefix="/schedule")
 
@@ -58,6 +58,12 @@ async def logs(
 
 @router.post("/{project_name}")
 async def schedule_batch(project_name: str, batch_config: BatchConfig):
+    credentials = config_repo.find_credentials_by_url(batch_config.shotgrid_url)
+    if not credentials:
+        raise HTTPException(
+            status_code=404,
+            detail="Credentials not found",
+        )
     query = FindEntityQuery({"_id": project_name}, limit=1)
     if schedule_repo.fetch_scheduled_projects(query):
         raise HTTPException(
@@ -65,7 +71,7 @@ async def schedule_batch(project_name: str, batch_config: BatchConfig):
             detail=f"Project {project_name} already exists",
         )
     command = ScheduleShotgridBatchCommand.from_http_model(
-        project_name, batch_config
+        project_name, credentials, batch_config
     )
     return await schedule_domain.schedule_batch(command)
 

@@ -14,12 +14,13 @@ from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.mapper import intermediate_mapper
 from shotgrid_leecher.record.enums import ShotgridType, DbName
 from shotgrid_leecher.record.results import BatchCheckResult
+from shotgrid_leecher.repository import config_repo
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     fun,
     all_avalon,
     populate_db,
-    batch_config,
+    batch_config, creds,
 )
 
 Map = Dict[str, Any]
@@ -65,6 +66,7 @@ async def test_batch_first_level_virtual_orphans(monkeypatch: MonkeyPatch):
         ),
     )
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     # Act
     await batch_controller.batch_update(project_id, batch_config())
@@ -90,6 +92,7 @@ async def test_batch_check(monkeypatch: MonkeyPatch):
     sg_client.find_one = _sg_query([project])
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
 
     # Act
     actual = await batch_controller.batch_check(

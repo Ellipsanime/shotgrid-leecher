@@ -49,7 +49,7 @@ function setOnSubmitHandler(setAlert: (_: IAlert) => any,
   }
 }
 
-function setValues(setValue: UseFormSetValue<IConfigFormData>, previousData?: IConfigFormData) {
+function setValues(setValue: UseFormSetValue<IConfigFormData>) {
   setValue("activeUrl", loadConfig().activeUri);
 }
 
@@ -88,8 +88,8 @@ export default function ConfigPanel() {
         <List component="div" sx={{m: 1, width: '50ch'}}>
           {creds.map((url, i) => {
             return (
-              <div>
-                <ListItem key={`list-item_${i}`} disablePadding>
+              <div key={`list-item_${i}`}>
+                <ListItem disablePadding>
                   <ListItemButton>
                     <ListItemText primary={url}/>
                   </ListItemButton>

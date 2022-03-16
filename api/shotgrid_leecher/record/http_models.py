@@ -72,8 +72,6 @@ class ShotgridCredentialsModel(BaseModel):
 class BatchConfig(BaseModel):
     shotgrid_url: str = Field(None, title="Shotgrid server url")
     shotgrid_project_id: int = Field(None, title="Shotgrid project id")
-    script_name: str = Field(None, title="Shotgrid script name")
-    script_key: str = Field(None, title="Shotgrid script key")
     overwrite: bool = Field(
         default=False,
         title="Flag that specifies whether batch "

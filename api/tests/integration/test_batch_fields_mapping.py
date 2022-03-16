@@ -15,7 +15,7 @@ from shotgrid_leecher.record.avalon_structures import (
 )
 from shotgrid_leecher.record.enums import ShotgridType, TopMediaLevelType
 from shotgrid_leecher.record.http_models import BatchConfig
-from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.repository import avalon_repo, config_repo
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     batch_config,
@@ -23,7 +23,7 @@ from utils.funcs import (
     fun,
     intermediate_collections,
     all_intermediate,
-    sg_query,
+    sg_query, creds,
 )
 
 Map = Dict[str, Any]
@@ -57,6 +57,7 @@ async def test_batch_with_fields_mapping(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(
         project_id, _batch_config(fields_mapping)

@@ -14,13 +14,13 @@ from shotgrid_leecher.record.avalon_structures import (
     AvalonProjectData,
 )
 from shotgrid_leecher.record.enums import DbName, ShotgridType
-from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.repository import avalon_repo, config_repo
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     sg_query,
     batch_config,
     fun,
-    all_avalon_by_type,
+    all_avalon_by_type, creds,
 )
 
 Map = Dict[str, Any]
@@ -64,6 +64,7 @@ async def test_batch_cut_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, batch_config())
 
@@ -131,6 +132,7 @@ async def test_batch_frame_data_at_intermediate_lvl(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, batch_config())
 
@@ -198,6 +200,7 @@ async def test_batch_cut_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, batch_config())
 
@@ -239,6 +242,7 @@ async def test_batch_frame_data_at_avalon_lvl(monkeypatch: MonkeyPatch):
     monkeypatch.setattr(avalon_repo, "fetch_project", fun(project))
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, batch_config())
 

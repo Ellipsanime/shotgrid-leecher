@@ -10,6 +10,7 @@ from mongomock.mongo_client import MongoClient
 from asset import linked_entities_data
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import DbName
+from shotgrid_leecher.repository import config_repo
 from shotgrid_leecher.utils import connectivity as conn
 from shotgrid_leecher.utils.ids import to_object_id
 from utils.funcs import (
@@ -18,7 +19,7 @@ from utils.funcs import (
     fun,
     all_avalon,
     populate_db,
-    sg_query,
+    sg_query, creds,
 )
 
 
@@ -66,6 +67,7 @@ async def test_batch_with_linked_entities_propagation_without_history(
     sg_client.find_one = sg_query(linked_entities_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert
@@ -114,6 +116,7 @@ async def test_batch_with_linked_entities_at_intermediate_level(
     sg_client.find_one = sg_query(linked_entities_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert

@@ -12,15 +12,25 @@ from shotgrid_leecher.record.commands import (
 from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 from shotgrid_leecher.record.results import BatchResult
-from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.repository import avalon_repo, config_repo
 
 router = APIRouter(tags=["batch"], prefix="/batch")
+
+
+def _get_credentials(batch_config: BatchConfig) -> ShotgridCredentials:
+    credentials = config_repo.find_credentials_by_url(batch_config.shotgrid_url)
+    if not credentials:
+        raise HTTPException(
+            status_code=404,
+            detail="Credentials not found",
+        )
+    return credentials
 
 
 @router.put("/{project_name}")
 async def batch_create(project_name: str, batch_config: BatchConfig):
     command = CreateShotgridInAvalonCommand.from_http_model(
-        project_name, batch_config
+        project_name, _get_credentials(batch_config), batch_config
     )
     result = batch_domain.create_shotgrid_in_avalon(command)
 
@@ -45,6 +55,7 @@ async def batch_update(
         )
     command = UpdateShotgridInAvalonCommand.from_http_model(
         project_name,
+        _get_credentials(batch_config),
         batch_config,
         project.data,
     )

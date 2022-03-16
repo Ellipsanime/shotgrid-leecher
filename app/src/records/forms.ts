@@ -1,9 +1,6 @@
 export interface IBatchFormData {
     openpypeProject: string;
-    urlProtocol: string;
-    urlPath: string;
-    scriptName: string;
-    apiKey: string;
+    shotgridUrl: string;
     shotgridProjectId: number;
     overwrite: boolean;
     fieldsMapping: string;
@@ -11,10 +8,7 @@ export interface IBatchFormData {
 
 export interface IScheduleFormData {
     openpypeProject: string;
-    urlProtocol: string;
-    urlPath: string;
-    scriptName: string;
-    apiKey: string;
+    shotgridUrl: string;
     shotgridProjectId: number;
     fieldsMapping: string;
 }

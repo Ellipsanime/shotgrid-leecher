@@ -13,11 +13,12 @@ from shotgrid_leecher.domain import batch_domain, schedule_domain
 from shotgrid_leecher.record.commands import ScheduleShotgridBatchCommand
 from shotgrid_leecher.record.enums import DbName, DbCollection
 from shotgrid_leecher.record.results import BatchResult
-from shotgrid_leecher.repository import avalon_repo
+from shotgrid_leecher.repository import avalon_repo, config_repo
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     batch_config,
     get_project,
+    creds,
     fun,
 )
 
@@ -43,7 +44,7 @@ def _all_logs(client: MongoClient) -> List[Map]:
 def _rollin_projects(client: MongoClient, n=2):
     batches = [
         ScheduleShotgridBatchCommand.from_http_model(
-            f"project_{str(uuid.uuid4())[:5]}", batch_config()
+            f"project_{str(uuid.uuid4())[:5]}", creds(""), batch_config()
         )
         for _ in range(n)
     ]
@@ -71,6 +72,7 @@ async def test_schedule_batch(monkeypatch: MonkeyPatch):
     client = MongoClient()
     project_name = f"project_{str(uuid.uuid4())[:5]}"
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     config = batch_config()
     # Act
     await schedule_controller.schedule_batch(project_name, config)

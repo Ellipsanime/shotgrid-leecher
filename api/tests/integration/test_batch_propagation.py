@@ -7,13 +7,14 @@ from mongomock.mongo_client import MongoClient
 from asset import propagation_data
 from shotgrid_leecher.controller import batch_controller
 from shotgrid_leecher.record.enums import DbName, AvalonType
+from shotgrid_leecher.repository import config_repo
 from shotgrid_leecher.utils import connectivity as conn
 from utils.funcs import (
     batch_config,
     fun,
     all_avalon,
     populate_db,
-    sg_query,
+    sg_query, creds,
 )
 
 
@@ -34,6 +35,7 @@ async def test_batch_propagation_without_project_recreation(
     sg_client.find_one = sg_query(propagation_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert
@@ -62,6 +64,7 @@ async def test_batch_with_project_to_children_fps_propagation(
     sg_client.find_one = sg_query(propagation_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert
@@ -96,6 +99,7 @@ async def test_batch_with_project_to_children_tools_env_propagation(
     sg_client.find_one = sg_query(propagation_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert
@@ -130,6 +134,7 @@ async def test_batch_with_project_to_children_pixel_aspect_propagation(
     sg_client.find_one = sg_query(propagation_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert
@@ -164,6 +169,7 @@ async def test_batch_with_project_to_children_partial_cut_in_propagation(
     sg_client.find_one = sg_query(propagation_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert
@@ -196,6 +202,7 @@ async def test_batch_with_project_to_children_partial_cut_out_propagation(
     sg_client.find_one = sg_query(propagation_data)
     monkeypatch.setattr(conn, "get_shotgrid_client", fun(sg_client))
     monkeypatch.setattr(conn, "get_db_client", fun(client))
+    monkeypatch.setattr(config_repo, "find_credentials_by_url", creds)
     # Act
     await batch_controller.batch_update(project_id, config)
     # Assert

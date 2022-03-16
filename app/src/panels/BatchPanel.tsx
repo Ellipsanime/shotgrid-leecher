@@ -9,7 +9,6 @@ import {
   MenuItem,
   Select,
   Snackbar,
-  Stack,
   TextareaAutosize,
   TextField
 } from "@mui/material";
@@ -24,11 +23,12 @@ import {
   UseFormSetValue
 } from 'react-hook-form';
 import {pink} from "@mui/material/colors";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {AlertColor} from "@mui/material/Alert/Alert";
 import {IBatchFormData} from "../records/forms";
 import {batch} from "../services/batchService";
 import {getScheduleObjectShape, useFirstRender} from "../tools/forms";
+import {fetchCredentials} from "../services/configService";
 
 
 function getObjectSchema(): ObjectSchema<{}> {
@@ -64,11 +64,8 @@ function setOnSubmitHandler(setBubble: (x: boolean) => any,
 
 function setValues(setValue: UseFormSetValue<IBatchFormData>, previousData?: IBatchFormData) {
   setValue("openpypeProject", previousData?.openpypeProject || "");
-  setValue("apiKey", previousData?.apiKey || "");
-  setValue("scriptName", previousData?.scriptName || "");
+  setValue("shotgridUrl", previousData?.shotgridUrl || "");
   setValue("shotgridProjectId", previousData?.shotgridProjectId || 0);
-  setValue("urlPath", previousData?.urlPath || "");
-  setValue("urlProtocol", previousData?.urlProtocol || "https");
   setValue("fieldsMapping", previousData?.fieldsMapping || "");
   setValue("overwrite", previousData?.overwrite || false);
 }
@@ -78,7 +75,7 @@ function getLoadPreviousData(setValue: UseFormSetValue<IBatchFormData>) {
 }
 
 export default function BatchPanel() {
-
+  const [creds, setCreds] = useState<string[]>([]);
   const [bubble, setBubble] = React.useState(false);
   const [severity, setSeverity] = React.useState<AlertColor>("success");
   const [message, setMessage] = React.useState<string>("");
@@ -101,6 +98,11 @@ export default function BatchPanel() {
     setValues(setValue);
   const onLoadPreviousClick = getLoadPreviousData(setValue);
 
+  useEffect(() => {
+    fetchCredentials()
+      .then(x => setCreds("errorMessage" in x ? [] : x));
+  }, []);
+
   return (
     <Box component="form"
          sx={{'& .MuiTextField-root': {m: 1, width: '50ch'},}}
@@ -118,50 +120,19 @@ export default function BatchPanel() {
         />
       </FormGroup>
       <FormGroup>
-        <Stack direction="row" spacing={2} sx={{width: '52ch'}}>
-          <FormControl sx={{m: 1, width: '15ch'}}>
-            <InputLabel id="protocol-label">Protocol</InputLabel>
-            <Controller control={control} name="urlProtocol"
+          <FormControl sx={{m: 1, width: '50ch'}}>
+            <InputLabel id="protocol-label">Shotgrid instance URL</InputLabel>
+            <Controller control={control} name="shotgridUrl"
                         render={({field}) => (
-                          <Select {...field} label="Protocol"
-                                  defaultValue={"https"}>
-                            <MenuItem
-                              value={"http"}>HTTP</MenuItem>
-                            <MenuItem
-                              value={"https"}>HTTPS</MenuItem>
+                          <Select {...field} label="Shotgrid instance URL" error={!!errors.shotgridUrl} >
+                            {creds.map((x, i) => {
+                              return (
+                                <MenuItem key={`url-key-${i}`} value={x}>{ new URL(x).host }</MenuItem>
+                              )
+                            })}
                           </Select>
                         )}/>
           </FormControl>
-          <Controller control={control} name="urlPath"
-                      render={({field}) => (
-                        <TextField {...field} label="Shotgrid url without protocol type (http://*)"
-                                   type="search"
-                                   error={!!errors.urlPath}
-                                   helperText={errors?.urlPath?.message || ''}/>
-                      )}
-          />
-        </Stack>
-      </FormGroup>
-      <FormGroup>
-        <Controller control={control} name="scriptName"
-                    render={({field}) => (
-                      <TextField {...field}
-                                 label="Shotgrid script name"
-                                 type="search"
-                                 error={!!errors.scriptName}
-                                 helperText={errors?.scriptName?.message || ''}/>
-                    )}
-        />
-      </FormGroup>
-      <FormGroup>
-        <Controller control={control} name="apiKey"
-                    render={({field}) => (
-                      <TextField {...field} label="Shotgrid API key"
-                                 type="password"
-                                 error={!!errors.apiKey}
-                                 helperText={errors?.apiKey?.message || ''}/>
-                    )}
-        />
       </FormGroup>
       <FormGroup>
         <Controller control={control} name="shotgridProjectId"

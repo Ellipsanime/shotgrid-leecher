@@ -19,10 +19,8 @@ export function formatDatetime(datetime: string) {
 
 export function toLeecherBase(data: IBatchFormData | IScheduleFormData) {
   return {
-    "shotgrid_url": data.urlProtocol + "://" + data.urlPath,
+    "shotgrid_url": data.shotgridUrl,
     "shotgrid_project_id": data.shotgridProjectId,
-    "script_name": data.scriptName,
-    "script_key": data.apiKey,
     "fields_mapping": JSON.parse(data?.fieldsMapping || "{}"),
   }
 }

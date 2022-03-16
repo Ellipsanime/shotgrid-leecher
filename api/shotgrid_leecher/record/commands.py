@@ -51,9 +51,9 @@ class CreateShotgridInAvalonCommand:
     @staticmethod
     def from_http_model(
         project_name: str,
+        credentials: ShotgridCredentials,
         model: BatchConfig,
     ) -> "CreateShotgridInAvalonCommand":
-        credentials = ShotgridCredentials.from_dict(model.dict())
         return CreateShotgridInAvalonCommand(
             model.shotgrid_project_id,
             project_name,
@@ -82,10 +82,10 @@ class UpdateShotgridInAvalonCommand:
     @staticmethod
     def from_http_model(
         project_name: str,
+        credentials: ShotgridCredentials,
         model: BatchConfig,
         project_data: AvalonProjectData,
     ) -> "UpdateShotgridInAvalonCommand":
-        credentials = ShotgridCredentials.from_dict(model.dict())
         return UpdateShotgridInAvalonCommand(
             model.shotgrid_project_id,
             project_name,
@@ -111,9 +111,9 @@ class ScheduleShotgridBatchCommand:
     @staticmethod
     def from_http_model(
         project_name: str,
+        credentials: ShotgridCredentials,
         model: BatchConfig,
     ) -> "ScheduleShotgridBatchCommand":
-        credentials = ShotgridCredentials.from_dict(model.dict())
         return ScheduleShotgridBatchCommand(
             model.shotgrid_project_id,
             project_name,

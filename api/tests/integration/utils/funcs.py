@@ -14,6 +14,7 @@ from shotgrid_leecher.record.avalon_structures import (
 from shotgrid_leecher.record.enums import ShotgridType, DbName
 from shotgrid_leecher.record.http_models import BatchConfig
 from shotgrid_leecher.record.intermediate_structures import IntermediateParams
+from shotgrid_leecher.record.leecher_structures import ShotgridCredentials
 
 Map = Dict[str, Any]
 
@@ -49,9 +50,15 @@ def batch_config(overwrite=True) -> BatchConfig:
         shotgrid_project_id=123,
         overwrite=overwrite,
         shotgrid_url="http://google.com",
-        script_name="1",
-        script_key="1",
         fields_mapping={},
+    )
+
+
+def creds(_: str) -> ShotgridCredentials:
+    return ShotgridCredentials(
+        batch_config().shotgrid_url,
+        "1",
+        "1",
     )
 
 
