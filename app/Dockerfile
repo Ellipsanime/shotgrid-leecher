@@ -2,6 +2,7 @@
 # ========= BUILD =========
 FROM node:16-alpine as builder
 
+ENV NODE_OPTIONS --max_old_space_size=1024
 WORKDIR /app
 
 RUN npm install tsc -g
