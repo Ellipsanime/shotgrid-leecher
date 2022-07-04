@@ -1,46 +1,146 @@
-# Getting Started with Create React App
+# Shotgrid Leecher App (Web UI)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Shotgrid Leecher UI is implemented as a [React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+Let’s assume we're working version `0.1.1` of Shotgrid Leecher (see [Shotgrid Leecher API](https://github.com/Ellipsanime/shotgrid-leecher/blob/0.1.0/api/README.md) for more information on the backend part)
 
-In the project directory, you can run:
+Switch to the `app` project folder: 
 
-### `npm start`
+```bash
+cd shotgrid-leecher/app
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Get the right branch:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```bash
+git pull --rebase
+git checkout 0.1.1
+```
 
-### `npm test`
+Build docker image: 
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+docker build . -t leecher-app --no-cache
+```
 
-### `npm run build`
+Tag built image and make it ready for AWS registry upload:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+docker tag leecher-app:latest \
+  <AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_app_v0.1.1
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Login into AWS ECR (AWS private Docker registry):
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+aws ecr get-login-password \
+  --region <AWS-region> | docker login \
+  --username AWS --password-stdin [<AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com](http://<AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/)
+```
 
-### `npm run eject`
+The result of login must be as following:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+WARNING! Your password will be stored unencrypted in /home/ellipse/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Login Succeeded
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Push built image into the AWS ECR:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```bash
+docker push \
+  [<AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_api_v0.1.](http://<AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_app_v0.1.0)1
+```
 
-## Learn More
+For `app` **deployment**, you need to update `docker-compose.local.yml`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```yaml
+version: "3.8"
+services:
+  leecher:
+    image: '<AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_app_**v0.1.1**'
+    environment:
+      API_URI: ${API_URI}
+    ports:
+      - "9010:80"
+      - "443:80"
+    deploy:
+      placement:
+        constraints: [node.hostname == swarm-worker2]
+      mode: 'replicated'
+      replicas: 1
+    dns:
+      - 8.8.8.8
+      - 9.9.9.9
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Next step deploys `app` service to the Docker swarm:
+
+```bash
+env $(cat .env | grep "^[A-Z]" | xargs) docker stack deploy \
+   --compose-file docker-compose.local.yml **shotgrid-leecher-app-prod** \
+   --with-registry-auth
+```
+
+In order to check the status of newly deployed stack, you need to run the following command:
+
+```bash
+docker stack ls
+```
+
+The output should display stacks with related services
+
+```bash
+NAME                           SERVICES   ORCHESTRATOR
+mongo_db_prod                  2          Swarm
+shotgrid-leecher-api-preprod   1          Swarm
+**shotgrid-leecher-app-prod      1**          Swarm
+shotgrid-leecher-prod          1          Swarm
+shotgrid-memcache-prod         1          Swarm
+```
+
+The state of each service can be displayed with `docker service ls`
+
+```bash
+ID             NAME                                   MODE         REPLICAS   IMAGE                                                                                             PORTS
+jjmb86thh050   mongo_db_prod_mongo1                   replicated   1/1        mongo:5.0.4                                                                                       *:27053->27017/tcp
+mdft5ekx2vxp   mongo_db_prod_mongo2                   replicated   1/1        mongo:5.0.4                                                                                       *:27054->27017/tcp
+kvu934pkggjv   shotgrid-leecher-api-preprod_leecher   replicated   1/1        <AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_api_v0.1.0   *:8999->8080/tcp
+9p9bcv3tobgv   **shotgrid-leecher-app-prod_leecher      replicated   1/1**        <AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_app_v0.1.0   *:443->80/tcp, *:9010->80/tcp
+e8cwugiqyl38   shotgrid-leecher-prod_leecher          replicated   1/1        <AWS-account-id>.dkr.ecr.<AWS-region>.amazonaws.com/ellipse/swarm_registry:shotgrid_leecher_api_v0.1.0   *:8090->8080/tcp
+```
+
+You need to pay attention to `REPLICAS` number, it must always be `1/1` for leecher app service
+
+
+### Clean up
+
+Don’t forget to tidy up after building
+
+```bash
+docker system prune -a --volumes
+```
+
+
+## ShotGrid Leecher User Interface 
+
+Once up and running, Shotgrid Leecher App is available on port 9010 at [http://<API_URI>:9010/](http://<API_URI>:9010/) 
+
+### Launch a specific synchronization
+ 
+ ![Shotgrid Leecher batched sync](./doc/resources/SGLeecher_batch.png)
+
+### Display previous scheduled batches by project
+
+ ![Shotgrid Leecher batched schedule](./doc/resources/SGLeecher_schedule.png)
+
+### Display previous scheduled batches chronologically
+
+ ![Shotgrid Leecher batched monitoring](./doc/resources/SGLeecher_monitoring.png)
+
+### Select Environment (Preproduction / Production)
+
+ ![Shotgrid Leecher batched config](./doc/resources/SGLeecher_config.png)

@@ -1,4 +1,4 @@
 # Shotgrid leecher project
 
-- API [part](./api/README.md)
-- Managing App (TODO)
+- [API](./api/README.md) (backend) documentation
+- [App](./app/README.md) (frontend) documentation
